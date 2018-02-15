@@ -4,14 +4,14 @@ import sys
 from jsonschema import validate
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print('Please provide 2 files, separated by a space.')
-        print('The first file should be the trip element schema file.')
-        print('The second file should be the document you want to parse.')
+    if len(sys.argv) == 1:
+        print('Please provide as an argument the location of the trip element json schema')
+        print('Provide the document you want to parse as stdin.')
     else:
-        with open(sys.argv[1], 'r') as f:
+        schema_file = ' '.join(sys.argv[1:])
+        with open(schema_file, 'r') as f:
             schema = json.load(f)
-        with open(sys.argv[2], 'r') as f:
-            doc = json.load(f)
+        doc = json.load(sys.stdin)
 
         validate(doc, schema)
+        print('Input conforms to JSON schema ✔')
