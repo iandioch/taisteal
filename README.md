@@ -11,11 +11,19 @@ Uses Python 3.6. Install dependencies by running `python3.6 -m pip install -r re
 `src/globtrottr.py` imports data from [Globtrottr.com](http://globtrottr.com) and converts it
 to the format used by Taistil.
 
-Run `python src/globtrottr.py -u <username>` to fetch this data from the Globtrottr API and
-convert it.
+To fetch this data from the Globtrottr API and convert it, run:
 
-If you have already downloaded your data from the Globtrottr API, you can run
-`python src/globtrottr.py -f <globtrottr_api_json_file>` to load the data from a file instead.
+```sh
+python src/globtrottr.py -u <USERNAME>
+```
+
+If you have already downloaded your data from the Globtrottr API, you can run:
+
+```sh
+python src/globtrottr.py -f <GLOBTROTTR_JSON_FILE_PATH>
+```
+
+This will load the data from a file instead.
 
 After the file has been converted, you may want to manually inspect the data for accuracy.
 
@@ -26,14 +34,14 @@ statistics about the data.
 
 Use it by executing:
 
-```
-cat <your_taistil_json_file> | python src/trip_parse.py <taistil_json_schema>
+```sh
+cat <TAISTIL_JSON_FILE_PATH> | python src/trip_parse.py <TAISTIL_JSON_SCHEMA_PATH>
 ```
 
 From the root directory of this repo, this would be:
 
-```
-cat <your_taistil_json_file> | python src/trip_parse.py trip_element_schema.json
+```sh
+cat <TAISTIL_JSON_FILE_PATH> | python src/trip_parse.py trip_element_schema.json
 ```
 
 Depending on the size of your data, this script might take a long time. However, it will
@@ -41,6 +49,6 @@ print progress reports as it operates.
 
 ## All together
 
-```
-python src/globtrottr.py -u <username> | python src/trip_parse.py trip_element_schema.json
+```sh
+python src/globtrottr.py -u <USERNAME> | python src/trip_parse.py trip_element_schema.json
 ```
