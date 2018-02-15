@@ -49,7 +49,7 @@ print progress reports as it operates.
 
 ## Compile multiple files
 
-`src/compile.py` takesa directory path, and combines all files in that directory into one
+`src/compile.py` takes a directory path, and combines all files in that directory into one
 big Taistil trip document, which it outputs on stdout.
 
 Use it as following:
