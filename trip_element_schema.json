@@ -48,6 +48,8 @@
             "BOAT",
             "BUS",
             "CAR",
+	    "MINIBUS",
+	    "TAXI",
             "TRAIN",
             "TRAM"
           ]
