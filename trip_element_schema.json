@@ -1,0 +1,64 @@
+{
+  "definitions": {
+    "visit": {
+      "properties": {
+        "location": {
+          "type": "string",
+          "description": "Must be machine findable (eg. by Google Maps lookup). This means it can be an unambiguous address, or coordinates."
+        },
+        "datetime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "location",
+        "datetime"
+      ],
+      "additionalProperties": false
+    },
+    "element": {
+      "type": "object",
+      "properties": {
+        "elements": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/element"
+              },
+              {
+                "$ref": "#/definitions/visit"
+              }
+            ]
+          }
+        },
+        "note": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "AEROPLANE",
+            "BICYCLE",
+            "BOAT",
+            "BUS",
+            "CAR",
+            "TRAIN",
+            "TRAM"
+          ]
+        }
+      },
+      "required": [
+        "elements"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$ref": "#/definitions/element",
+  "additionalProperties": false
+}
