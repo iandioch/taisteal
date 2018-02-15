@@ -47,6 +47,17 @@ cat <TAISTIL_JSON_FILE_PATH> | python src/trip_parse.py trip_element_schema.json
 Depending on the size of your data, this script might take a long time. However, it will
 print progress reports as it operates.
 
+## Compile multiple files
+
+`src/compile.py` takesa directory path, and combines all files in that directory into one
+big Taistil trip document, which it outputs on stdout.
+
+Use it as following:
+
+```sh
+python src/compile.py <DIRECTORY_PATH>
+```
+
 ## All together
 
 ```sh
