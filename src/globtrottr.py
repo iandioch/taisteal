@@ -51,7 +51,7 @@ if __name__ == "__main__":
             response = requests.get(link, verify=False)
             data = json.loads(response.text)
         else:
-            with open(sys.argv[2], 'r') as f:
+            with open(sys.argv[2], 'r', encoding='utf-8') as f:
                 data = json.load(f)
         converted = convert_trips(data)
-        print(json.dumps(converted, indent=4))
+        print(json.dumps(converted, indent=4, ensure_ascii=False))
