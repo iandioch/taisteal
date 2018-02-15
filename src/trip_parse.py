@@ -83,6 +83,23 @@ def get_location_data(locations):
     return location_data
 
 
+'''
+Given a Taistil element and the loaded location data, output stats
+on countries visited.
+'''
+def get_location_statistics(taistil_data, location_data):
+    def get_location_list(data, queue=[]):
+        if 'elements' in data:
+            for element in data['elements']:
+                get_locations(element)
+        else:
+            queue.add(data['location'])
+        return queue 
+    locations = get_location_list(taistil_data)
+    print(location_data)
+    print(locations)
+    return locations
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
@@ -99,3 +116,5 @@ if __name__ == '__main__':
         locations = list(get_locations(doc))
         location_data = get_location_data(locations)
         print(location_data)
+        location_stats = get_locaton_statistics(doc, location_data)
+        print(location_stats)
