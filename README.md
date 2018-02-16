@@ -2,6 +2,8 @@
 
 Tooling for dealing with the logging and analysis of travelling.
 
+Watch it run [here](https://asciinema.org/a/mwNNT1DUfelOovGldhacgHHPT).
+
 # Usage
 
 Uses Python 3.6. Install dependencies by running `python3.6 -m pip install -r requirements.txt`.
