@@ -107,7 +107,6 @@ def get_location_statistics(taistil_data, location_data):
             continue
         *_, components = location_data[location]
         for component in components:
-            print(component)
             if 'country' in component['types']:
                 countries[component['long_name']] += 1
                 unique_countries[component['long_name']].add(location)
@@ -143,16 +142,18 @@ if __name__ == '__main__':
         print('Input conforms to JSON schema ✔')
         locations = list(get_locations(doc))
         location_data = get_location_data(locations)
-        print(location_data)
         countries, airports, cities, uniques = get_location_statistics(doc, location_data)
-        def print_top_n(title, data, n):
+        def print_top_n(title, data, n=10):
             print('{:<40}{:>10}'.format(title, 'Count'))
             print('-'*50)
             for i in range(n):
                 if i >= len(data):
                     break
                 print('{:>3}. {:<40} {:>4}'.format(i+1, data[i][0], data[i][1]))
-        print_top_n("Countries travelled in", countries, 10)
-        print_top_n("Cities travelled in", cities, 10)
-        print_top_n("Airports travelled in", airports, 6)
-        print_top_n("Unique places visited in countries", uniques, 5)
+            print()
+        print_top_n("Countries travelled in", countries, 36)
+        print_top_n("Cities travelled in", cities)
+        print_top_n("Airports travelled in", airports, 8)
+        print_top_n("Unique places visited in countries", uniques, 8)
+        print('Total countries:', len(countries))
+        print('Total cities:', len(cities))
