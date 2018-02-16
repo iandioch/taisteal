@@ -41,7 +41,7 @@ cat <TAISTIL_JSON_FILE_PATH> | python src/trip_parse.py <TAISTIL_JSON_SCHEMA_PAT
 From the root directory of this repo, this would be:
 
 ```sh
-cat <TAISTIL_JSON_FILE_PATH> | python src/trip_parse.py trip_element_schema.json
+cat <TAISTIL_JSON_FILE_PATH> | python src/trip_parse.py taistil_schema.json
 ```
 
 Depending on the size of your data, this script might take a long time. However, it will
@@ -61,5 +61,5 @@ python src/compile.py <DIRECTORY_PATH>
 ## All together
 
 ```sh
-python src/globtrottr.py -u <USERNAME> | python src/trip_parse.py trip_element_schema.json
+python src/globtrottr.py -u <USERNAME> | python src/trip_parse.py taistil_schema.json
 ```
