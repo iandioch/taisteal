@@ -2,6 +2,8 @@ import json
 import sys
 import time
 
+from collections import defaultdict
+
 import requests
 
 from jsonschema import validate
@@ -91,14 +93,40 @@ def get_location_statistics(taistil_data, location_data):
     def get_location_list(data, queue=[]):
         if 'elements' in data:
             for element in data['elements']:
-                get_locations(element)
+                get_location_list(element)
         else:
-            queue.add(data['location'])
+            queue.append(data['location'])
         return queue 
+    countries = defaultdict(int)
+    airports = defaultdict(int)
+    cities = defaultdict(int)
+    unique_countries = defaultdict(set)
     locations = get_location_list(taistil_data)
-    print(location_data)
-    print(locations)
-    return locations
+    for location in locations:
+        if location not in location_data:
+            continue
+        *_, components = location_data[location]
+        for component in components:
+            print(component)
+            if 'country' in component['types']:
+                countries[component['long_name']] += 1
+                unique_countries[component['long_name']].add(location)
+            elif 'airport' in component['types']:
+                airports[component['long_name']] += 1
+            elif 'locality' in component['types']:
+                cities[component['long_name']] += 1
+
+    def dict_count_to_tuple_list(counts):
+        tuples = list(counts.items())
+        tuples.sort()
+        tuples.sort(key=lambda x:x[1], reverse=True)
+        return tuples
+    country_tuples = dict_count_to_tuple_list(countries)
+    airport_tuples = dict_count_to_tuple_list(airports)
+    city_tuples = dict_count_to_tuple_list(cities)
+    unique_countries = {k:len(unique_countries[k]) for k in unique_countries}
+    unique_country_tuples = dict_count_to_tuple_list(unique_countries)
+    return country_tuples, airport_tuples, city_tuples, unique_country_tuples
 
 
 if __name__ == '__main__':
@@ -116,5 +144,15 @@ if __name__ == '__main__':
         locations = list(get_locations(doc))
         location_data = get_location_data(locations)
         print(location_data)
-        location_stats = get_locaton_statistics(doc, location_data)
-        print(location_stats)
+        countries, airports, cities, uniques = get_location_statistics(doc, location_data)
+        def print_top_n(title, data, n):
+            print('{:<40}{:>10}'.format(title, 'Count'))
+            print('-'*50)
+            for i in range(n):
+                if i >= len(data):
+                    break
+                print('{:>3}. {:<40} {:>4}'.format(i+1, data[i][0], data[i][1]))
+        print_top_n("Countries travelled in", countries, 10)
+        print_top_n("Cities travelled in", cities, 10)
+        print_top_n("Airports travelled in", airports, 6)
+        print_top_n("Unique places visited in countries", uniques, 5)
