@@ -17,11 +17,14 @@ def compile_directory(path):
     }
     items = listdir(path)
     for item in items:
-        if item[0] == '.':
+        if item.startswith('.') and not item.startswith('..'):
             # Skip hidden files and directories (eg '.git')
             continue
         sub_path = join(path, item)
         if isfile(sub_path):
+            if not item.endswith('.json'):
+                # Skip non-json files
+                continue
             with open(sub_path, 'r') as f:
                 try:
                     data = json.load(f)
