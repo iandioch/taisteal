@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import time
 
@@ -11,6 +12,40 @@ from jsonschema import validate
 SECONDS_SLEEP_ON_RATE_LIMITING = 4
 SECONDS_SLEEP_BETWEEN_REQUESTS = 0.66
 ESTIMATED_RATE_LIMIT_TIME_MULTIPLE = 2
+JSON_LOCATION_LOOKUP_CACHE_PATH = '.taistil/location_cache.json'
+LOCATION_LOOKUP_CACHE = {}
+
+
+'''
+Try to read and parse a location look-up cache from the given file.
+'''
+def get_location_lookup_cache(path):
+    print('Loading location lookup cache from file "{}"'.format(path))
+    try:
+        with open(path, 'r') as f:
+            data = json.load(f)
+            return data
+    except OSError as e:
+        print('Could not find location lookup cache file "{}"'.format(path))
+        print(e)
+        return {}
+    except json.JSONDecodeError as e:
+        print('Location lookup cache file did not contain valid JSON.')
+        print(e)
+        return {}
+    except Exception as e:
+        print('Error while loading location lookup cache file.')
+        print(e)
+        return {}
+
+'''
+Try to save the location lookup cache in the given file.
+'''
+def save_location_lookup_cache(cache, path):
+    print('Saving location lookup cache to "{}"'.format(path))
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w') as f:
+        json.dump(cache, f)
 
 
 '''
@@ -57,32 +92,41 @@ Returns a {input_location: location_data_tuple} dict.
 If a location cannot be found, it will not appear in the dict as a key.
 '''
 def get_location_data(locations):
-    location_data = {}
     i = 0
+    cached = False # whether or not the previous location was fetched from cache.
     while i < len(locations):
-        if i > 0:
+        if i > 0 and not cached:
             # Reduce the load on the server between requests.
             time.sleep(SECONDS_SLEEP_BETWEEN_REQUESTS)
-        error, *data = get_coords_for_location(locations[i])
+        loc = locations[i]
+        data = None
+        error = None
+        if loc in LOCATION_LOOKUP_CACHE:
+            print('Fetching from cache.')
+            data = LOCATION_LOOKUP_CACHE[loc]
+            cached = True
+        else:
+            error, *data = get_coords_for_location(loc)
+            cached = False
         progress_str = '({}/{})'.format(i+1, len(locations))
         time_left = (len(locations) - (i+1))*SECONDS_SLEEP_BETWEEN_REQUESTS*ESTIMATED_RATE_LIMIT_TIME_MULTIPLE
         time_left_str = '~{} seconds remaining'.format(int(time_left))
         if not error:
-            location_data[locations[i]] = data
-            print('Received location data for', locations[i], progress_str, time_left_str, '✔')
+            LOCATION_LOOKUP_CACHE[loc] = data
+            print('Received location data for', loc, progress_str, time_left_str, '✔')
             i += 1
             continue
         if error == 'NO_RESULTS':
-            print('No location data found for location: ', locations[i], progress_str, '✗')
+            print('No location data found for location: ', loc, progress_str, '✗')
             i += 1
             continue
         if error == 'OVER_QUERY_LIMIT':
             print('Waiting for rate limiting to subside ⚠')
             time.sleep(SECONDS_SLEEP_ON_RATE_LIMITING)
             continue
-        print('Location "', locations[i], '" had error "', error, '". Skipping. ✗')
+        print('Location "', loc, '" had error "', error, '". Skipping. ✗')
         i += 1
-    return location_data
+    return LOCATION_LOOKUP_CACHE
 
 
 '''
@@ -140,8 +184,10 @@ if __name__ == '__main__':
 
         validate(doc, schema)
         print('Input conforms to JSON schema ✔')
+        LOCATION_LOOKUP_CACHE = get_location_lookup_cache(JSON_LOCATION_LOOKUP_CACHE_PATH)
         locations = list(get_locations(doc))
         location_data = get_location_data(locations)
+        save_location_lookup_cache(LOCATION_LOOKUP_CACHE, JSON_LOCATION_LOOKUP_CACHE_PATH)
         countries, airports, cities, uniques = get_location_statistics(doc, location_data)
         def print_top_n(title, data, n=10):
             print('{:<40}{:>10}'.format(title, 'Count'))
