@@ -11,6 +11,8 @@ import requests
 
 from jsonschema import validate
 
+from taistil_types import *
+
 SECONDS_SLEEP_ON_RATE_LIMITING = 4
 SECONDS_SLEEP_BETWEEN_REQUESTS = 0.66
 ESTIMATED_RATE_LIMIT_TIME_MULTIPLE = 2
@@ -174,6 +176,10 @@ def get_location_statistics(taistil_data, location_data):
     return country_tuples, airport_tuples, city_tuples, unique_country_tuples
 
 
+def parse_taistil_json(doc):
+    return TripElement.parse(doc)
+
+
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         print('Please provide as an argument the location of the trip element json schema')
@@ -186,6 +192,8 @@ if __name__ == '__main__':
 
         validate(doc, schema)
         print('Input conforms to JSON schema ✔')
+        taistil_obj = parse_taistil_json(doc)
+        print(taistil_obj)
         LOCATION_LOOKUP_CACHE = get_location_lookup_cache(JSON_LOCATION_LOOKUP_CACHE_PATH)
         locations = list(get_locations(doc))
         location_data = get_location_data(locations)

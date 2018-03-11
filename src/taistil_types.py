@@ -18,6 +18,10 @@ class TripObject:
     def __str__(self):
         return json.dumps(self.to_dict())
 
+    @staticmethod
+    def parse(doc):
+        return TripObject() 
+
 
 '''
 A leg of a Taistil trip. Can recursively contain other legs.
@@ -35,6 +39,19 @@ class TripElement(TripObject):
         if self.mode:
             d['mode'] = self.mode
         return d
+
+    @staticmethod
+    def parse(doc):
+        if 'elements' not in doc:
+            return TripVisit.parse(doc)
+        t = TripElement()
+        if 'note' in doc:
+            t.note = doc['note']
+        if 'mode' in doc:
+            t.mode = doc['mode']
+        for e in doc['elements']:
+            t.elements.append(TripElement.parse(e))
+        return t
 
 
 '''
@@ -56,6 +73,14 @@ class TripVisit(TripObject):
             d['note'] = self.note
         return d
 
+    @staticmethod
+    def parse(doc):
+        t = TripVisit()
+        t.location = doc['location']
+        t.datetime = doc['datetime']
+        if 'note' in doc:
+            t.note = doc['note']
+        return t
     
 
 if __name__ == "__main__":
