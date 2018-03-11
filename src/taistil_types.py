@@ -15,7 +15,6 @@ class TripObject:
             d['note'] = self.note
         return d
 
-
     def __str__(self):
         return json.dumps(self.to_dict())
 
