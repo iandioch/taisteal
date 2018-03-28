@@ -6,9 +6,12 @@ import pendulum
 '''
 Parent class of items that make part of a Taistil trip.
 '''
+
+
 class TripObject:
 
     def __init__(self):
+        # A note related to this trip object. No enforced format.
         self.note = ""
 
     def to_dict(self):
@@ -22,18 +25,27 @@ class TripObject:
 
     @staticmethod
     def parse(doc):
-        return TripObject() 
+        return TripObject()
 
 
 '''
 A leg of a Taistil trip. Can recursively contain other legs.
 '''
+
+
 class TripElement(TripObject):
 
     def __init__(self):
         super(TripElement, self).__init__()
+        # Sub elements of this trip object.
         self.elements = []
+        # The mode of transport for this trip. See taistil schema
+        # for a list of possible values.
         self.mode = ""
+        # The earliest datetime in any of this element's
+        # sub-elements. Can be treated as the starting datetime
+        # of this trip element.
+        self.datetime = None
 
     def to_dict(self):
         d = super().to_dict()
@@ -53,19 +65,26 @@ class TripElement(TripObject):
             t.mode = doc['mode']
         for e in doc['elements']:
             t.elements.append(TripElement.parse(e))
+        t.elements.sort(key=lambda x: x.datetime)
+        if len(t.elements):
+            t.datetime = t.elements[0].datetime
         return t
 
 
 '''
 A check in to a single location as part of a Taistil trip.
 '''
+
+
 class TripVisit(TripObject):
 
     def __init__(self):
         super(TripVisit, self).__init__()
+        # A string with some name for this location.
         self.location = ""
+        # A Pendulum object, representing the datetime of
+        # this location visit.
         self.datetime = ""
-
 
     def to_dict(self):
         d = {}
@@ -83,7 +102,7 @@ class TripVisit(TripObject):
         if 'note' in doc:
             t.note = doc['note']
         return t
-    
+
 
 if __name__ == "__main__":
     t = TripElement()
