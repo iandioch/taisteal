@@ -23,6 +23,8 @@ LOCATION_LOOKUP_CACHE = {}
 '''
 Try to read and parse a location look-up cache from the given file.
 '''
+
+
 def get_location_lookup_cache(path):
     print('Loading location lookup cache from file "{}"'.format(path))
     try:
@@ -42,9 +44,12 @@ def get_location_lookup_cache(path):
         print(e)
         return {}
 
+
 '''
 Try to save the location lookup cache in the given file.
 '''
+
+
 def save_location_lookup_cache(cache, path):
     print('Saving location lookup cache to "{}"'.format(path))
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -57,6 +62,8 @@ Use the Google Maps API to search a given string.
 
 Returns (error, full_address, latitude, longitude, address_components) tuple.
 '''
+
+
 def get_coords_for_location(loc):
     u = 'https://maps.googleapis.com/maps/api/geocode/json?address={}'
     resp = json.loads(requests.get(u.format(loc)).text)
@@ -74,13 +81,15 @@ def get_coords_for_location(loc):
 '''
 Recursively walk through the trip elements and return a set of all locations.
 '''
+
+
 def get_locations(data, queue=set()):
     if 'elements' in data:
         for element in data['elements']:
             get_locations(element)
     else:
         queue.add(data['location'])
-    return queue 
+    return queue
 
 
 '''
@@ -95,9 +104,12 @@ Returns a {input_location: location_data_tuple} dict.
 
 If a location cannot be found, it will not appear in the dict as a key.
 '''
+
+
 def get_location_data(locations):
     i = 0
-    cached = False # whether or not the previous location was fetched from cache.
+    # whether or not the previous location was fetched from cache.
+    cached = False
     while i < len(locations):
         if i > 0 and not cached:
             # Reduce the load on the server between requests.
@@ -113,11 +125,13 @@ def get_location_data(locations):
             error, *data = get_coords_for_location(loc)
             cached = False
         progress_str = '({}/{})'.format(i+1, len(locations))
-        time_left = (len(locations) - (i+1))*SECONDS_SLEEP_BETWEEN_REQUESTS*ESTIMATED_RATE_LIMIT_TIME_MULTIPLE
+        time_left = (len(locations) - (i+1)) * \
+            SECONDS_SLEEP_BETWEEN_REQUESTS*ESTIMATED_RATE_LIMIT_TIME_MULTIPLE
         time_left_str = '~{} seconds remaining'.format(int(time_left))
         if not error:
             LOCATION_LOOKUP_CACHE[loc] = data
-            print('Received location data for', loc, progress_str, time_left_str, '✔')
+            print('Received location data for', loc,
+                  progress_str, time_left_str, '✔')
             i += 1
             continue
         if error == 'NO_RESULTS':
@@ -137,6 +151,8 @@ def get_location_data(locations):
 Given a Taistil element and the loaded location data, output stats
 on countries visited.
 '''
+
+
 def get_location_statistics(taistil_data, location_data):
     def get_location_list(data, queue=[]):
         if 'elements' in data:
@@ -144,7 +160,7 @@ def get_location_statistics(taistil_data, location_data):
                 get_location_list(element)
         else:
             queue.append(data['location'])
-        return queue 
+        return queue
     countries = defaultdict(int)
     airports = defaultdict(int)
     cities = defaultdict(int)
@@ -166,12 +182,12 @@ def get_location_statistics(taistil_data, location_data):
     def dict_count_to_tuple_list(counts):
         tuples = list(counts.items())
         tuples.sort()
-        tuples.sort(key=lambda x:x[1], reverse=True)
+        tuples.sort(key=lambda x: x[1], reverse=True)
         return tuples
     country_tuples = dict_count_to_tuple_list(countries)
     airport_tuples = dict_count_to_tuple_list(airports)
     city_tuples = dict_count_to_tuple_list(cities)
-    unique_countries = {k:len(unique_countries[k]) for k in unique_countries}
+    unique_countries = {k: len(unique_countries[k]) for k in unique_countries}
     unique_country_tuples = dict_count_to_tuple_list(unique_countries)
     return country_tuples, airport_tuples, city_tuples, unique_country_tuples
 
@@ -194,18 +210,23 @@ if __name__ == '__main__':
         print('Input conforms to JSON schema ✔')
         taistil_obj = parse_taistil_json(doc)
         print(taistil_obj)
-        LOCATION_LOOKUP_CACHE = get_location_lookup_cache(JSON_LOCATION_LOOKUP_CACHE_PATH)
+        LOCATION_LOOKUP_CACHE = get_location_lookup_cache(
+            JSON_LOCATION_LOOKUP_CACHE_PATH)
         locations = list(get_locations(doc))
         location_data = get_location_data(locations)
-        save_location_lookup_cache(LOCATION_LOOKUP_CACHE, JSON_LOCATION_LOOKUP_CACHE_PATH)
-        countries, airports, cities, uniques = get_location_statistics(doc, location_data)
+        save_location_lookup_cache(
+            LOCATION_LOOKUP_CACHE, JSON_LOCATION_LOOKUP_CACHE_PATH)
+        countries, airports, cities, uniques = get_location_statistics(
+            doc, location_data)
+
         def print_top_n(title, data, n=10):
             print('{:<40}{:>10}'.format(title, 'Count'))
             print('-'*50)
             for i in range(n):
                 if i >= len(data):
                     break
-                print('{:>3}. {:<40} {:>4}'.format(i+1, data[i][0], data[i][1]))
+                print('{:>3}. {:<40} {:>4}'.format(
+                    i+1, data[i][0], data[i][1]))
             print()
         print_top_n("Countries travelled in", countries, 36)
         print_top_n("Cities travelled in", cities)

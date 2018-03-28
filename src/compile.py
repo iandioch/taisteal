@@ -10,6 +10,8 @@ Given a path to a directory, compile all the json
 files in that directory and recursive subdirectories
 into one big Taistil json document, and return it.
 '''
+
+
 def compile_directory(path):
     obj = {
         'note': 'Auto-compiled from directory {}'.format(path),
@@ -34,6 +36,7 @@ def compile_directory(path):
         else:
             obj['elements'].append(compile_directory(sub_path))
     return obj
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
