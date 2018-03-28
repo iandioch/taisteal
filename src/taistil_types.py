@@ -1,5 +1,7 @@
 import json
 
+import pendulum
+
 
 '''
 Parent class of items that make part of a Taistil trip.
@@ -68,7 +70,7 @@ class TripVisit(TripObject):
     def to_dict(self):
         d = {}
         d['location'] = self.location
-        d['datetime'] = self.datetime
+        d['datetime'] = str(self.datetime)
         if self.note:
             d['note'] = self.note
         return d
@@ -77,7 +79,7 @@ class TripVisit(TripObject):
     def parse(doc):
         t = TripVisit()
         t.location = doc['location']
-        t.datetime = doc['datetime']
+        t.datetime = pendulum.parse(doc['datetime'])
         if 'note' in doc:
             t.note = doc['note']
         return t
