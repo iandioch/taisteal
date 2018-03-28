@@ -58,7 +58,8 @@ class TaistilLocation:
             error, loc = TaistilLocation._fetch_location(query)
             if error:
                 return None, error
-            print('Created Location', loc)
+            print('Created Location', loc.address)
+            loc.query = query
             LOCATION_LOOKUP_CACHE[query] = loc
             return loc, None
 
@@ -68,6 +69,7 @@ def load_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
             d = json.load(f)
             for e in d:
                 LOCATION_LOOKUP_CACHE[e] = TaistilLocation._parse_maps_response(d[e])
+                LOCATION_LOOKUP_CACHE[e].query = e
             print(LOCATION_LOOKUP_CACHE)
     except OSError as e:
         print('Could not find location lookup cache file "{}"'.format(path))

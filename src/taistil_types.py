@@ -1,5 +1,7 @@
 import json
 
+from location import TaistilLocation
+
 import pendulum
 
 
@@ -80,15 +82,17 @@ class TripVisit(TripObject):
 
     def __init__(self):
         super(TripVisit, self).__init__()
-        # A string with some name for this location.
-        self.location = ""
+        # A TaistilLocation object.
+        self.location = None
+        # Original location query string.
+        self.query = ''
         # A Pendulum object, representing the datetime of
         # this location visit.
-        self.datetime = ""
+        self.datetime = None
 
     def to_dict(self):
         d = {}
-        d['location'] = self.location
+        d['location'] = self.query
         d['datetime'] = str(self.datetime)
         if self.note:
             d['note'] = self.note
@@ -97,7 +101,8 @@ class TripVisit(TripObject):
     @staticmethod
     def parse(doc):
         t = TripVisit()
-        t.location = doc['location']
+        t.location, error = TaistilLocation.find(doc['location'])
+        t.query = doc['location']
         t.datetime = pendulum.parse(doc['datetime'])
         if 'note' in doc:
             t.note = doc['note']

@@ -80,10 +80,12 @@ if __name__ == '__main__':
         doc = json.load(sys.stdin)
 
         validate(doc, schema)
+
+        # Load location cache before any lookups are made.
+        load_location_lookup_cache()
         print('Input conforms to JSON schema ✔')
         taistil_obj = parse_taistil_json(doc)
         print(taistil_obj)
-        load_location_lookup_cache()
 
         countries, airports, cities, uniques = get_location_statistics(doc)
 
