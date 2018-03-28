@@ -39,7 +39,10 @@ def get_location_statistics(taistil_data):
     unique_countries = defaultdict(set)
     locations = get_location_list(taistil_data)
     for location in locations:
-        components = TaistilLocation.find(location).components
+        loc, err = TaistilLocation.find(location)
+        if err == 'NOT_FOUND' or err == 'OVER_QUERY_LIMIT':
+            continue
+        components = loc.components
         for component in components:
             if 'country' in component['types']:
                 countries[component['long_name']] += 1

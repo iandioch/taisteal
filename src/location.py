@@ -24,47 +24,51 @@ class TaistilLocation:
         self.latitude = 0
         self.longitude = 0
         self.components = []
-
+        self.maps_response = ""
+        
     def __str__(self):
         return self.query
+
+    @staticmethod
+    def _parse_maps_response(result):
+        loc = TaistilLocation()
+        loc.maps_response = result
+        loc.address = result['formatted_address']
+        loc.latitude = float(result['geometry']['location']['lat'])
+        loc.longitude = float(result['geometry']['location']['lng'])
+        loc.components = result['address_components']
+        return loc
 
     @staticmethod
     def _fetch_location(query):
         u = 'https://maps.googleapis.com/maps/api/geocode/json?address={}'
         resp = json.loads(requests.get(u.format(query)).text)
         if resp['status'] != 'OK':
-            return resp['status'], None, None, None, None
+            return resp['status'], None
         for result in resp['results']:
-            addr = result['formatted_address']
-            lat = float(result['geometry']['location']['lat'])
-            lng = float(result['geometry']['location']['lng'])
-            components = result['address_components']
-            return None, addr, lat, lng, components
-        return LOOKUP_NO_RESULTS, None, None, None, None
+            loc = TaistilLocation._parse_maps_response(result)
+            return None, loc
+        return LOOKUP_NO_RESULTS, None 
 
     @staticmethod
     def find(query):
         if query in LOCATION_LOOKUP_CACHE:
             return LOCATION_LOOKUP_CACHE[query], LOOKUP_FETCHED_FROM_CACHE
         for _ in range(MAXIMUM_LOCATION_LOOKUP_ATTEMPTS):
-            error, addr, lat, lng, components = \
-                TaistilLocation._fetch_location(query)
+            error, loc = TaistilLocation._fetch_location(query)
             if error:
                 return None, error
-            loc = TaistilLocation()
-            loc.query = query
-            loc.address = addr
-            loc.latitude = lat
-            loc.longitude = lng
-            loc.components = components
             print('Created Location', loc)
             LOCATION_LOOKUP_CACHE[query] = loc
-            return loc
+            return loc, None
 
 def load_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
     try:
         with open(path, 'r') as f:
-            LOCATION_LOOKUP_CACHE = json.load(f)
+            d = json.load(f)
+            for e in d:
+                LOCATION_LOOKUP_CACHE[e] = TaistilLocation._parse_maps_response(d[e])
+            print(LOCATION_LOOKUP_CACHE)
     except OSError as e:
         print('Could not find location lookup cache file "{}"'.format(path))
     except json.JSONDecodeError as e:
@@ -74,5 +78,6 @@ def load_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
 
 def save_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
     os.makedirs(os.path.dirname(path), exist_ok=True)
+    d = {q:LOCATION_LOOKUP_CACHE[q].maps_response for q in LOCATION_LOOKUP_CACHE}
     with open(path, 'w') as f:
-        json.dump(LOCATION_LOOKUP_CACHE, f)
+        json.dump(d, f)
