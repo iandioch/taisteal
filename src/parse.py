@@ -105,5 +105,5 @@ if __name__ == '__main__':
         print('Total countries:', len(countries))
         print('Total cities:', len(cities))
         for d, s in taistil_obj.get_log():
-            print(str(d), s.address)
+            print(str(d), s, s.parent)
         save_location_lookup_cache()

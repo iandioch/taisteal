@@ -25,18 +25,31 @@ class TaistilLocation:
         self.longitude = 0
         self.components = []
         self.maps_response = ""
+        self.parent = None
+        self.children = []
 
     def __str__(self):
         return self.query
 
     @staticmethod
-    def _parse_maps_response(result):
+    def _parse_maps_response(result, query=''):
         loc = TaistilLocation()
         loc.maps_response = result
+        loc.query = query
         loc.address = result['formatted_address']
         loc.latitude = float(result['geometry']['location']['lat'])
         loc.longitude = float(result['geometry']['location']['lng'])
         loc.components = result['address_components']
+        for component in loc.components:
+            if 'country' in component['types']:
+                n = component['long_name']
+                if n == query:
+                    continue
+                loc.parent, error = TaistilLocation.find(component['long_name'])
+                if error:
+                    print(error)
+                else:
+                    loc.parent.children.append(loc)
         return loc
 
     @staticmethod
@@ -46,7 +59,7 @@ class TaistilLocation:
         if resp['status'] != 'OK':
             return resp['status'], None
         for result in resp['results']:
-            loc = TaistilLocation._parse_maps_response(result)
+            loc = TaistilLocation._parse_maps_response(result, query)
             return None, loc
         return LOOKUP_NO_RESULTS, None
 
@@ -61,6 +74,7 @@ class TaistilLocation:
             print('Created Location', loc.address)
             loc.query = query
             LOCATION_LOOKUP_CACHE[query] = loc
+            LOCATION_LOOKUP_CACHE[loc.address] = loc
             return loc, None
 
 
@@ -70,8 +84,7 @@ def load_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
             d = json.load(f)
             for e in d:
                 LOCATION_LOOKUP_CACHE[e] = TaistilLocation._parse_maps_response(
-                    d[e])
-                LOCATION_LOOKUP_CACHE[e].query = e
+                    d[e], e)
             print(LOCATION_LOOKUP_CACHE)
     except OSError as e:
         print('Could not find location lookup cache file "{}"'.format(path))
