@@ -25,7 +25,7 @@ class TaistilLocation:
         self.longitude = 0
         self.components = []
         self.maps_response = ""
-        
+
     def __str__(self):
         return self.query
 
@@ -48,7 +48,7 @@ class TaistilLocation:
         for result in resp['results']:
             loc = TaistilLocation._parse_maps_response(result)
             return None, loc
-        return LOOKUP_NO_RESULTS, None 
+        return LOOKUP_NO_RESULTS, None
 
     @staticmethod
     def find(query):
@@ -63,12 +63,14 @@ class TaistilLocation:
             LOCATION_LOOKUP_CACHE[query] = loc
             return loc, None
 
+
 def load_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
     try:
         with open(path, 'r') as f:
             d = json.load(f)
             for e in d:
-                LOCATION_LOOKUP_CACHE[e] = TaistilLocation._parse_maps_response(d[e])
+                LOCATION_LOOKUP_CACHE[e] = TaistilLocation._parse_maps_response(
+                    d[e])
                 LOCATION_LOOKUP_CACHE[e].query = e
             print(LOCATION_LOOKUP_CACHE)
     except OSError as e:
@@ -78,8 +80,10 @@ def load_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
     except Exception as e:
         print('Error while loading location lookup cache file.')
 
+
 def save_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    d = {q:LOCATION_LOOKUP_CACHE[q].maps_response for q in LOCATION_LOOKUP_CACHE}
+    d = {
+        q: LOCATION_LOOKUP_CACHE[q].maps_response for q in LOCATION_LOOKUP_CACHE}
     with open(path, 'w') as f:
         json.dump(d, f)

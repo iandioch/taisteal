@@ -72,6 +72,15 @@ class TripElement(TripObject):
             t.datetime = t.elements[0].datetime
         return t
 
+    def get_log(self):
+        log = []
+        for e in self.elements:
+            if isinstance(e, TripVisit):
+                log.append((e.datetime, e.location))
+            else:
+                log += e.get_log()
+        return log
+
 
 '''
 A check in to a single location as part of a Taistil trip.

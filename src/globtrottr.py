@@ -2,7 +2,9 @@ import json
 import requests
 import sys
 
-MODES = ["0", "1", "AEROPLANE", "3", "TRAIN", "5", "TAXI", "CAR", "8", "BUS", "MINIBUS"]
+MODES = ["0", "1", "AEROPLANE", "3", "TRAIN",
+         "5", "TAXI", "CAR", "8", "BUS", "MINIBUS"]
+
 
 def convert_trips(data):
     converted_data = {
@@ -35,6 +37,7 @@ def convert_trips(data):
             continue
         converted_data['elements'].append(trip_element)
     return converted_data
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or sys.argv[1] not in ('-u', '-f'):

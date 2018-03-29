@@ -104,4 +104,6 @@ if __name__ == '__main__':
         print_top_n("Unique places visited in countries", uniques, 8)
         print('Total countries:', len(countries))
         print('Total cities:', len(cities))
+        for d, s in taistil_obj.get_log():
+            print(str(d), s.address)
         save_location_lookup_cache()
