@@ -1,12 +1,12 @@
 import json
 
-from location import TaistilLocation
+from location import TaistealLocation
 
 import pendulum
 
 
 '''
-Parent class of items that make part of a Taistil trip.
+Parent class of items that make part of a Taisteal trip.
 '''
 
 
@@ -31,7 +31,7 @@ class TripObject:
 
 
 '''
-A leg of a Taistil trip. Can recursively contain other legs.
+A leg of a Taisteal trip. Can recursively contain other legs.
 '''
 
 
@@ -41,7 +41,7 @@ class TripElement(TripObject):
         super(TripElement, self).__init__()
         # Sub elements of this trip object.
         self.elements = []
-        # The mode of transport for this trip. See taistil schema
+        # The mode of transport for this trip. See taisteal schema
         # for a list of possible values.
         self.mode = ""
         # The earliest datetime in any of this element's
@@ -99,7 +99,7 @@ class TripElement(TripObject):
 
 
 '''
-A check in to a single location as part of a Taistil trip.
+A check in to a single location as part of a Taisteal trip.
 '''
 
 
@@ -107,7 +107,7 @@ class TripVisit(TripObject):
 
     def __init__(self):
         super(TripVisit, self).__init__()
-        # A TaistilLocation object.
+        # A TaistealLocation object.
         self.location = None
         # Original location query string.
         self.query = ''
@@ -126,7 +126,7 @@ class TripVisit(TripObject):
     @staticmethod
     def parse(doc):
         t = TripVisit()
-        t.location, error = TaistilLocation.find(doc['location'])
+        t.location, error = TaistealLocation.find(doc['location'])
         t.query = doc['location']
         t.datetime = pendulum.parse(doc['datetime'])
         if 'note' in doc:

@@ -8,7 +8,7 @@ from os.path import isfile, join
 '''
 Given a path to a directory, compile all the json
 files in that directory and recursive subdirectories
-into one big Taistil json document, and return it.
+into one big Taisteal json document, and return it.
 '''
 
 

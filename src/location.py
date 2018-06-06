@@ -4,7 +4,7 @@ import os
 import requests
 
 # Constants
-LOCATION_LOOKUP_CACHE_PATH = '.taistil/location_cache.json'
+LOCATION_LOOKUP_CACHE_PATH = '.taisteal/location_cache.json'
 MAXIMUM_LOCATION_LOOKUP_ATTEMPTS = 5
 
 # Lookup results
@@ -16,7 +16,7 @@ LOOKUP_OVER_QUERY_LIMIT = 'OVER_QUERY_LIMIT'
 LOCATION_LOOKUP_CACHE = {}
 
 
-class TaistilLocation:
+class TaistealLocation:
 
     def __init__(self):
         self.query = ""
@@ -40,7 +40,7 @@ class TaistilLocation:
 
     @staticmethod
     def _parse_maps_response(result, query=''):
-        loc = TaistilLocation()
+        loc = TaistealLocation()
         loc.maps_response = result
         loc.query = query
         loc.address = result['formatted_address']
@@ -52,7 +52,7 @@ class TaistilLocation:
                 n = component['long_name']
                 if n == query:
                     continue
-                loc.parent, error = TaistilLocation.find(component['long_name'])
+                loc.parent, error = TaistealLocation.find(component['long_name'])
                 if error:
                     print(error)
                 else:
@@ -66,7 +66,7 @@ class TaistilLocation:
         if resp['status'] != 'OK':
             return resp['status'], None
         for result in resp['results']:
-            loc = TaistilLocation._parse_maps_response(result, query)
+            loc = TaistealLocation._parse_maps_response(result, query)
             return None, loc
         return LOOKUP_NO_RESULTS, None
 
@@ -75,7 +75,7 @@ class TaistilLocation:
         if query in LOCATION_LOOKUP_CACHE:
             return LOCATION_LOOKUP_CACHE[query], LOOKUP_FETCHED_FROM_CACHE
         for _ in range(MAXIMUM_LOCATION_LOOKUP_ATTEMPTS):
-            error, loc = TaistilLocation._fetch_location(query)
+            error, loc = TaistealLocation._fetch_location(query)
             if error:
                 return None, error
             print('Created Location', loc.address)
@@ -90,7 +90,7 @@ def load_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
         with open(path, 'r') as f:
             d = json.load(f)
             for e in d:
-                LOCATION_LOOKUP_CACHE[e] = TaistilLocation._parse_maps_response(
+                LOCATION_LOOKUP_CACHE[e] = TaistealLocation._parse_maps_response(
                     d[e], e)
             print(LOCATION_LOOKUP_CACHE)
     except OSError as e:

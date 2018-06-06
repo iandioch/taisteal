@@ -1,4 +1,4 @@
-# Copied from src/trip_parse.py, modified to use Taistil types instead of raw objects.
+# Copied from src/trip_parse.py, modified to use Taisteal types instead of raw objects.
 
 import json
 import os
@@ -11,8 +11,8 @@ import requests
 
 from jsonschema import validate
 
-from taistil_types import *
-from location import TaistilLocation, load_location_lookup_cache, save_location_lookup_cache
+from taisteal_types import *
+from location import TaistealLocation, load_location_lookup_cache, save_location_lookup_cache
 
 SECONDS_SLEEP_ON_RATE_LIMITING = 4
 SECONDS_SLEEP_BETWEEN_REQUESTS = 0.66
@@ -20,12 +20,12 @@ ESTIMATED_RATE_LIMIT_TIME_MULTIPLE = 2
 
 
 '''
-Given a Taistil element and the loaded location data, output stats
+Given a Taisteal element and the loaded location data, output stats
 on countries visited.
 '''
 
 
-def get_location_statistics(taistil_data):
+def get_location_statistics(taisteal_data):
     def get_location_list(data, queue=[]):
         if 'elements' in data:
             for element in data['elements']:
@@ -37,9 +37,9 @@ def get_location_statistics(taistil_data):
     airports = defaultdict(int)
     cities = defaultdict(int)
     unique_countries = defaultdict(set)
-    locations = get_location_list(taistil_data)
+    locations = get_location_list(taisteal_data)
     for location in locations:
-        loc, err = TaistilLocation.find(location)
+        loc, err = TaistealLocation.find(location)
         if err == 'NOT_FOUND' or err == 'OVER_QUERY_LIMIT':
             continue
         components = loc.components
@@ -65,7 +65,7 @@ def get_location_statistics(taistil_data):
     return country_tuples, airport_tuples, city_tuples, unique_country_tuples
 
 
-def parse_taistil_json(doc):
+def parse_taisteal_json(doc):
     return TripElement.parse(doc)
 
 
@@ -84,8 +84,8 @@ if __name__ == '__main__':
         # Load location cache before any lookups are made.
         load_location_lookup_cache()
         print('Input conforms to JSON schema ✔')
-        taistil_obj = parse_taistil_json(doc)
-        print(taistil_obj)
+        taisteal_obj = parse_taisteal_json(doc)
+        print(taisteal_obj)
 
         countries, airports, cities, uniques = get_location_statistics(doc)
 
@@ -104,11 +104,11 @@ if __name__ == '__main__':
         print_top_n("Unique places visited in countries", uniques, 8)
         print('Total countries:', len(countries))
         print('Total cities:', len(cities))
-        for d, s in taistil_obj.get_log():
+        for d, s in taisteal_obj.get_log():
             print(str(d), s, s.parent)
             for a, b in s.visits:
                 print(str(a), str(b))
         save_location_lookup_cache()
-        t, _ = TaistilLocation.find('Switzerland')
+        t, _ = TaistealLocation.find('Switzerland')
         for a, b in sorted(t.visits):
             print(a, b)

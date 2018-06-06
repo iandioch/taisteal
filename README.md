@@ -1,4 +1,4 @@
-# Taistil
+# Taisteal
 
 Tooling for dealing with the logging and analysis of travelling.
 
@@ -11,7 +11,7 @@ Uses Python 3.6. Install dependencies by running `python3.6 -m pip install -r re
 ## Globtrottr import
 
 `src/globtrottr.py` imports data from [Globtrottr.com](http://globtrottr.com) and converts it
-to the format used by Taistil.
+to the format used by Taisteal.
 
 To fetch this data from the Globtrottr API and convert it, run:
 
@@ -31,7 +31,7 @@ After the file has been converted, you may want to manually inspect the data for
 
 ## Get trip data
 
-`src/trip_parse.py` parses a Taistil trip json document (passed through stdin) and outputs
+`src/trip_parse.py` parses a Taisteal trip json document (passed through stdin) and outputs
 statistics about the data.
 
 Use it by executing:
@@ -43,7 +43,7 @@ cat <TAISTIL_JSON_FILE_PATH> | python src/trip_parse.py <TAISTIL_JSON_SCHEMA_PAT
 From the root directory of this repo, this would be:
 
 ```sh
-cat <TAISTIL_JSON_FILE_PATH> | python src/trip_parse.py taistil_schema.json
+cat <TAISTIL_JSON_FILE_PATH> | python src/trip_parse.py taisteal_schema.json
 ```
 
 Depending on the size of your data, this script might take a long time. However, it will
@@ -52,7 +52,7 @@ print progress reports as it operates.
 ## Compile multiple files
 
 `src/compile.py` takes a directory path, and combines all files in that directory into one
-big Taistil trip document, which it outputs on stdout.
+big Taisteal trip document, which it outputs on stdout.
 
 Use it as following:
 
@@ -63,5 +63,5 @@ python src/compile.py <DIRECTORY_PATH>
 ## All together
 
 ```sh
-python src/globtrottr.py -u <USERNAME> | python src/trip_parse.py taistil_schema.json
+python src/globtrottr.py -u <USERNAME> | python src/trip_parse.py taisteal_schema.json
 ```
