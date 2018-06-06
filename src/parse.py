@@ -105,10 +105,14 @@ if __name__ == '__main__':
         print('Total countries:', len(countries))
         print('Total cities:', len(cities))
         for d, s in taisteal_obj.get_log():
+            if s is None:
+                print(None)
+                continue
             print(str(d), s, s.parent)
             for a, b in s.visits:
-                print(str(a), str(b))
+                print('-', str(a), str(b))
         save_location_lookup_cache()
+        print('switzerland')
         t, _ = TaistealLocation.find('Switzerland')
         for a, b in sorted(t.visits):
             print(a, b)
