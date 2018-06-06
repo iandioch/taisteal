@@ -56,6 +56,21 @@ class TripElement(TripObject):
             d['mode'] = self.mode
         return d
 
+    def _add_visits_to_locations(self, prev_location=None, prev_datetime=None):
+        loc, date = prev_location, prev_datetime
+        for e in self.elements:
+            if isinstance(e, TripVisit):
+                if e.location != loc:
+                    if date and loc:
+                        loc.add_visit(date, e.datetime)
+                        print('adding visit to', str(loc), str(date), str(e.datetime))
+                    loc = e.location
+                    date = e.datetime
+            else:
+                print('Adding sub element visits.')
+                e._add_visits_to_locations(loc, date)
+            
+
     @staticmethod
     def parse(doc):
         if 'elements' not in doc:
@@ -70,6 +85,7 @@ class TripElement(TripObject):
         t.elements.sort(key=lambda x: x.datetime)
         if len(t.elements):
             t.datetime = t.elements[0].datetime
+        t._add_visits_to_locations()
         return t
 
     def get_log(self):

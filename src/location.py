@@ -27,9 +27,16 @@ class TaistilLocation:
         self.maps_response = ""
         self.parent = None
         self.children = []
+        # A list of tuples of Pendulum datetimes, of a entry and exit.
+        self.visits = set()
 
     def __str__(self):
         return self.query
+
+    def add_visit(self, entry, exit):
+        self.visits.add((entry, exit))
+        if self.parent:
+            self.parent.add_visit(entry, exit)
 
     @staticmethod
     def _parse_maps_response(result, query=''):

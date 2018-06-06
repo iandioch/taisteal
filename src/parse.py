@@ -106,4 +106,9 @@ if __name__ == '__main__':
         print('Total cities:', len(cities))
         for d, s in taistil_obj.get_log():
             print(str(d), s, s.parent)
+            for a, b in s.visits:
+                print(str(a), str(b))
         save_location_lookup_cache()
+        t, _ = TaistilLocation.find('Switzerland')
+        for a, b in sorted(t.visits):
+            print(a, b)
