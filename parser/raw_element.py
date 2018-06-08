@@ -1,6 +1,6 @@
 import json
 
-from trip_visit import Visit
+from raw_visit import Visit
 
 class Element:
     def __init__(self):

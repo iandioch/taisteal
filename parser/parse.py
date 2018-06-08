@@ -3,7 +3,7 @@ import sys
 
 import jsonschema
 
-from trip_element import Element
+from raw_element import Element
 
 
 DEFAULT_SCHEMA_LOCATION = 'taisteal_schema.json'
