@@ -3,6 +3,8 @@ import sys
 
 import jsonschema
 
+from trip_element import Element
+
 
 DEFAULT_SCHEMA_LOCATION = 'taisteal_schema.json'
 
@@ -21,7 +23,7 @@ Returns a python object with the data contained in the
 input taisteal json document.
 '''
 def parse_json(json_data):
-    pass
+    return Element.parse(json_data)
 
 if __name__ == '__main__':
 
@@ -32,3 +34,4 @@ if __name__ == '__main__':
     raw_data = sys.stdin.read()
     json_data = json.loads(raw_data)
     validate_json_doc(json_data, json_schema_path)
+    parse_json(json_data)
