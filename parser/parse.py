@@ -13,17 +13,23 @@ Validates the input json against the taisteal JSON schema
 at the given path. This ensures that the input JSON is in
 the right format.
 '''
+
+
 def validate_json_doc(json_data, json_schema_path):
     with open(json_schema_path, 'r') as f:
         schema = json.load(f)
     jsonschema.validate(json_data, schema)
 
+
 '''
 Returns a python object with the data contained in the
 input taisteal json document.
 '''
+
+
 def parse_json(json_data):
     return Element.parse(json_data)
+
 
 if __name__ == '__main__':
 

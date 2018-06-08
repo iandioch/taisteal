@@ -2,6 +2,7 @@ import json
 
 from raw_visit import Visit
 
+
 class Element:
     def __init__(self):
         # each element must be a Element or a Visit.
@@ -24,4 +25,3 @@ class Element:
             print('WARNING: Document has extra trip elements.')
             print(json.dumps(doc, indent=4))
         return t
-            
