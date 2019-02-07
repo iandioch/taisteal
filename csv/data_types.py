@@ -3,6 +3,8 @@ from collections import defaultdict
 
 from location import Location
 
+import pendulum
+
 class TravelLegPoint:
     '''A (location, datetime) pair representing a single arrival or departure.'''
 
@@ -16,7 +18,7 @@ class TravelLegPoint:
         self.raw_date = date
 
         # TODO(iandioch): Parse date.
-        self.date = self.raw_date
+        self.date = pendulum.parse(self.raw_date)
 
     def __repr__(self):
         return 'Point("{}")'.format(self.loc)
@@ -27,6 +29,8 @@ class TravelLeg:
     def __init__(self, csv_row):
         self.dep = TravelLegPoint(csv_row[0], csv_row[1])
         self.arr = TravelLegPoint(csv_row[2], csv_row[3])
+
+        self.duration = self.arr.date - self.dep.date
 
     def __repr__(self):
         return 'Leg({}, {})'.format(self.dep,
@@ -55,11 +59,18 @@ class TravelStatistics:
         self.num_legs = 0
         self.country_to_num_visits = defaultdict(int)
         self.locality_to_num_visits = defaultdict(int)
+        # TODO(iandioch): Find better way of initialising a pendulum.Period of zero.
+        self.total_travel_time = pendulum.min - pendulum.min
+        # TODO(iandioch): Use a heapq to get the N longest legs instead.
+        self.longest_leg = None
 
     def add_travel_leg(self, leg):
         self.add_travel_leg_point(leg.dep)
         self.add_travel_leg_point(leg.arr)
         self.num_legs += 1
+        self.total_travel_time += leg.duration
+        if self.longest_leg is None or leg.duration > self.longest_leg.duration:
+            self.longest_leg = leg
 
     def add_travel_leg_point(self, point):
         print('Adding stats from travel leg point: "{}" on {}'.format(point.loc, point.date))
@@ -71,4 +82,4 @@ class TravelStatistics:
                 self.locality_to_num_visits[component['short_name']] += 1
 
     def __repr__(self):
-        return json.dumps(self.__dict__)
+        return json.dumps({k: str(self.__dict__[k]) for k in self.__dict__})
