@@ -1,4 +1,4 @@
-from travel_leg import TravelLeg
+from data_types import TravelLeg
 
 import csv
 import sys
