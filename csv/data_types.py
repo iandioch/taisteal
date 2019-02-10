@@ -75,11 +75,24 @@ class TravelStatistics:
     def add_travel_leg_point(self, point):
         print('Adding stats from travel leg point: "{}" on {}'.format(point.loc, point.date))
         for component in point.loc.components:
-            print(component)
             if 'country' in component['types']:
-                self.country_to_num_visits[component['short_name']] += 1
+                self.country_to_num_visits[component['long_name']] += 1
             if 'locality' in component['types']:
-                self.locality_to_num_visits[component['short_name']] += 1
+                s = '{}, {}'.format(component['long_name'], point.loc.country)
+                self.locality_to_num_visits[s] += 1
 
     def __repr__(self):
-        return json.dumps({k: str(self.__dict__[k]) for k in self.__dict__})
+        country_visits = ['{}: {}'.format(country, self.country_to_num_visits[country])
+            for country in sorted(self.country_to_num_visits, key=lambda x:-self.country_to_num_visits[x])]
+        locality_visits = ['{}: {}'.format(locality, self.locality_to_num_visits[locality])
+            for locality in sorted(self.locality_to_num_visits, key=lambda x:-self.locality_to_num_visits[x])]
+        return ('Num legs: {}\n' +
+            'Longest leg: {} (duration: {})\n' +
+            'Total travel time: {}\n' +
+            'Country to num visits: {}\n' + 
+            'Locality to num visits: {}\n').format(self.num_legs,
+                                                   self.longest_leg,
+                                                   self.longest_leg.duration,
+                                                   self.total_travel_time,
+                                                   country_visits,
+                                                   locality_visits)

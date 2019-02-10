@@ -31,6 +31,7 @@ class Location:
         self.maps_response = ""
         self.parent = None
         self.children = []
+        self.country = "Unknown Country"
 
     def __repr__(self):
         return self.query
@@ -46,11 +47,13 @@ class Location:
         loc.components = result['address_components']
         for component in loc.components:
             if 'country' in component['types']:
-                n = component['long_name']
-                if n == query:
+                country_name = component['long_name']
+                if country_name == query:
+                    # TODO(iandioch): Figure out why this if-statement is here.
                     continue
-                loc.parent, result = Location.find(component['long_name'])
+                loc.parent, result = Location.find(country_name)
                 loc.parent.children.append(loc)
+                loc.country = country_name
         return loc
 
     @staticmethod
@@ -94,7 +97,7 @@ def load_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
     except json.JSONDecodeError as e:
         print('Location lookup cache file did not contain valid JSON.')
     except Exception as e:
-        print('Error while loading location lookup cache file.')
+        print('Error while loading location lookup cache file: {}'.format(e))
 
 
 def save_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):

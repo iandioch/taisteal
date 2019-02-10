@@ -4,7 +4,7 @@ from data_types import TravelLeg, TravelLegSeries
 import csv
 import sys
 
-CSV_COLUMNS = ['from_loc', 'from_date', 'to_loc', 'to_date', 'mode', 'note']
+CSV_COLUMNS = ['from_loc', 'from_date', 'to_loc', 'to_date', 'mode']
 
 def parse_travel_leg(row):
     # row can be assumed to match CSV_COLUMNS types.
