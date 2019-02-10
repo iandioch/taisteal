@@ -63,10 +63,22 @@ class TravelStatistics:
         self.total_travel_time = pendulum.min - pendulum.min
         # TODO(iandioch): Use a heapq to get the N longest legs instead.
         self.longest_leg = None
+        self.country_to_visit_duration = defaultdict(lambda: pendulum.min - pendulum.min)
+        self._prev_loc = None
 
     def add_travel_leg(self, leg):
+        '''For self.country_to_visit_duration to be accurate, legs should be added in chronological order.'''
         self.add_travel_leg_point(leg.dep)
+
+        if self._prev_loc is not None:
+            self.country_to_visit_duration[leg.dep.loc.country] += (leg.dep.date - self._prev_loc.date)
+
         self.add_travel_leg_point(leg.arr)
+
+        if leg.dep.loc.country == leg.arr.loc.country:
+            self.country_to_visit_duration[leg.dep.loc.country] += (leg.arr.date - leg.dep.date)
+        self._prev_loc = leg.arr
+
         self.num_legs += 1
         self.total_travel_time += leg.duration
         if self.longest_leg is None or leg.duration > self.longest_leg.duration:
@@ -86,13 +98,17 @@ class TravelStatistics:
             for country in sorted(self.country_to_num_visits, key=lambda x:-self.country_to_num_visits[x])]
         locality_visits = ['{}: {}'.format(locality, self.locality_to_num_visits[locality])
             for locality in sorted(self.locality_to_num_visits, key=lambda x:-self.locality_to_num_visits[x])]
+        country_durations = ['{}: {}'.format(country, self.country_to_visit_duration[country])
+            for country in sorted(self.country_to_visit_duration, key=lambda x:-self.country_to_visit_duration[x])]
         return ('Num legs: {}\n' +
             'Longest leg: {} (duration: {})\n' +
             'Total travel time: {}\n' +
             'Country to num visits: {}\n' + 
+            'Country to visit duration: {}\n' + 
             'Locality to num visits: {}\n').format(self.num_legs,
                                                    self.longest_leg,
                                                    self.longest_leg.duration,
                                                    self.total_travel_time,
                                                    country_visits,
+                                                   country_durations,
                                                    locality_visits)
