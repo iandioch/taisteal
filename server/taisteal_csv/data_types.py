@@ -1,7 +1,7 @@
 import json
 from collections import defaultdict
 
-from location import Location
+from .location import Location
 
 import pendulum
 
