@@ -27,6 +27,7 @@ def serve_travel_map():
         }
 
     loc = '../../mo_thaistil/2018_02_20_Lugano.csv'
+    loc = '../out.csv'
     travel_leg_series = parse.parse(loc)
 
     legs = []
@@ -38,6 +39,7 @@ def serve_travel_map():
         legs.append({
             'dep': departure_loc,
             'arr': arrival_loc,
+            'mode': leg.mode,
         })
         num_visits[departure_loc['name']] += 1
         num_visits[arrival_loc['name']] += 1

@@ -29,6 +29,7 @@ class TravelLeg:
     def __init__(self, csv_row):
         self.dep = TravelLegPoint(csv_row[0], csv_row[1])
         self.arr = TravelLegPoint(csv_row[2], csv_row[3])
+        self.mode = csv_row[-1]
 
         self.duration = self.arr.date - self.dep.date
 
