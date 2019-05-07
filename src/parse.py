@@ -68,6 +68,39 @@ def get_location_statistics(taisteal_data):
 def parse_taisteal_json(doc):
     return TripElement.parse(doc)
 
+mode=None
+prev=None
+def convert_to_csv(obj):
+    global prev
+    global mode
+    if 'mode' in obj.__dict__ and obj.mode != "":
+        mode = obj.mode
+    if 'location' in obj.__dict__ and 'raw_datetime' in obj.__dict__:
+        #print(obj.location.query, obj.raw_datetime)
+        if prev is None:
+            prev = obj
+        else:
+            d = ['"{}"'.format(prev.location.query), prev.raw_datetime, '"{}"'.format(obj.location.query), obj.raw_datetime, mode]
+            prev = None
+            print(','.join(d))
+        return
+    for e in obj.elements:
+        convert_to_csv(e)
+    return
+    #if type(obj.elements[0]) == 'TripVisit':
+    if obj.mode != "":
+        print ('-> set mode', obj.mode)
+        print('////', obj)
+        prev = obj.elements[0]
+        for i in range(1, len(obj.elements)):
+            curr = obj.elements[i]
+            print('//', prev)
+            print('//', curr)
+            print(','.join([prev.location.query, prev.raw_datetime, curr.location.query, curr.raw_datetime]))
+            prev = curr
+        return
+    for e in obj.elements:
+        convert_to_csv(e)
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
@@ -83,9 +116,15 @@ if __name__ == '__main__':
 
         # Load location cache before any lookups are made.
         load_location_lookup_cache()
-        print('Input conforms to JSON schema ✔')
+        #print('Input conforms to JSON schema ✔')
         taisteal_obj = parse_taisteal_json(doc)
-        print(taisteal_obj)
+        #print(taisteal_obj)
+
+
+        # TODO(iandioch): Remove.
+        convert_to_csv(taisteal_obj)
+
+        '''
 
         countries, airports, cities, uniques = get_location_statistics(doc)
 
@@ -104,15 +143,20 @@ if __name__ == '__main__':
         print_top_n("Unique places visited in countries", uniques, 8)
         print('Total countries:', len(countries))
         print('Total cities:', len(cities))
+        '''
+
+        '''
         for d, s in taisteal_obj.get_log():
             if s is None:
                 print(None)
                 continue
             print(str(d), s, s.parent)
             for a, b in s.visits:
-                print('-', str(a), str(b))
+                print('-', str(a), str(b))'''
         save_location_lookup_cache()
-        print('switzerland')
+
+
+        '''print('switzerland')
         t, _ = TaistealLocation.find('Switzerland')
         for a, b in sorted(t.visits):
-            print(a, b)
+            print(a, b)'''

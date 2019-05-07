@@ -128,6 +128,7 @@ class TripVisit(TripObject):
         t = TripVisit()
         t.location, error = TaistealLocation.find(doc['location'])
         t.query = doc['location']
+        t.raw_datetime = doc['datetime']
         t.datetime = pendulum.parse(doc['datetime'])
         if 'note' in doc:
             t.note = doc['note']
