@@ -47,11 +47,19 @@ function addDataToMap(mapObj, callback) {
         console.log("Adding data to map.");
         console.log(data);
         for (v in data.visits) {
-            loc = data.visits[v].location;
-            lat = loc.lat;
-            lng = loc.lng;
+            var loc = data.visits[v].location;
+            var lat = loc.lat;
+            var lng = loc.lng;
+            var num_visits = data.visits[v].num_visits;
             console.log(lat + ", " + lng);
             var marker = L.marker([lat, lng]).addTo(mapObj);
+            /*var circle = L.circle([lat, lng], {
+                'color': 'blue',
+                'fillColor': 'blue',
+                'fillOpacity': 1,
+                'radius': 500,
+            }).addTo(mapObj);*/
+            marker.bindPopup(loc.name + "<br />Number of visits: " + num_visits);
         }
         callback(mapObj, data);
     });
