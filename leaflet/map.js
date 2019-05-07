@@ -34,7 +34,7 @@ function createMap(callback) {
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=' + accessToken, {
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
             maxZoom: 18,
-            id: 'mapbox.streets',
+            id: 'mapbox.light',
             accessToken: accessToken 
         }).addTo(mapObj);
         callback(mapObj);
@@ -46,19 +46,42 @@ function addDataToMap(mapObj, callback) {
         // Add the data.
         console.log("Adding data to map.");
         console.log(data);
+        for (i in data.legs) {
+            var leg = data.legs[i];
+            var points = [
+                [leg.dep.lat, leg.dep.lng],
+                [leg.arr.lat, leg.arr.lng]
+            ];
+            var opts = {};
+            if (leg.mode === 'AEROPLANE') {
+                opts.color = '#4696F0';
+                opts.opacity = 0.4;
+            } else if (leg.mode === 'BUS') {
+                opts.color = '#10634f';
+                opts.opacity = 0.6;
+            } else if (leg.mode === 'TRAIN') {
+                opts.color = '#598e2f';
+                opts.opacity = 0.5;
+            } else {
+                opts.color = '#cc3420';
+                opts.opacity = 0.7;
+            }
+            var line = L.polyline(points, opts).addTo(mapObj);
+        }
         for (v in data.visits) {
             var loc = data.visits[v].location;
             var lat = loc.lat;
             var lng = loc.lng;
             var num_visits = data.visits[v].num_visits;
             console.log(lat + ", " + lng);
-            var marker = L.marker([lat, lng]).addTo(mapObj);
-            /*var circle = L.circle([lat, lng], {
-                'color': 'blue',
-                'fillColor': 'blue',
-                'fillOpacity': 1,
-                'radius': 500,
-            }).addTo(mapObj);*/
+            //var marker = L.marker([lat, lng]).addTo(mapObj);
+            var marker = L.circleMarker([lat, lng], {
+                'color': 'white',
+                'fillColor': '#A00',
+                'fillOpacity': 0.9,
+                'radius': 5,
+                'weight': 1,
+            }).addTo(mapObj);
             marker.bindPopup(loc.name + "<br />Number of visits: " + num_visits);
         }
         callback(mapObj, data);
