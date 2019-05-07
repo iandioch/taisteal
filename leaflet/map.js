@@ -45,6 +45,14 @@ function addDataToMap(mapObj, callback) {
     loadData(function(data) {
         // Add the data.
         console.log("Adding data to map.");
+        console.log(data);
+        for (v in data.visits) {
+            loc = data.visits[v].location;
+            lat = loc.lat;
+            lng = loc.lng;
+            console.log(lat + ", " + lng);
+            var marker = L.marker([lat, lng]).addTo(mapObj);
+        }
         callback(mapObj, data);
     });
 }
