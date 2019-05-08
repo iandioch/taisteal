@@ -56,6 +56,12 @@ function addDataToMap(mapObj, callback) {
             if (leg.mode === 'AEROPLANE') {
                 opts.color = '#4696F0';
                 opts.opacity = 0.4;
+                var geodesicPoints = [[
+                    new L.LatLng(points[0][0], points[0][1]),
+                    new L.LatLng(points[1][0], points[1][1])
+                ]]
+                var line = L.geodesic(geodesicPoints, opts).addTo(mapObj);
+                continue;
             } else if (leg.mode === 'BUS') {
                 opts.color = '#10634f';
                 opts.opacity = 0.6;
@@ -85,7 +91,7 @@ function addDataToMap(mapObj, callback) {
                 'radius': 5,
                 'weight': 1,
             }).addTo(mapObj);
-            marker.bindPopup(loc.name + "<br />Number of visits: " + num_visits);
+            marker.bindPopup(loc.name + " (" + loc.type + ")<br />Number of visits: " + num_visits);
         }
         callback(mapObj, data);
     });
