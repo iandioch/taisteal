@@ -52,15 +52,15 @@ function addDataToMap(mapObj, callback) {
                 [leg.dep.lat, leg.dep.lng],
                 [leg.arr.lat, leg.arr.lng]
             ];
+            var pointObjs = [
+                new L.LatLng(points[0][0], points[0][1]),
+                new L.LatLng(points[1][0], points[1][1])
+            ]
             var opts = {};
             if (leg.mode === 'AEROPLANE') {
                 opts.color = '#4696F0';
                 opts.opacity = 0.4;
-                var geodesicPoints = [[
-                    new L.LatLng(points[0][0], points[0][1]),
-                    new L.LatLng(points[1][0], points[1][1])
-                ]]
-                var line = L.geodesic(geodesicPoints, opts).addTo(mapObj);
+                var line = L.geodesic([pointObjs], opts).addTo(mapObj);
                 continue;
             } else if (leg.mode === 'BUS') {
                 opts.color = '#10634f';
@@ -74,6 +74,24 @@ function addDataToMap(mapObj, callback) {
             } else {
                 opts.color = '#cc3420';
                 opts.opacity = 0.7;
+
+                var control = L.Routing.control({
+                    waypoints: pointObjs,
+                    routeWhileDragging: true,
+                    show: false,
+                    createMarker: function() {},
+                    waypointMode: 'snap',
+                });
+                /*control.on('routeselected', function(e) {
+                    L.polyline(e.route.coordinates, opts).addTo(mapObj);
+                    mapObj.removeControl(control);
+                });*/
+                control._router.route([{latLng: leg.dep}, {latLng: leg.arr}], function(err, waypoints) {
+                    var a = waypoints[0].coordinates;
+                    console.log(a);
+                    L.polyline(a, opts).addTo(mapObj);
+                });
+                continue;
             }
             var line = L.polyline(points, opts).addTo(mapObj);
         }
