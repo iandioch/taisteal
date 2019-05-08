@@ -44,12 +44,32 @@ class TravelLegSeries:
     '''A number of consecutive travel legs.'''
 
     def __init__(self):
+        self.added_legs = []
         self.legs = []
         self._compute_statistics()
 
-    def add_leg(self, leg):
-        self.legs.append(leg)
-        self.legs.sort()
+    def add_leg(self, leg, config):
+        self.added_legs.append(leg)
+        self.added_legs.sort()
+
+        # Add fills
+        self.legs = []
+        for i in range(0, len(self.added_legs)-1):
+            prev = self.added_legs[i]
+            nex = self.added_legs[i+1]
+            self.legs.append(prev)
+            if prev.arr.loc != nex.dep.loc:
+                parts = [
+                    prev.arr.loc.query,
+                    prev.arr.raw_date,
+                    nex.dep.loc.query,
+                    nex.dep.raw_date,
+                    'FILL'
+                ]
+                filler = TravelLeg(parts, config)
+                self.legs.append(filler)
+        self.legs.append(self.added_legs[-1])
+
         self.stats.add_travel_leg(leg)
 
     def _compute_statistics(self):

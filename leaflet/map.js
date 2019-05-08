@@ -62,6 +62,9 @@ function addDataToMap(mapObj, callback) {
             } else if (leg.mode === 'TRAIN') {
                 opts.color = '#598e2f';
                 opts.opacity = 0.5;
+            } else if (leg.mode === 'FILL') {
+                opts.color = 'white';
+                opts.opacity = 0.5;
             } else {
                 opts.color = '#cc3420';
                 opts.opacity = 0.7;

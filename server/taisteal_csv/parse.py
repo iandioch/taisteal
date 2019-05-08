@@ -19,7 +19,7 @@ def parse(loc, config):
             if len(row) != len(CSV_COLUMNS):
                 print('Error: wrong number of columns in CSV.')
             leg = parse_travel_leg(row, config)
-            travel_legs.add_leg(leg)
+            travel_legs.add_leg(leg, config)
     return travel_legs
 
 def main():
@@ -31,8 +31,8 @@ def main():
         if len(row) != len(CSV_COLUMNS):
             print('Error: wrong number of columns in csv.')
             continue
-        leg = parse_travel_leg(row)
-        travel_legs.add_leg(leg)
+        leg = parse_travel_leg(row, {})
+        travel_legs.add_leg(leg, {})
     print(travel_legs.stats)
 
 if __name__ == '__main__':
