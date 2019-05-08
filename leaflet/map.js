@@ -108,21 +108,28 @@ function addDataToMap(mapObj, callback) {
                 })(opts);
             }
         }
+        var highestVisits = 0;
+        for (v in data.visits) {
+            var numVisits = data.visits[v].num_visits;
+            highestVisits = highestVisits > numVisits ? highestVisits : numVisits;
+        }
         for (v in data.visits) {
             var loc = data.visits[v].location;
             var lat = loc.lat;
             var lng = loc.lng;
-            var num_visits = data.visits[v].num_visits;
+            var numVisits = data.visits[v].num_visits;
+            var visitDuration = data.visits[v].days + 1;
             console.log(lat + ", " + lng);
-            //var marker = L.marker([lat, lng]).addTo(mapObj);
+            var rad = ((numVisits+0.0)/highestVisits)*5 + 5;
+            var col = numVisits > highestVisits/2 ? '#F00' : '#A00';
             var marker = L.circleMarker([lat, lng], {
                 'color': 'white',
-                'fillColor': '#A00',
+                'fillColor': col, 
                 'fillOpacity': 0.9,
-                'radius': 6,
+                'radius': rad,
                 'weight': 1,
             }).addTo(mapObj);
-            marker.bindPopup(loc.name + " (" + loc.type + ")<br />Number of visits: " + num_visits);
+            marker.bindPopup(loc.name + " (" + loc.type + ")<br />Number of visits: " + numVisits + ".<br />Total visit duration: " + visitDuration + " days.");
         }
         callback(mapObj, data);
     });

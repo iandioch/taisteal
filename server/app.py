@@ -33,6 +33,7 @@ def serve_travel_map():
 
     legs = []
     num_visits = defaultdict(int)
+    time_spent = defaultdict(int)
     name_to_loc = {}
     for leg in travel_leg_series.legs:
         departure_loc = _get_location_dict(leg.dep.loc)
@@ -47,11 +48,16 @@ def serve_travel_map():
         name_to_loc[departure_loc['name']] = departure_loc
         name_to_loc[arrival_loc['name']] = arrival_loc 
 
+    stats = travel_leg_series.stats
+    for v in num_visits:
+        time_spent[v] = stats.locality_to_time_spent[v].days
+
     visits = []
     for v in sorted(num_visits, key=lambda x:num_visits[x]):
         visits.append({
             'location': name_to_loc[v],
-            'num_visits': num_visits[v],
+            'num_visits': max(1, num_visits[v]//2),
+            'days': time_spent[v],
         })
     data = {
         'legs': legs,

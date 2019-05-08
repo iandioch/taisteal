@@ -80,6 +80,8 @@ class TravelStatistics:
         self.num_legs = 0
         self.country_to_num_visits = defaultdict(int)
         self.locality_to_num_visits = defaultdict(int)
+        self.locality_to_time_spent = defaultdict(lambda: pendulum.min - pendulum.min)
+        self.locality_to_last_arrival = {}
         # TODO(iandioch): Find better way of initialising a pendulum.Period of zero.
         self.total_travel_time = pendulum.min - pendulum.min
         # TODO(iandioch): Use a heapq to get the N longest legs instead.
@@ -93,6 +95,11 @@ class TravelStatistics:
 
         if self._prev_loc is not None:
             self.country_to_visit_duration[leg.dep.loc.country] += (leg.dep.date - self._prev_loc.date)
+
+        if leg.dep.loc.address in self.locality_to_last_arrival:
+            prev_date = self.locality_to_last_arrival[leg.dep.loc.address]
+            self.locality_to_time_spent[leg.dep.loc.address] += (leg.dep.date - prev_date)
+        self.locality_to_last_arrival[leg.arr.loc.address] = leg.arr.date
 
         self.add_travel_leg_point(leg.arr)
 
