@@ -6,25 +6,25 @@ import sys
 
 CSV_COLUMNS = ['from_loc', 'from_date', 'to_loc', 'to_date', 'mode']
 
-def parse_travel_leg(row):
+def parse_travel_leg(row, config):
     # row can be assumed to match CSV_COLUMNS types.
-    return TravelLeg(row)
+    return TravelLeg(row, config)
 
-def parse(loc):
+def parse(loc, config):
     travel_legs = TravelLegSeries()
-    load_location_lookup_cache()
+    load_location_lookup_cache(config)
     with open(loc) as f:
         csv_reader = csv.reader(f)
         for row in csv_reader:
             if len(row) != len(CSV_COLUMNS):
                 print('Error: wrong number of columns in CSV.')
-            leg = parse_travel_leg(row)
+            leg = parse_travel_leg(row, config)
             travel_legs.add_leg(leg)
     return travel_legs
 
 def main():
     travel_legs = TravelLegSeries()
-    load_location_lookup_cache()
+    load_location_lookup_cache({})
     # Take input from stdin
     csv_reader = csv.reader(sys.stdin)
     for row in csv_reader:

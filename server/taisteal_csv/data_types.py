@@ -8,12 +8,12 @@ import pendulum
 class TravelLegPoint:
     '''A (location, datetime) pair representing a single arrival or departure.'''
 
-    def __init__(self, loc, date):
+    def __init__(self, loc, date, config):
         '''Arguments:
 
         - loc (str): A raw address.
         - date (str): A datetime'''
-        self.loc, res = Location.find(loc)
+        self.loc, res = Location.find(loc, config)
         print("Found location '{}' with result '{}'".format(loc, res))
         self.raw_date = date
 
@@ -26,9 +26,9 @@ class TravelLegPoint:
 class TravelLeg:
     '''A single leg of travel, eg. one flight, or one bus journey.'''
 
-    def __init__(self, csv_row):
-        self.dep = TravelLegPoint(csv_row[0], csv_row[1])
-        self.arr = TravelLegPoint(csv_row[2], csv_row[3])
+    def __init__(self, csv_row, config):
+        self.dep = TravelLegPoint(csv_row[0], csv_row[1], config)
+        self.arr = TravelLegPoint(csv_row[2], csv_row[3], config)
         self.mode = csv_row[-1]
 
         self.duration = self.arr.date - self.dep.date

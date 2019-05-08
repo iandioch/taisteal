@@ -37,7 +37,7 @@ class Location:
         return self.query
 
     @staticmethod
-    def _parse_maps_response(result, query=''):
+    def _parse_maps_response(result, query, config):
         loc = Location()
         loc.maps_response = result
         loc.query = query
@@ -51,30 +51,30 @@ class Location:
                 if country_name == query:
                     # TODO(iandioch): Figure out why this if-statement is here.
                     continue
-                loc.parent, result = Location.find(country_name)
+                loc.parent, result = Location.find(country_name, config)
                 loc.parent.children.append(loc)
                 loc.country = country_name
         return loc
 
     @staticmethod
-    def _fetch_location(query):
-        u = 'https://maps.googleapis.com/maps/api/geocode/json?address={}'
-        resp = json.loads(requests.get(u.format(query)).text)
+    def _fetch_location(query, config):
+        u = 'https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}'
+        resp = json.loads(requests.get(u.format(query, config['google_api_key'])).text)
         if resp['status'] != 'OK':
             return resp['status'], None
         for result in resp['results']:
-            loc = Location._parse_maps_response(result, query)
+            loc = Location._parse_maps_response(result, query, config)
             return None, loc
         return LOOKUP_NO_RESULTS, None
 
     @staticmethod
-    def find(query):
+    def find(query, config):
         query = query.strip()
         if query in LOCATION_LOOKUP_CACHE:
             return LOCATION_LOOKUP_CACHE[query], LOOKUP_FETCHED_FROM_CACHE
         print('Could not find given location ("{}") in lookup cache.'.format(query))
         for _ in range(MAXIMUM_LOCATION_LOOKUP_ATTEMPTS):
-            error, loc = Location._fetch_location(query)
+            error, loc = Location._fetch_location(query, config)
             if error:
                 return None, error
             print('Created Location', loc.address)
@@ -84,13 +84,13 @@ class Location:
             return loc, LOOKUP_FETCHED_FROM_GOOGLE 
 
 
-def load_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
+def load_location_lookup_cache(config, path=LOCATION_LOOKUP_CACHE_PATH):
     try:
         with open(path, 'r') as f:
             d = json.load(f)
             for e in d:
                 LOCATION_LOOKUP_CACHE[e] = Location._parse_maps_response(
-                    d[e], e)
+                    d[e], e, config)
             print('Location lookup cache successfully loaded. It is {} elements long.'.format(len(LOCATION_LOOKUP_CACHE)))
     except OSError as e:
         print('Could not find location lookup cache file "{}"'.format(path))
