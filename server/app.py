@@ -24,11 +24,12 @@ def serve_travel_map():
             'lat': loc.latitude,
             'lng': loc.longitude,
             'name': loc.address,
+            'type': loc.type,
         }
 
     loc = '../../mo_thaistil/2018_02_20_Lugano.csv'
-    loc = '../out.csv'
-    travel_leg_series = parse.parse(loc)
+    loc = '../google.csv'
+    travel_leg_series = parse.parse(loc, config)
 
     legs = []
     num_visits = defaultdict(int)

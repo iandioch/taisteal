@@ -17,6 +17,11 @@ LOOKUP_FETCHED_FROM_GOOGLE = 'FETCHED_FROM_GOOGLE'
 
 LOCATION_LOOKUP_CACHE = {}
 
+TYPE_UNKNOWN = 'UNKNOWN'
+TYPE_AIRPORT = 'AIRPORT'
+TYPE_TOWN = 'TOWN'
+TYPE_STATION = 'STATION'
+
 
 class Location:
 
@@ -32,6 +37,7 @@ class Location:
         self.parent = None
         self.children = []
         self.country = "Unknown Country"
+        self.type = TYPE_UNKNOWN 
 
     def __repr__(self):
         return self.query
@@ -46,14 +52,24 @@ class Location:
         loc.longitude = float(result['geometry']['location']['lng'])
         loc.components = result['address_components']
         for component in loc.components:
-            if 'country' in component['types']:
+            typeset = set(component['types'])
+            if 'country' in typeset:
                 country_name = component['long_name']
                 if country_name == query:
-                    # TODO(iandioch): Figure out why this if-statement is here.
+                    # TODO(iandioch): Figure out why this if-statement is here. Exit recursion?
                     continue
                 loc.parent, result = Location.find(country_name, config)
                 loc.parent.children.append(loc)
                 loc.country = country_name
+            if loc.type == TYPE_UNKNOWN and 'locality' in typeset:
+                loc.type = TYPE_TOWN
+            elif 'airport' in typeset:
+                loc.type = TYPE_AIRPORT
+            elif (loc.type != TYPE_AIRPORT and ('bus_station' in typeset or
+                                                'train_station' in typeset or
+                                                'transit_station' in typeset or
+                                                'station' in component['long_name'].lower())):
+                loc.type = TYPE_STATION
         return loc
 
     @staticmethod
