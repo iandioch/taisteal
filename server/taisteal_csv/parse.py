@@ -1,5 +1,5 @@
 from .data_types import TravelLeg, TravelLegSeries
-from .location import load_location_lookup_cache
+from .location import load_location_lookup_cache, save_location_lookup_cache
 
 import csv
 import sys
@@ -20,6 +20,7 @@ def parse(loc, config):
                 print('Error: wrong number of columns in CSV.')
             leg = parse_travel_leg(row, config)
             travel_legs.add_leg(leg, config)
+    save_location_lookup_cache()
     return travel_legs
 
 def main():
