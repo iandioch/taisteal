@@ -1,0 +1,129 @@
+import * as THREE from 'https://unpkg.com/three@0.108.0/build/three.module.js';
+import {OrbitControls} from 'https://unpkg.com/three@0.108.0/examples/jsm/controls/OrbitControls.js';
+
+function loadJSON(url, callback) {
+    var request = new XMLHttpRequest;
+    request.open('GET', url, true);
+    request.onload = function() {
+      if (request.status >= 200 && request.status < 400){
+        // Success!
+        data = JSON.parse(request.responseText);
+        callback(data);
+      } else {
+        console.log("Status code error: " + request.status);
+      }
+    };
+
+    request.onerror = function() {
+      console.log("Error connecting."); 
+    };
+
+    request.send();
+}
+
+(function() {
+    const canvas = document.querySelector('#globe-canvas');
+    const renderer = new THREE.WebGLRenderer({canvas});
+    const camera = new THREE.PerspectiveCamera(75, 2, 0.1, 5);
+    camera.position.z = 2;
+    const controls = new OrbitControls(camera, canvas);
+    const scene = new THREE.Scene();
+
+    const GLOBE_RADIUS = 1;
+
+    { 
+        // Create a sun and an ambient light.
+        const sunLight = new THREE.DirectionalLight(0xF9D72C, 1);
+        sunLight.position.set(-1, 2, 4);
+        scene.add(sunLight);
+        const ambientLight = new THREE.AmbientLight(0x5050FF, 0.6);
+        scene.add(ambientLight);
+    }
+
+    const globeGroup = new THREE.Object3D();
+    scene.add(globeGroup);
+
+    // Create the sphere obj.
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load('land_ocean_ice_cloud_2048.jpg', (texture) => {
+        // TODO(iandioch): it'd be cool here instead of drawing some picture of the earth to instead render the polygon for each country or something; if we did that, there's lots of cool interactions that could be added.
+        const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 32, 32);
+        const globeMaterial = new THREE.MeshPhongMaterial({ map: texture, overdraw: 0.5 });
+        const globe = new THREE.Mesh(globeGeometry, globeMaterial);
+        globeGroup.add(globe);
+    });
+
+    // Convert decimal LatLng to ECEF
+    function latLngToVector(lat, lng) {
+        // Y = 1 at north pole,
+        // Y = -1 at south pole,
+
+        lng += 90; // Offset of image we are using for the surface of the globe sphere.
+        const latRadians = lat * Math.PI / 180.0;
+        const lngRadians = lng * Math.PI / 180.0;
+        const vector = new THREE.Vector3();
+
+        //const N = a / Math.sqrt(1 - (e*e) * (Math.sin(latRadians)*Math.sin(latRadians)));
+        const N = GLOBE_RADIUS;
+        vector.z = N * Math.cos(latRadians) * Math.cos(lngRadians);
+        vector.x = N * Math.cos(latRadians) * Math.sin(lngRadians);
+        //vector.z = GLOBE_RADIUS * Math.sin(latRadians);
+        vector.y = N * Math.sin(latRadians);
+        console.log(lat, lng, "->", vector.x, vector.y, vector.z);
+        return vector;
+    }
+
+    function drawPoint(pos) {
+        const geom = new THREE.SphereGeometry(0.01, 5, 5);
+        const material = new THREE.MeshBasicMaterial({color: 0xFF3333});
+        const point = new THREE.Mesh(geom, material);
+        point.position.copy(pos);
+        console.log(point.position);
+
+        /*point.position.x = GLOBE_RADIUS * Math.cos(latRadians) * Math.cos(lngRadians);
+        console.log( GLOBE_RADIUS * Math.cos(latRadians) * Math.cos(lngRadians));
+        point.position.z = GLOBE_RADIUS * Math.cos(latRadians) * Math.sin(lngRadians);
+        point.position.y = GLOBE_RADIUS * Math.sin(latRadians);*/
+        globeGroup.add(point);
+    }
+
+    drawPoint(latLngToVector(90, 135)); // north pole
+    drawPoint(latLngToVector(-33.8688, 151.2093)) // Sydney
+    drawPoint(latLngToVector(-89.99755, 139.27289)); // south pole ish. 
+    drawPoint(latLngToVector(53.35014, -6.266155)); // Dublin
+
+    loadJSON('/taisteal/api/travel_map', (data) => {
+        for (i in data.legs) {
+            var leg = data.legs[i];
+            drawPoint(latLngToVector(leg.dep.lat, leg.dep.lng));
+            drawPoint(latLngToVector(leg.arr.lat, leg.arr.lng));
+        }
+    });
+
+    // Returns true if we needed to resize.
+    function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement;
+        const needResize = (canvas.width !== canvas.clientWidth ||
+                            canvas.height !== canvas.clientHeight);
+        if (needResize) {
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+        }
+        return needResize;
+    }
+
+    function render(time) {
+        const seconds = time * 0.001;
+
+        if (resizeRendererToDisplaySize(renderer)) {
+            const canvas = renderer.domElement;
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+        }
+
+        globeGroup.rotation.y = seconds/40.0;
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
+})();
