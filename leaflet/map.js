@@ -82,15 +82,19 @@ function addDataToMap(mapObj, callback) {
                 opts.opacity = 0.7;
                 lineType = 2;
             }
-            if (lineType == 0) {
+            if (lineType == 0 || lineType == 2) {
+                // Eg. train.
                 var line = L.polyline(points, opts).addTo(mapObj);
             } else if (lineType == 1) {
+                // Aeroplane.
                 var pointObjs = [
                     new L.LatLng(points[0][0], points[0][1]),
                     new L.LatLng(points[1][0], points[1][1])
                 ]
                 var line = L.geodesic([pointObjs], opts).addTo(mapObj);
             } else if (lineType == 2) {
+                // Does not work anymore.
+                // TODO(iandioch): Remove.
                 // Snap to roads.
                 // See: https://stackoverflow.com/a/39490070 .
                 // Must pass opts in as arg to not overwrite it with a later opts.
