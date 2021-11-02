@@ -20,20 +20,20 @@ function loadJSON(url, callback) {
 
 function loadData(callback) {
     console.log("Loading data.");
-    loadJSON("http://localhost:1916/api/travel_map", function(data) {
+    loadJSON("/taisteal/api/travel_map", function(data) {
         callback(data);
     });
 }
 
 function createMap(callback) {
-    loadJSON('http://localhost:1916/api/get_mapbox_token', function(data) {
+    loadJSON('/taisteal/api/get_mapbox_token', function(data) {
         console.log("Loading");
         var mapObj = L.map('travel-map').setView([0, -0.09], 1);
         var accessToken = data['token']
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=' + accessToken, {
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
             maxZoom: 18,
-            id: 'mapbox.light',
+            id: 'mapbox.country-boundaries-v1',
             accessToken: accessToken 
         }).addTo(mapObj);
         callback(mapObj);
