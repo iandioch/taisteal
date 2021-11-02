@@ -36,10 +36,7 @@ function loadJSON(url, callback) {
         const sunLight = new THREE.DirectionalLight(0xF9D72C, 1);
         sunLight.position.set(-1, 2, 4);
         scene.add(sunLight);
-        const moonLight = new THREE.DirectionalLight(0xF9D78C, 0.85);
-        sunLight.position.set(2, -1, -2);
-        scene.add(moonLight);
-        const ambientLight = new THREE.AmbientLight(0x5050FF, 0.75);
+        const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
         scene.add(ambientLight);
     }
 
@@ -50,7 +47,7 @@ function loadJSON(url, callback) {
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load('land_ocean_ice_cloud_2048.jpg', (texture) => {
         // TODO(iandioch): it'd be cool here instead of drawing some picture of the earth to instead render the polygon for each country or something; if we did that, there's lots of cool interactions that could be added.
-        const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 32, 32);
+        const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64);
         const globeMaterial = new THREE.MeshPhongMaterial({ map: texture, overdraw: 0.5 });
         const globe = new THREE.Mesh(globeGeometry, globeMaterial);
         globeGroup.add(globe);
@@ -76,10 +73,19 @@ function loadJSON(url, callback) {
         return vector;
     }
 
-    function drawPoint(pos, radius, colour) {
-        const geom = new THREE.CylinderGeometry(radius, radius, radius*20, 16);
+    function drawPoint(pos, radius, height, colour) {
+        const margin = 0.001;
+        const baseGeom = new THREE.CylinderGeometry(radius + margin*2, radius + margin*2, margin, 16);
+        baseGeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
+        const baseMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
+        const base = new THREE.Mesh(baseGeom, baseMaterial);
+        base.position.copy(pos);
+        base.lookAt(0, 0, 0);
+        globeGroup.add(base);
+        // TODO(iandioch): I think that some of the height goes inside the earth. Fix.
+        const geom = new THREE.CylinderGeometry(radius, radius, height, 16);
         geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
-        const material = new THREE.MeshLambertMaterial({color: colour});
+        const material = new THREE.MeshPhongMaterial({color: colour});
         const point = new THREE.Mesh(geom, material);
         point.position.copy(pos);
         //point.rotation.x = Math.PI * 0.5;
@@ -93,11 +99,6 @@ function loadJSON(url, callback) {
         globeGroup.add(point);
     }
 
-    /*drawPoint(latLngToVector(90, 135)); // north pole
-    drawPoint(latLngToVector(-33.8688, 151.2093)) // Sydney
-    drawPoint(latLngToVector(-89.99755, 139.27289)); // south pole ish. 
-    drawPoint(latLngToVector(53.35014, -6.266155)); // Dublin*/
-
     loadJSON('/taisteal/api/travel_map', (data) => {
         var highestVisits = 0;
         for (var i in data.visits) {
@@ -108,18 +109,18 @@ function loadJSON(url, callback) {
         for (var i in data.visits) {
             const visit = data.visits[i];
             console.log(visit.num_visits);
-            var radius = 0.005;
-            var colour = 0xFF3333;
+            var radius = 0.003;
+            var colour = 0x55FF55;
             console.log(visit.num_visits*2, highestVisits);
             if (visit.num_visits >= highestVisits/3) {
-                colour = 0x55FF55;
-                radius = 0.01;
+                colour = 0xAA3333;
+                radius = 0.008;
                 console.log(colour);
             } else if (visit.num_visits >= 2) {
                 colour = 0x5555FF;
-                radius = 0.0075;
+                radius = 0.005;
             }
-            drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, colour);
+            drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, 0.01 + visit.num_visits/200, colour);
         }
     });
 
