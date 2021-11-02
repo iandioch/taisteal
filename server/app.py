@@ -23,7 +23,7 @@ def serve_travel_map():
         return {
             'lat': loc.latitude,
             'lng': loc.longitude,
-            'name': loc.address,
+            'name': loc.address, # unique
             'type': loc.type,
         }
 
@@ -35,18 +35,32 @@ def serve_travel_map():
     num_visits = defaultdict(int)
     time_spent = defaultdict(int)
     name_to_loc = {}
+    leg_count_dict = defaultdict(int)
+    leg_obj_dict = {}
     for leg in travel_leg_series.legs:
         departure_loc = _get_location_dict(leg.dep.loc)
         arrival_loc = _get_location_dict(leg.arr.loc)
-        legs.append({
-            'dep': departure_loc,
-            'arr': arrival_loc,
-            'mode': leg.mode,
-        })
+        k = (departure_loc['lat'], departure_loc['lng'], arrival_loc['lat'], arrival_loc['lng'])
+        leg_count_dict[k] += 1
+        leg_obj_dict[k] = (departure_loc, arrival_loc, leg.mode)
+        #legs.append({
+        #    'dep': departure_loc,
+        #    'arr': arrival_loc,
+        #    'mode': leg.mode,
+        #})
         num_visits[departure_loc['name']] += 1
         num_visits[arrival_loc['name']] += 1
         name_to_loc[departure_loc['name']] = departure_loc
         name_to_loc[arrival_loc['name']] = arrival_loc 
+    for leg in leg_count_dict:
+        departure_loc, arrival_loc, mode = leg_obj_dict[leg]
+        n = leg_count_dict[leg]
+        legs.append({
+            'dep': departure_loc,
+            'arr': arrival_loc,
+            'mode': mode,
+            'count': n,
+        })
 
     stats = travel_leg_series.stats
     for v in num_visits:
