@@ -80,12 +80,12 @@ class TravelStatistics:
         self.num_legs = 0
         self.country_to_num_visits = defaultdict(int)
         self.locality_to_num_visits = defaultdict(int)
-        self.locality_to_time_spent = defaultdict(lambda: pendulum.min - pendulum.min)
+        self.locality_to_time_spent = defaultdict(lambda: pendulum.now() - pendulum.now())
         # TODO(iandioch): Find better way of initialising a pendulum.Period of zero.
-        self.total_travel_time = pendulum.min - pendulum.min
+        self.total_travel_time = pendulum.now() - pendulum.now()
         # TODO(iandioch): Use a heapq to get the N longest legs instead.
         self.longest_leg = None
-        self.country_to_visit_duration = defaultdict(lambda: pendulum.min - pendulum.min)
+        self.country_to_visit_duration = defaultdict(lambda: pendulum.now() - pendulum.now())
         self._prev_loc = None
 
     def add_travel_leg(self, leg):
@@ -108,6 +108,8 @@ class TravelStatistics:
             self.longest_leg = leg
 
     def add_travel_leg_point(self, point):
+        if point.loc is None:
+            print(point.maps_response)
         print('Adding stats from travel leg point: "{}" on {}'.format(point.loc, point.date))
         for component in point.loc.components:
             if 'country' in component['types']:
