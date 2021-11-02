@@ -7,7 +7,7 @@ function loadJSON(url, callback) {
     request.onload = function() {
       if (request.status >= 200 && request.status < 400){
         // Success!
-        data = JSON.parse(request.responseText);
+        var data = JSON.parse(request.responseText);
         callback(data);
       } else {
         console.log("Status code error: " + request.status);
@@ -36,7 +36,10 @@ function loadJSON(url, callback) {
         const sunLight = new THREE.DirectionalLight(0xF9D72C, 1);
         sunLight.position.set(-1, 2, 4);
         scene.add(sunLight);
-        const ambientLight = new THREE.AmbientLight(0x5050FF, 0.6);
+        const moonLight = new THREE.DirectionalLight(0xF9D78C, 0.85);
+        sunLight.position.set(2, -1, -2);
+        scene.add(moonLight);
+        const ambientLight = new THREE.AmbientLight(0x5050FF, 0.75);
         scene.add(ambientLight);
     }
 
@@ -73,11 +76,14 @@ function loadJSON(url, callback) {
         return vector;
     }
 
-    function drawPoint(pos) {
-        const geom = new THREE.SphereGeometry(0.01, 5, 5);
-        const material = new THREE.MeshBasicMaterial({color: 0xFF3333});
+    function drawPoint(pos, radius, colour) {
+        const geom = new THREE.CylinderGeometry(radius, radius, radius*20, 16);
+        geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
+        const material = new THREE.MeshLambertMaterial({color: colour});
         const point = new THREE.Mesh(geom, material);
         point.position.copy(pos);
+        //point.rotation.x = Math.PI * 0.5;
+        point.lookAt(0, 0, 0);
         console.log(point.position);
 
         /*point.position.x = GLOBE_RADIUS * Math.cos(latRadians) * Math.cos(lngRadians);
@@ -87,16 +93,33 @@ function loadJSON(url, callback) {
         globeGroup.add(point);
     }
 
-    drawPoint(latLngToVector(90, 135)); // north pole
+    /*drawPoint(latLngToVector(90, 135)); // north pole
     drawPoint(latLngToVector(-33.8688, 151.2093)) // Sydney
     drawPoint(latLngToVector(-89.99755, 139.27289)); // south pole ish. 
-    drawPoint(latLngToVector(53.35014, -6.266155)); // Dublin
+    drawPoint(latLngToVector(53.35014, -6.266155)); // Dublin*/
 
     loadJSON('/taisteal/api/travel_map', (data) => {
-        for (i in data.legs) {
-            var leg = data.legs[i];
-            drawPoint(latLngToVector(leg.dep.lat, leg.dep.lng));
-            drawPoint(latLngToVector(leg.arr.lat, leg.arr.lng));
+        var highestVisits = 0;
+        for (var i in data.visits) {
+            var numVisits = data.visits[i].num_visits;
+            highestVisits = (highestVisits > numVisits ? highestVisits : numVisits);
+        }
+        console.log("Highest visits: ", highestVisits);
+        for (var i in data.visits) {
+            const visit = data.visits[i];
+            console.log(visit.num_visits);
+            var radius = 0.005;
+            var colour = 0xFF3333;
+            console.log(visit.num_visits*2, highestVisits);
+            if (visit.num_visits >= highestVisits/3) {
+                colour = 0x55FF55;
+                radius = 0.01;
+                console.log(colour);
+            } else if (visit.num_visits >= 2) {
+                colour = 0x5555FF;
+                radius = 0.0075;
+            }
+            drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, colour);
         }
     });
 
