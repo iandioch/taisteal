@@ -25,10 +25,11 @@ def serve_travel_map():
             'lng': loc.longitude,
             'name': loc.address, # unique
             'type': loc.type,
+            'human_readable_name': loc.human_readable_name, # no guarantee of uniqueness
         }
 
     loc = '../../mo_thaistil/2018_02_20_Lugano.csv'
-    loc = '../google.csv'
+    loc = '../mo_thaistil/full.csv'
     travel_leg_series = parse.parse(loc, config)
 
     legs = []

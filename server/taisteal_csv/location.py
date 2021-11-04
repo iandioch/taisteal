@@ -30,6 +30,7 @@ class Location:
         Use Location.find(query) instead.'''
         self.query = ""
         self.address = ""
+        self.human_readable_name = ""
         self.latitude = 0
         self.longitude = 0
         self.components = []
@@ -53,6 +54,8 @@ class Location:
         loc.components = result['address_components']
         for component in loc.components:
             typeset = set(component['types'])
+            if 'locality' in typeset and not loc.human_readable_name:
+                loc.human_readable_name = component['long_name']
             if 'country' in typeset:
                 country_name = component['long_name']
                 if country_name == query:
@@ -65,11 +68,15 @@ class Location:
                 loc.type = TYPE_TOWN
             elif 'airport' in typeset:
                 loc.type = TYPE_AIRPORT
+                loc.human_readable_name = component['long_name']
             elif (loc.type != TYPE_AIRPORT and ('bus_station' in typeset or
                                                 'train_station' in typeset or
                                                 'transit_station' in typeset or
                                                 'station' in component['long_name'].lower())):
                 loc.type = TYPE_STATION
+
+        if not loc.human_readable_name:
+            loc.human_readable_name = loc.address
         return loc
 
     @staticmethod

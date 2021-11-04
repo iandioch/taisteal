@@ -242,7 +242,7 @@ function loadJSON(url, callback) {
             }
             const height = mapToRange(1, highestVisits, GLOBE_RADIUS/100, GLOBE_RADIUS/10, visit.num_visits);
             console.log("Num visits: ", visit.num_visits, ", height: ", height);
-            const name = visit.location.name;
+            const name = visit.location.human_readable_name;
             console.log(visit);
             drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, name);
         }
