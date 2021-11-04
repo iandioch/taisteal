@@ -1,6 +1,7 @@
 import json
 
 from collections import defaultdict
+from math import radians
 
 from taisteal_csv import parse
 from flask import Flask
@@ -25,6 +26,7 @@ def serve_travel_map():
             'lng': loc.longitude,
             'name': loc.address, # unique
             'type': loc.type,
+            'region': loc.region , # used to cluster close places.
             'human_readable_name': loc.human_readable_name, # no guarantee of uniqueness
         }
 
@@ -74,9 +76,64 @@ def serve_travel_map():
             'num_visits': max(1, num_visits[v]//2),
             'days': time_spent[v],
         })
+
+
+    def add_location_to_cluster(cluster, v):
+        print('Adding {} to cluster {}'.format(v, cluster))
+        # TODO(iandioch): num_visits will be incorrect here,
+        # because it is estimated from separate departures and
+        # arrivals from a place, but if it is a journey between
+        # two places being combined, that confuses everything.
+        cluster['num_visits'] += v['num_visits']
+        # Also not correct, as two half-day visits will each have
+        # v['days'] = 1, and they will sum to 2 instead of to 1.
+        cluster['days'] += v['days']
+        v['cluster'] = cluster['location']['name']
+    
+    clusters = {}
+    CLUSTER_THRESHOLD_KM = 25
+    for i in range(len(visits)-1):
+        for j in range(i+1, len(visits)):
+                v1 = visits[i]
+                v2 = visits[j]
+                v1_loc = v1['location']
+                v2_loc = v2['location']
+                if v1_loc['region'] == v2_loc['region']:
+                    if 'cluster' in v1 and 'cluster' in v2:
+                        continue
+                    elif 'cluster' in v1:
+                        cluster = clusters[v1_loc['region']]
+                        add_location_to_cluster(cluster, v2)
+                        continue
+                    elif 'cluster' in v2:
+                        v1['cluster'] = v2['cluster']
+                        add_location_to_cluster(cluster, v1)
+                        continue
+
+                    if v1_loc['region'] in clusters:
+                        cluster = v1_loc['region']
+                    else:
+                        # Create a new cluster.
+                        cluster = {
+                            'location': {
+                                'lat': v1_loc['lat'],
+                                'lng': v1_loc['lng'],
+                                'name': 'CLUSTER("{}")'.format(v1_loc['region']),
+                                'type': 'CLUSTER',
+                                'region': v1_loc['region'],
+                                'human_readable_name': v1_loc['region'],
+                            },
+                            'num_visits': 0,
+                            'days': 0,
+                        }
+
+                    add_location_to_cluster(cluster, v1)
+                    add_location_to_cluster(cluster, v2)
+                    clusters[v1_loc['region']] = cluster
+
     data = {
         'legs': legs,
-        'visits': visits,
+        'visits': visits + list(clusters.values()),
     }
     s = json.dumps(data, indent=4)
     print(s)

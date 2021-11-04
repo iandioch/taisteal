@@ -58,6 +58,9 @@ class TravelLegSeries:
             prev = self.added_legs[i]
             nex = self.added_legs[i+1]
             self.legs.append(prev)
+            if prev.arr.loc is None or nex.dep.loc is None:
+                print('Cannot add FILL leg between {} to {}'.format(prev, nex))
+                continue
             if prev.arr.loc != nex.dep.loc:
                 parts = [
                     prev.arr.loc.query,
@@ -109,7 +112,8 @@ class TravelStatistics:
 
     def add_travel_leg_point(self, point):
         if point.loc is None:
-            print(point.maps_response)
+            print('ERROR, point.loc is none for point:', point)
+            return
         print('Adding stats from travel leg point: "{}" on {}'.format(point.loc, point.date))
         for component in point.loc.components:
             if 'country' in component['types']:

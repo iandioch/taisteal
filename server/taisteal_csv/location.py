@@ -39,6 +39,7 @@ class Location:
         self.children = []
         self.country = "Unknown Country"
         self.type = TYPE_UNKNOWN 
+        self.region = ''
 
     def __repr__(self):
         return self.query
@@ -54,8 +55,12 @@ class Location:
         loc.components = result['address_components']
         for component in loc.components:
             typeset = set(component['types'])
-            if 'locality' in typeset and not loc.human_readable_name:
-                loc.human_readable_name = component['long_name']
+            if 'locality' in typeset:
+                loc.region = component['long_name']
+                if not loc.human_readable_name:
+                    loc.human_readable_name = component['long_name']
+                if loc.type == TYPE_UNKNOWN:
+                    loc.type = TYPE_TOWN
             if 'country' in typeset:
                 country_name = component['long_name']
                 if country_name == query:
@@ -64,10 +69,13 @@ class Location:
                 loc.parent, result = Location.find(country_name, config)
                 loc.parent.children.append(loc)
                 loc.country = country_name
-            if loc.type == TYPE_UNKNOWN and 'locality' in typeset:
-                loc.type = TYPE_TOWN
-            elif 'airport' in typeset:
+            if 'airport' in typeset:
                 loc.type = TYPE_AIRPORT
+                # Special case for airports, which can be in a differently named
+                # town or county than their associated city, to just name them
+                # the name of the airport itself.
+                # Marking a location as "County Dublin" instead of "DUB Airport"
+                # or Kloten instead of "ZRH Airport" is not useful.
                 loc.human_readable_name = component['long_name']
             elif (loc.type != TYPE_AIRPORT and ('bus_station' in typeset or
                                                 'train_station' in typeset or
@@ -77,6 +85,8 @@ class Location:
 
         if not loc.human_readable_name:
             loc.human_readable_name = loc.address
+        if not loc.region:
+            loc.region = loc.human_readable_name
         return loc
 
     @staticmethod

@@ -182,11 +182,13 @@ function loadJSON(url, callback) {
             globeGroup.add(arc);
     }
 
-    function drawPoint(pos, radius, height, colour, name) {
+    function drawPoint(pos, radius, height, colour, name, hasCluster, isCluster) {
         const pointObj = new THREE.Group();
         pointObj.position.copy(pos);
         pointObj.lookAt(0, 0, 0);
         pointObj.locationName = name;
+        pointObj.hasCluster = hasCluster;
+        pointObj.isCluster = isCluster;
 
         const margin = 0.0005;
         const baseGeom = new THREE.CylinderGeometry(radius + margin*2, radius + margin*2, margin, 16);
@@ -242,12 +244,14 @@ function loadJSON(url, callback) {
 
             if (visit.location.type === "AIRPORT") {
                 colour = 0xAA3333;
+            } else if (visit.location.type === "CLUSTER") {
+                colour = 0x3333AA;
             }
             const height = mapToRange(1, highestVisits, GLOBE_RADIUS/100, GLOBE_RADIUS/10, visit.num_visits);
             console.log("Num visits: ", visit.num_visits, ", height: ", height);
             const name = visit.location.human_readable_name + " (" + visit.num_visits + "x)";
             console.log(visit);
-            drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, name);
+            drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, name, visit.hasOwnProperty("cluster"), (visit.location.type === "CLUSTER"));
         }
         for (var i in data.legs) {
             const leg = data.legs[i];
@@ -301,16 +305,20 @@ function loadJSON(url, callback) {
         //var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
         var intersectedPoints = raycaster.intersectObjects(pointGroup.children, true);
         if (intersectedPoints.length > 0) {
-            // First point is the one closest to camera.
-            const pointParent = intersectedPoints[0].object.parent;
-            if (pointParent != highlightedPoint) {
-                revertHighlightedPoint();
+            for (var i in intersectedPoints) {
+                if (intersectedPoints[i].object.material.transparent) continue;
+                // First point is the one closest to camera.
+                const pointParent = intersectedPoints[i].object.parent;
+                if (pointParent != highlightedPoint) {
+                    revertHighlightedPoint();
 
-                highlightedPoint = pointParent;
-                console.log(pointParent);
-                colourBeforeHighlight = pointParent.children[1].material.color.getHex();
-                pointParent.children[1].material.color.setHex(0x000000);
-                pointParent.children[2].element.style.visibility = "visible";
+                    highlightedPoint = pointParent;
+                    console.log(pointParent);
+                    colourBeforeHighlight = pointParent.children[1].material.color.getHex();
+                    pointParent.children[1].material.color.setHex(0x000000);
+                    pointParent.children[2].element.style.visibility = "visible";
+                }
+                break;
             }
         } else {
             // No currently intersected points.
@@ -328,9 +336,21 @@ function loadJSON(url, callback) {
         }
 
         const scale = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.2, 5, cameraDistance);
+        const showClusters = (cameraDistance > MAX_CAMERA_DISTANCE/4.0);
         for (var i in pointGroup.children) {
             const point = pointGroup.children[i];
             point.scale.set(scale, scale, scale);
+
+            console.log("Setting transparency for point:", point);
+            if (point.hasCluster) {
+                point.visible = !showClusters;
+                //point.children[0].material.transparent = !showClusters;
+                //point.children[1].material.transparent = !showClusters;
+            } else if (point.isCluster) {
+                point.visible = showClusters;
+                //point.children[0].material.transparent = showClusters;
+                //point.children[1].material.transparent = showClusters;
+            }
         }
 
         //globeGroup.rotation.y = seconds/40.0;
