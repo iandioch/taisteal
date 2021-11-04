@@ -14,7 +14,7 @@ class TravelLegPoint:
         - loc (str): A raw address.
         - date (str): A datetime'''
         self.loc, res = Location.find(loc, config)
-        print("Found location '{}' with result '{}'".format(loc, res))
+        #print("Found location '{}' with result '{}'".format(loc, res))
         self.raw_date = date
 
         # TODO(iandioch): Parse date.

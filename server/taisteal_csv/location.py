@@ -45,6 +45,34 @@ class Location:
         return self.query
 
     @staticmethod
+    def _get_region_name(loc):
+        # Lower number = better
+        preference_order = {
+            'administrative_area_level_1': 1,
+            'locality': 2,
+            'administrative_area_level_2': 3,
+            'country': 4
+        }
+        best_name = None 
+        best_type_value = 99
+        for component in loc.components:
+            typeset = set(component['types'])
+            for type_, value in preference_order.items():
+                print(type_, typeset)
+                if type_ in typeset:
+                    if best_type_value < value:
+                        continue
+                    print('New name {} ({}) is better than {}'.format(component['long_name'], type_, best_name))
+                    best_type_value = value
+                    best_name = component['long_name']
+
+        bad_admin_area_l1s = set(['England', 'Wales', 'Scotland']) # Too broad.
+        if best_name is None:
+            return loc.address
+        return best_name
+
+
+    @staticmethod
     def _parse_maps_response(result, query, config):
         loc = Location()
         loc.maps_response = result
@@ -56,11 +84,14 @@ class Location:
         for component in loc.components:
             typeset = set(component['types'])
             if 'locality' in typeset:
-                loc.region = component['long_name']
+                #loc.region = component['long_name']
                 if not loc.human_readable_name:
                     loc.human_readable_name = component['long_name']
                 if loc.type == TYPE_UNKNOWN:
                     loc.type = TYPE_TOWN
+            if 'administrative_area_level_2' in typeset:
+                if not loc.region:
+                    loc.region = component['long_name']
             if 'country' in typeset:
                 country_name = component['long_name']
                 if country_name == query:
@@ -87,6 +118,8 @@ class Location:
             loc.human_readable_name = loc.address
         if not loc.region:
             loc.region = loc.human_readable_name
+
+        loc.region = Location._get_region_name(loc)
         return loc
 
     @staticmethod
