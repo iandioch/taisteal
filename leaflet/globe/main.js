@@ -25,7 +25,7 @@ function loadJSON(url, callback) {
     const GLOBE_RADIUS = 1;
     const canvas = document.querySelector('#globe-canvas');
     const renderer = new THREE.WebGLRenderer({canvas});
-    const camera = new THREE.PerspectiveCamera(45, 2, 0.025, 5);
+    const camera = new THREE.PerspectiveCamera(45, 2, 0.01, 5);
     camera.position.z = 2;
     const controls = new OrbitControls(camera, canvas);
     controls.minDistance = GLOBE_RADIUS*1.1;
@@ -93,7 +93,7 @@ function loadJSON(url, callback) {
 		return [(lat3) * 180.0 / Math.PI, (lng3) * 180.0 / Math.PI];
     }
 
-    function drawArc(start, end, smoothness, width, colour) {
+    function drawSurfaceArc(start, end, smoothness, width, colour) {
         // Following https://stackoverflow.com/a/42721392
         var cb = new THREE.Vector3();
         var ab = new THREE.Vector3();
@@ -111,6 +111,16 @@ function loadJSON(url, callback) {
         }
         var arc = new THREE.Line(geom, new THREE.LineBasicMaterial({color: colour, linewidth: width}));
         globeGroup.add(arc);
+    }
+
+    // [start, controlPoint, end] should all be Vector3.
+    function drawRaisedArc(start, controlPoint, end, smoothness, width, colour) {
+            const curve = new THREE.QuadraticBezierCurve3(start, controlPoint, end);
+            const points = curve.getPoints(smoothness);
+            const geom = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ color: colour, linewidth: width});
+            const arc = new THREE.Line(geom, material);
+            globeGroup.add(arc);
     }
 
     function drawPoint(pos, radius, height, colour) {
@@ -171,15 +181,7 @@ function loadJSON(url, callback) {
             // TODO(iandioch): We could optimise by drawing shorter legs with a much lower smoothness.
 
 			const midpoint = latLngMidpoint(leg.dep.lat, leg.dep.lng, leg.arr.lat, leg.arr.lng);
-			/*drawArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], GLOBE_RADIUS*1.1), 64, leg.count, 0xFFFFFF);
-			drawArc(latLngToVector(midpoint[0], midpoint[1], GLOBE_RADIUS*1.1),latLngToVector(leg.arr.lat, leg.arr.lng),  64, leg.count, 0xFFFFFF);*/
-            const curve = new THREE.CatmullRomCurve3([latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], GLOBE_RADIUS*1.1), latLngToVector(leg.arr.lat, leg.arr.lng)]);
-            //const geom = new THREE.TubeGeometry({path:curve, radius: 1});
-            const geom = new THREE.BufferGeometry().setFromPoints(curve.getPoints(50));
-            const material = new THREE.LineBasicMaterial({ color: 0xFFFFFF, linewidth: 1 + leg.count});
-            const arc = new THREE.Line(geom, material);
-            globeGroup.add(arc);
-
+            drawRaisedArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], GLOBE_RADIUS*1.25), latLngToVector(leg.arr.lat, leg.arr.lng), 50, 1 + leg.count, 0xFFFFFF);
             //drawArc(latLngToVector(leg.dep.lat, leg.dep.lng, GLOBE_RADIUS*1.1), latLngToVector(leg.arr.lat, leg.arr.lng, GLOBE_RADIUS*1.1), 64, leg.count, 0xFFFFFF);
         }
     });
