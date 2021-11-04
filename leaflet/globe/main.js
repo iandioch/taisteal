@@ -233,16 +233,19 @@ function loadJSON(url, callback) {
             var colour = 0x559955;
             console.log(visit.num_visits*2, highestVisits);
             if (visit.num_visits >= highestVisits/3) {
-                colour = 0xAA3333;
+                //colour = 0xAA3333;
                 //radius = 0.008;
-                console.log(colour);
             } else if (visit.num_visits >= 2) {
-                colour = 0x5555FF;
+                //colour = 0x5555FF;
                 //radius = 0.005;
+            }
+
+            if (visit.location.type === "AIRPORT") {
+                colour = 0xAA3333;
             }
             const height = mapToRange(1, highestVisits, GLOBE_RADIUS/100, GLOBE_RADIUS/10, visit.num_visits);
             console.log("Num visits: ", visit.num_visits, ", height: ", height);
-            const name = visit.location.human_readable_name;
+            const name = visit.location.human_readable_name + " (" + visit.num_visits + "x)";
             console.log(visit);
             drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, name);
         }
