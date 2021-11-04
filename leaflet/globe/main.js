@@ -1,5 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.108.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.108.0/examples/jsm/controls/OrbitControls.js';
+//import {CubeTextureLoader} from 'https://unpkg.com/three@0.108.0/examples/jsm/loaders/CubeTextureLoader.js';
 
 function loadJSON(url, callback) {
     var request = new XMLHttpRequest;
@@ -25,7 +26,7 @@ function loadJSON(url, callback) {
     const GLOBE_RADIUS = 1;
     const canvas = document.querySelector('#globe-canvas');
     const renderer = new THREE.WebGLRenderer({canvas});
-    const camera = new THREE.PerspectiveCamera(45, 2, 0.01, 5);
+    const camera = new THREE.PerspectiveCamera(45, 2, 0.01, 500);
     camera.position.z = 2;
     const controls = new OrbitControls(camera, canvas);
     const MIN_CAMERA_DISTANCE = GLOBE_RADIUS * 1.1;
@@ -37,17 +38,40 @@ function loadJSON(url, callback) {
     controls.rotateSpeed = 0.75;
     const scene = new THREE.Scene();
 
+    {
+        const MAX_STAR_DIST = GLOBE_RADIUS * 30;
+        const MIN_DIST = GLOBE_RADIUS*10;
+        function randomStarPosition() {
+            while (true) { 
+            const x = Math.random() * MAX_STAR_DIST - MAX_STAR_DIST/2.0;
+            const y = Math.random() * MAX_STAR_DIST - MAX_STAR_DIST/2.0;
+            const z = Math.random() * MAX_STAR_DIST - MAX_STAR_DIST/2.0;
+            if (x*x + y*y + z*z > MIN_DIST*MIN_DIST) {
+                return new THREE.Vector3(x, y, z);
+            }
+            }
+        }
+        const NUM_STARS = 100;
+        const starGeom = new THREE.Geometry();
+        for (let i = 0; i < NUM_STARS; i++) {
+            //let star = new THREE.Vector3(randomStarPosition(), randomStarPosition(), randomStarPosition());
+            let star = randomStarPosition();
+            starGeom.vertices.push(star);
+        }
+        const material = new THREE.PointsMaterial({color: 0xFFFFFF, size: 0.1});
+        const points = new THREE.Points(starGeom, material);
+        scene.add(points);
+    }
+
     { 
-        // Create a sun and an ambient light.
-        const sunLight = new THREE.DirectionalLight(0xF9D79C, 1);
-        sunLight.position.set(-1, 2, 4);
-        //scene.add(sunLight);
         const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
         scene.add(ambientLight);
     }
 
-    const globeGroup = new THREE.Object3D();
+    const globeGroup = new THREE.Group();
     scene.add(globeGroup);
+    const pointGroup = new THREE.Group();
+    globeGroup.add(pointGroup);
 
     // Create the sphere obj.
     const textureLoader = new THREE.TextureLoader();
@@ -154,7 +178,7 @@ function loadJSON(url, callback) {
         const base = new THREE.Mesh(baseGeom, baseMaterial);
         base.position.copy(pos);
         base.lookAt(0, 0, 0);
-        globeGroup.add(base);
+        pointGroup.add(base);
         // TODO(iandioch): I think that some of the height goes inside the earth. Fix.
         const geom = new THREE.CylinderGeometry(radius, radius, height, 16);
         geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
@@ -169,7 +193,7 @@ function loadJSON(url, callback) {
         console.log( GLOBE_RADIUS * Math.cos(latRadians) * Math.cos(lngRadians));
         point.position.z = GLOBE_RADIUS * Math.cos(latRadians) * Math.sin(lngRadians);
         point.position.y = GLOBE_RADIUS * Math.sin(latRadians);*/
-        globeGroup.add(point);
+        pointGroup.add(point);
     }
 
     loadJSON('/taisteal/api/travel_map', (data) => {
@@ -225,7 +249,6 @@ function loadJSON(url, callback) {
         const seconds = time * 0.001;
         // TODO(iandioch): When you get in close, the size of rendered points could change to show more detail.
         const cameraDistance = camera.position.distanceTo(controls.target);
-        console.log(cameraDistance);
         controls.rotateSpeed = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.05, 0.8, cameraDistance);
         controls.update();
 
