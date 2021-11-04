@@ -230,10 +230,9 @@ function loadJSON(url, callback) {
         console.log("Highest visits: ", highestVisits);
         for (var i in data.visits) {
             const visit = data.visits[i];
-            console.log(visit.num_visits);
+            console.log("Visit: ", visit)
             var radius = 0.002;
             var colour = 0x559955;
-            console.log(visit.num_visits*2, highestVisits);
             if (visit.num_visits >= highestVisits/3) {
                 //colour = 0xAA3333;
                 //radius = 0.008;
@@ -245,12 +244,11 @@ function loadJSON(url, callback) {
             if (visit.location.type === "AIRPORT") {
                 colour = 0xAA3333;
             } else if (visit.location.type === "CLUSTER") {
-                colour = 0x3333AA;
+                colour = 0xfcba03;
             }
             const height = mapToRange(1, highestVisits, GLOBE_RADIUS/100, GLOBE_RADIUS/10, visit.num_visits);
             console.log("Num visits: ", visit.num_visits, ", height: ", height);
             const name = visit.location.human_readable_name + " (" + visit.num_visits + "x)";
-            console.log(visit);
             drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, name, visit.hasOwnProperty("cluster"), (visit.location.type === "CLUSTER"));
         }
         for (var i in data.legs) {
@@ -313,7 +311,6 @@ function loadJSON(url, callback) {
                     revertHighlightedPoint();
 
                     highlightedPoint = pointParent;
-                    console.log(pointParent);
                     colourBeforeHighlight = pointParent.children[1].material.color.getHex();
                     pointParent.children[1].material.color.setHex(0x000000);
                     pointParent.children[2].element.style.visibility = "visible";
@@ -341,7 +338,7 @@ function loadJSON(url, callback) {
             const point = pointGroup.children[i];
             point.scale.set(scale, scale, scale);
 
-            console.log("Setting transparency for point:", point);
+            //console.log("Setting transparency for point:", point);
             if (point.hasCluster) {
                 point.visible = !showClusters;
                 //point.children[0].material.transparent = !showClusters;
