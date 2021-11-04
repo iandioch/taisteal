@@ -49,18 +49,29 @@ class Location:
         # Lower number = better
         preference_order = {
             'administrative_area_level_1': 1,
-            'locality': 2,
-            'administrative_area_level_2': 3,
+            'locality': 3,
+            'administrative_area_level_2': 2,
             'country': 4
+        }
+        banned_regions = {
+            'administrative_area_level_1': set([
+                # These look very strange as single regions.
+                'England', 'Wales', 'Scotland', 
+            ]),
+            'locality': set([]),
+            'administrative_area_level_2': set([]),
+            'country': set([])
         }
         best_name = None 
         best_type_value = 99
         for component in loc.components:
             typeset = set(component['types'])
             for type_, value in preference_order.items():
-                print(type_, typeset)
                 if type_ in typeset:
                     if best_type_value < value:
+                        continue
+                    if (component['long_name'] in banned_regions[type_]):
+                        print(component)
                         continue
                     print('New name {} ({}) is better than {}'.format(component['long_name'], type_, best_name))
                     best_type_value = value
