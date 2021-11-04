@@ -1,6 +1,7 @@
 import * as THREE from 'https://unpkg.com/three@0.108.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.108.0/examples/jsm/controls/OrbitControls.js';
-//import {CubeTextureLoader} from 'https://unpkg.com/three@0.108.0/examples/jsm/loaders/CubeTextureLoader.js';
+import { CSS2DRenderer, CSS2DObject } from 'https://unpkg.com/three@0.108.0/examples/jsm/renderers/CSS2DRenderer.js';
+
 
 function loadJSON(url, callback) {
     var request = new XMLHttpRequest;
@@ -26,9 +27,16 @@ function loadJSON(url, callback) {
     const GLOBE_RADIUS = 1;
     const canvas = document.querySelector('#globe-canvas');
     const renderer = new THREE.WebGLRenderer({canvas});
+
+    const labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.domElement.style.position = 'absolute';
+    labelRenderer.domElement.style.top = '0px';
+    document.body.appendChild(labelRenderer.domElement);
+
     const camera = new THREE.PerspectiveCamera(45, 2, 0.01, 500);
     camera.position.z = 2;
-    const controls = new OrbitControls(camera, canvas);
+    const controls = new OrbitControls(camera, labelRenderer.domElement);
     const MIN_CAMERA_DISTANCE = GLOBE_RADIUS * 1.025;
     const MAX_CAMERA_DISTANCE = GLOBE_RADIUS * 5;
     controls.minDistance = MIN_CAMERA_DISTANCE;
@@ -38,6 +46,10 @@ function loadJSON(url, callback) {
     controls.rotateSpeed = 0.75;
     controls.zoomSpeed = 0.5;
     const scene = new THREE.Scene();
+
+    var raycaster = new THREE.Raycaster(); 
+    var mouse = new THREE.Vector2();
+    document.addEventListener('mousemove', onMouseMove, false);
 
     {
         const MAX_STAR_DIST = GLOBE_RADIUS * 30;
@@ -101,7 +113,6 @@ function loadJSON(url, callback) {
         vector.x = N * Math.cos(latRadians) * Math.sin(lngRadians);
         //vector.z = GLOBE_RADIUS * Math.sin(latRadians);
         vector.y = N * Math.sin(latRadians);
-        console.log(lat, lng, "->", vector.x, vector.y, vector.z);
         return vector;
     }
 
@@ -171,30 +182,41 @@ function loadJSON(url, callback) {
             globeGroup.add(arc);
     }
 
-    function drawPoint(pos, radius, height, colour) {
+    function drawPoint(pos, radius, height, colour, name) {
+        const pointObj = new THREE.Group();
+        pointObj.position.copy(pos);
+        pointObj.lookAt(0, 0, 0);
+        pointObj.locationName = name;
+
         const margin = 0.0005;
         const baseGeom = new THREE.CylinderGeometry(radius + margin*2, radius + margin*2, margin, 16);
         baseGeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
         const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF});
         const base = new THREE.Mesh(baseGeom, baseMaterial);
-        base.position.copy(pos);
-        base.lookAt(0, 0, 0);
-        pointGroup.add(base);
-        // TODO(iandioch): I think that some of the height goes inside the earth. Fix.
+        pointObj.add(base);
+
         const geom = new THREE.CylinderGeometry(radius, radius, height, 16);
         geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
         const material = new THREE.MeshPhongMaterial({color: colour});
         const point = new THREE.Mesh(geom, material);
-        point.position.copy(pos);
-        //point.rotation.x = Math.PI * 0.5;
-        point.lookAt(0, 0, 0);
-        console.log(point.position);
+        point.position.z = -height/2;
+        pointObj.add(point);
 
-        /*point.position.x = GLOBE_RADIUS * Math.cos(latRadians) * Math.cos(lngRadians);
-        console.log( GLOBE_RADIUS * Math.cos(latRadians) * Math.cos(lngRadians));
-        point.position.z = GLOBE_RADIUS * Math.cos(latRadians) * Math.sin(lngRadians);
-        point.position.y = GLOBE_RADIUS * Math.sin(latRadians);*/
-        pointGroup.add(point);
+        const div = document.createElement("div");
+        div.textContent = name;
+        div.style.padding = "2px";
+        div.style.border = "0px";
+        div.style.borderRadius = "5px";
+        div.style.fontFamily = "Arial, Helvetica, sans-serif";
+        div.style.fontSize = "1.5em";
+        div.style.marginTop = '-1em';
+        div.style.backgroundColor = "rgba(255, 255, 255, 0.75)";
+        div.style.visibility = "hidden";
+        const label = new CSS2DObject(div);
+        label.position.set(0, margin, 0);
+        pointObj.add(label);
+
+        pointGroup.add(pointObj);
     }
 
     loadJSON('/taisteal/api/travel_map', (data) => {
@@ -207,7 +229,7 @@ function loadJSON(url, callback) {
         for (var i in data.visits) {
             const visit = data.visits[i];
             console.log(visit.num_visits);
-            var radius = 0.001;
+            var radius = 0.002;
             var colour = 0x559955;
             console.log(visit.num_visits*2, highestVisits);
             if (visit.num_visits >= highestVisits/3) {
@@ -218,9 +240,11 @@ function loadJSON(url, callback) {
                 colour = 0x5555FF;
                 //radius = 0.005;
             }
-            const height = mapToRange(1, highestVisits, 0.025, GLOBE_RADIUS/10, visit.num_visits);
+            const height = mapToRange(1, highestVisits, GLOBE_RADIUS/100, GLOBE_RADIUS/10, visit.num_visits);
             console.log("Num visits: ", visit.num_visits, ", height: ", height);
-            drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour);
+            const name = visit.location.name;
+            console.log(visit);
+            drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, name);
         }
         for (var i in data.legs) {
             const leg = data.legs[i];
@@ -244,14 +268,53 @@ function loadJSON(url, callback) {
                             canvas.height !== canvas.clientHeight);
         if (needResize) {
             renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+            labelRenderer.setSize(window.innerWidth, window.innerHeight);
         }
         return needResize;
     }
 
+    function onMouseMove(event) {
+        mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+        mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+    }
+
+    var highlightedPoint; 
+    var colourBeforeHighlight;
+    var tooltipDiv = document.createElement('div');
+    tooltipDiv.textContent = "Ros na Rún";
+    tooltipDiv.style.marginTop = '-1em';
+    const tooltipLabel = new CSS2DObject(tooltipDiv);
+    tooltipLabel.position.set(0, GLOBE_RADIUS, 0);
     function render(time) {
+        function revertHighlightedPoint() {
+            if (!highlightedPoint) return;
+            highlightedPoint.children[1].material.color.setHex(colourBeforeHighlight);
+            highlightedPoint.children[2].element.style.visibility = "hidden";
+        }
         const seconds = time * 0.001;
-        // TODO(iandioch): When you get in close, the size of rendered points could change to show more detail.
         const cameraDistance = camera.position.distanceTo(controls.target);
+
+        raycaster.setFromCamera(mouse, camera);
+        //var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+        var intersectedPoints = raycaster.intersectObjects(pointGroup.children, true);
+        if (intersectedPoints.length > 0) {
+            // First point is the one closest to camera.
+            const pointParent = intersectedPoints[0].object.parent;
+            if (pointParent != highlightedPoint) {
+                revertHighlightedPoint();
+
+                highlightedPoint = pointParent;
+                console.log(pointParent);
+                colourBeforeHighlight = pointParent.children[1].material.color.getHex();
+                pointParent.children[1].material.color.setHex(0x000000);
+                pointParent.children[2].element.style.visibility = "visible";
+            }
+        } else {
+            // No currently intersected points.
+            revertHighlightedPoint();
+            highlightedPoint = null; // Delete prev highlight, if it exists.
+        }
+
         controls.rotateSpeed = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.05, 0.8, cameraDistance);
         controls.update();
 
@@ -261,7 +324,7 @@ function loadJSON(url, callback) {
             camera.updateProjectionMatrix();
         }
 
-        const scale = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.2, 3, cameraDistance);
+        const scale = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.2, 5, cameraDistance);
         for (var i in pointGroup.children) {
             const point = pointGroup.children[i];
             point.scale.set(scale, scale, scale);
@@ -270,6 +333,7 @@ function loadJSON(url, callback) {
         //globeGroup.rotation.y = seconds/40.0;
 
         renderer.render(scene, camera);
+        labelRenderer.render(scene, camera);
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
