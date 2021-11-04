@@ -30,12 +30,13 @@ function loadJSON(url, callback) {
     camera.position.z = 2;
     const controls = new OrbitControls(camera, canvas);
     const MIN_CAMERA_DISTANCE = GLOBE_RADIUS * 1.025;
-    const MAX_CAMERA_DISTANCE = GLOBE_RADIUS * 3;
+    const MAX_CAMERA_DISTANCE = GLOBE_RADIUS * 5;
     controls.minDistance = MIN_CAMERA_DISTANCE;
     controls.maxDistance = MAX_CAMERA_DISTANCE;
     controls.enablePan = false;
     controls.enableDamping = true;
     controls.rotateSpeed = 0.75;
+    controls.zoomSpeed = 0.5;
     const scene = new THREE.Scene();
 
     {
