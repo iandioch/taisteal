@@ -28,16 +28,20 @@ function loadJSON(url, callback) {
     const camera = new THREE.PerspectiveCamera(45, 2, 0.01, 5);
     camera.position.z = 2;
     const controls = new OrbitControls(camera, canvas);
-    controls.minDistance = GLOBE_RADIUS*1.1;
-    controls.maxDistance = GLOBE_RADIUS*3;
+    const MIN_CAMERA_DISTANCE = GLOBE_RADIUS * 1.1;
+    const MAX_CAMERA_DISTANCE = GLOBE_RADIUS * 3;
+    controls.minDistance = MIN_CAMERA_DISTANCE;
+    controls.maxDistance = MAX_CAMERA_DISTANCE;
     controls.enablePan = false;
+    controls.enableDamping = true;
+    controls.rotateSpeed = 0.75;
     const scene = new THREE.Scene();
 
     { 
         // Create a sun and an ambient light.
         const sunLight = new THREE.DirectionalLight(0xF9D79C, 1);
         sunLight.position.set(-1, 2, 4);
-        scene.add(sunLight);
+        //scene.add(sunLight);
         const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
         scene.add(ambientLight);
     }
@@ -93,6 +97,25 @@ function loadJSON(url, callback) {
 		return [(lat3) * 180.0 / Math.PI, (lng3) * 180.0 / Math.PI];
     }
 
+    function mapToRange(inputLo, inputHi, outputLo, outputHi, input) {
+        const slope = (outputHi - outputLo) / (inputHi - inputLo);
+        return outputLo + slope * (input - inputLo);
+    }
+
+    // Returns distance in KM between given pair of points, as the crow flies.
+    // Results are not exact, possibly because of assumption the earth is a sphere.
+    // Examples: Munich -> Zurich is 242km.
+    function latLngDistance(lat1, lng1, lat2, lng2) {
+        // From https://stackoverflow.com/q/18883601
+        const R = 6371; // Earth radius in km.
+        const dLat = (lat2-lat1) * Math.PI / 180.0;
+        const dLng = (lng2-lng1) * Math.PI / 180.0;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos((lat1) * Math.PI / 180.0) * Math.cos((lat2) * Math.PI / 180.0) * Math.sin(dLng/2) * Math.sin(dLng/2); 
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const d = R*c;
+        return d;
+    }
+
     function drawSurfaceArc(start, end, smoothness, width, colour) {
         // Following https://stackoverflow.com/a/42721392
         var cb = new THREE.Vector3();
@@ -118,16 +141,16 @@ function loadJSON(url, callback) {
             const curve = new THREE.QuadraticBezierCurve3(start, controlPoint, end);
             const points = curve.getPoints(smoothness);
             const geom = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({ color: colour, linewidth: width});
+            const material = new THREE.LineBasicMaterial({ color: colour, linewidth: width, transparent: true, opacity: 0.4});
             const arc = new THREE.Line(geom, material);
             globeGroup.add(arc);
     }
 
     function drawPoint(pos, radius, height, colour) {
-        const margin = 0.001;
+        const margin = 0.0005;
         const baseGeom = new THREE.CylinderGeometry(radius + margin*2, radius + margin*2, margin, 16);
         baseGeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
-        const baseMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
+        const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF});
         const base = new THREE.Mesh(baseGeom, baseMaterial);
         base.position.copy(pos);
         base.lookAt(0, 0, 0);
@@ -160,7 +183,7 @@ function loadJSON(url, callback) {
             const visit = data.visits[i];
             console.log(visit.num_visits);
             var radius = 0.001;
-            var colour = 0x55FF55;
+            var colour = 0x559955;
             console.log(visit.num_visits*2, highestVisits);
             if (visit.num_visits >= highestVisits/3) {
                 colour = 0xAA3333;
@@ -178,11 +201,12 @@ function loadJSON(url, callback) {
                 // These are auto-added to make all legs into one continuous route.
                 continue;
             }
-            // TODO(iandioch): We could optimise by drawing shorter legs with a much lower smoothness.
-
+            const legDistance = latLngDistance(leg.dep.lat, leg.dep.lng, leg.arr.lat, leg.arr.lng);
+            const globeCircumference = 40000;
+            const controlPointHeight = mapToRange(0, globeCircumference, GLOBE_RADIUS, GLOBE_RADIUS * 3, legDistance);
+            const smoothness = Math.ceil(mapToRange(0, globeCircumference, 8, 256, legDistance));
 			const midpoint = latLngMidpoint(leg.dep.lat, leg.dep.lng, leg.arr.lat, leg.arr.lng);
-            drawRaisedArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], GLOBE_RADIUS*1.25), latLngToVector(leg.arr.lat, leg.arr.lng), 50, 1 + leg.count, 0xFFFFFF);
-            //drawArc(latLngToVector(leg.dep.lat, leg.dep.lng, GLOBE_RADIUS*1.1), latLngToVector(leg.arr.lat, leg.arr.lng, GLOBE_RADIUS*1.1), 64, leg.count, 0xFFFFFF);
+            drawRaisedArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], controlPointHeight), latLngToVector(leg.arr.lat, leg.arr.lng), smoothness, leg.count*2, 0xFFFFFF);
         }
     });
 
@@ -202,6 +226,8 @@ function loadJSON(url, callback) {
         // TODO(iandioch): When you get in close, the size of rendered points could change to show more detail.
         const cameraDistance = camera.position.distanceTo(controls.target);
         console.log(cameraDistance);
+        controls.rotateSpeed = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.05, 0.8, cameraDistance);
+        controls.update();
 
         if (resizeRendererToDisplaySize(renderer)) {
             const canvas = renderer.domElement;
