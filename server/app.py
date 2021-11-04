@@ -15,7 +15,6 @@ with open('config.json') as f:
 
 def estimated_distance_km(lat1, lng1, lat2, lng2):
     # Haversine formula.
-
     lat1, lng1, lat2, lng2 = map(radians, (lat1, lng1, lat2, lng2))
     dlng = lng2 - lng1 
     dlat = lat2 - lat1 
@@ -31,9 +30,8 @@ def estimated_distance_km(lat1, lng1, lat2, lng2):
 # A cluster will also be created for any 2 visits which have a location less
 # than cluster_threshold_distance estimated distance from each other.
 def get_clusters(visits, cluster_threshold_km=25):
-    print('Getting clusters for {} visits, with a distance threshold of {}'.format(visits, cluster_threshold_km))
+    print('Getting clusters for {} visits, with a distance threshold of {}.'.format(len(visits), cluster_threshold_km))
     def add_location_to_cluster(cluster, v):
-        print('Adding {} to cluster {}'.format(v, cluster))
         # TODO(iandioch): num_visits will be incorrect here,
         # because it is estimated from separate departures and
         # arrivals from a place, but if it is a journey between
@@ -120,8 +118,7 @@ def get_clusters(visits, cluster_threshold_km=25):
         cluster[c]['location']['lat'] = sum(v['location']['lat'] for v in components[c])/len(components[c])
         cluster[c]['location']['lng'] = sum(v['location']['lng'] for v in components[c])/len(components[c])
 
-    print(f'Identified {len(cluster)} clusters:')
-    print(cluster)
+    print(f'Identified {len(cluster)} clusters.')
     return list(cluster.values())
 
 @app.route('/')
@@ -193,7 +190,6 @@ def serve_travel_map():
         'visits': visits + get_clusters(visits),
     }
     s = json.dumps(data, indent=4)
-    #print(s)
     return s
 
 @app.route('/api/get_mapbox_token')

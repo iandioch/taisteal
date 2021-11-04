@@ -71,9 +71,7 @@ class Location:
                     if best_type_value < value:
                         continue
                     if (component['long_name'] in banned_regions[type_]):
-                        print(component)
                         continue
-                    print('New name {} ({}) is better than {}'.format(component['long_name'], type_, best_name))
                     best_type_value = value
                     best_name = component['long_name']
 

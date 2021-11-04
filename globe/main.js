@@ -68,7 +68,6 @@ function loadJSON(url, callback) {
         const NUM_STARS = 100;
         const starGeom = new THREE.Geometry();
         for (let i = 0; i < NUM_STARS; i++) {
-            //let star = new THREE.Vector3(randomStarPosition(), randomStarPosition(), randomStarPosition());
             let star = randomStarPosition();
             starGeom.vertices.push(star);
         }
@@ -110,13 +109,11 @@ function loadJSON(url, callback) {
         const lngRadians = lng * Math.PI / 180.0;
         const vector = new THREE.Vector3();
 
-        //const N = a / Math.sqrt(1 - (e*e) * (Math.sin(latRadians)*Math.sin(latRadians)));
         var N = GLOBE_RADIUS;
         if (altitude !== null) N = altitude;
-        vector.z = N * Math.cos(latRadians) * Math.cos(lngRadians);
         vector.x = N * Math.cos(latRadians) * Math.sin(lngRadians);
-        //vector.z = GLOBE_RADIUS * Math.sin(latRadians);
         vector.y = N * Math.sin(latRadians);
+        vector.z = N * Math.cos(latRadians) * Math.cos(lngRadians);
         return vector;
     }
 
@@ -210,6 +207,8 @@ function loadJSON(url, callback) {
 
         const div = document.createElement("div");
         div.textContent = name;
+        // TODO(iandioch): This styling should go in a stylesheet, instead of
+        // inlined in the JS.
         div.style.padding = "2px";
         div.style.border = "0px";
         div.style.borderRadius = "5px";
@@ -236,10 +235,8 @@ function loadJSON(url, callback) {
             var numVisits = data.visits[i].num_visits;
             highestVisits = (highestVisits > numVisits ? highestVisits : numVisits);
         }
-        console.log("Highest visits: ", highestVisits);
         for (var i in data.visits) {
             const visit = data.visits[i];
-            console.log("Visit: ", visit)
             var radius = 0.001;
             var colour = 0x559955;
             if (visit.location.type === "AIRPORT") {
@@ -248,7 +245,6 @@ function loadJSON(url, callback) {
                 colour = 0xfcba03;
             }
             const height = mapToRange(1, highestVisits, GLOBE_RADIUS/50, GLOBE_RADIUS/12, visit.num_visits);
-            console.log("Num visits: ", visit.num_visits, ", height: ", height);
             const name = visit.location.human_readable_name + " (" + visit.num_visits + "x)";
             drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, name, visit.hasOwnProperty("cluster"), (visit.location.type === "CLUSTER"));
         }
@@ -291,6 +287,7 @@ function loadJSON(url, callback) {
     tooltipDiv.style.marginTop = '-1em';
     const tooltipLabel = new CSS2DObject(tooltipDiv);
     tooltipLabel.position.set(0, GLOBE_RADIUS, 0);
+
     function render(time) {
         function revertHighlightedPoint() {
             if (!highlightedPoint) return;
@@ -301,7 +298,6 @@ function loadJSON(url, callback) {
         const cameraDistance = camera.position.distanceTo(controls.target);
 
         raycaster.setFromCamera(mouse, camera);
-        //var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
         var intersectedPoints = raycaster.intersectObjects(pointGroup.children, true);
         if (intersectedPoints.length > 0) {
             for (var i in intersectedPoints) {
@@ -339,15 +335,10 @@ function loadJSON(url, callback) {
             const point = pointGroup.children[i];
             point.scale.set(scale, scale, scale);
 
-            //console.log("Setting transparency for point:", point);
             if (point.hasCluster) {
                 point.visible = !showClusters;
-                //point.children[0].material.transparent = !showClusters;
-                //point.children[1].material.transparent = !showClusters;
             } else if (point.isCluster) {
                 point.visible = showClusters;
-                //point.children[0].material.transparent = showClusters;
-                //point.children[1].material.transparent = showClusters;
             }
         }
 

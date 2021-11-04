@@ -114,7 +114,6 @@ class TravelStatistics:
         if point.loc is None:
             print('ERROR, point.loc is none for point:', point)
             return
-        print('Adding stats from travel leg point: "{}" on {}'.format(point.loc, point.date))
         for component in point.loc.components:
             if 'country' in component['types']:
                 self.country_to_num_visits[component['long_name']] += 1
