@@ -112,9 +112,13 @@ def get_clusters(visits, cluster_threshold_km=25):
         add_location_to_cluster(cluster[root], v)
         components[root].append(v)
 
-    # Rename the clusters to something more appropriate...
     for c in cluster:
+        # Rename the clusters to something more appropriate.
         cluster[c]['location']['human_readable_name'] = get_name_for_cluster(cluster[c], components[c])
+        # Move the cluster locations to an average of their component parts' locations.
+        # Note: This will absolutely mess up in and around the 180th meridian.
+        cluster[c]['location']['lat'] = sum(v['location']['lat'] for v in components[c])/len(components[c])
+        cluster[c]['location']['lng'] = sum(v['location']['lng'] for v in components[c])/len(components[c])
 
     print(f'Identified {len(cluster)} clusters:')
     print(cluster)
