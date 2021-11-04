@@ -25,6 +25,7 @@ function loadJSON(url, callback) {
 
 (function() {
     const GLOBE_RADIUS = 1;
+    const GLOBE_TEXTURE_PATH = 'scaled_globe_10800.jpg'
     const canvas = document.querySelector('#globe-canvas');
     const renderer = new THREE.WebGLRenderer({canvas});
 
@@ -88,10 +89,10 @@ function loadJSON(url, callback) {
 
     // Create the sphere obj.
     const textureLoader = new THREE.TextureLoader();
-    textureLoader.load('land_ocean_ice_cloud_2048.jpg', (texture) => {
+    textureLoader.load(GLOBE_TEXTURE_PATH, (texture) => {
         // TODO(iandioch): it'd be cool here instead of drawing some picture of the earth to instead render the polygon for each country or something; if we did that, there's lots of cool interactions that could be added.
         const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 128, 128);
-        const globeMaterial = new THREE.MeshPhongMaterial({ map: texture, overdraw: 0.5 });
+        const globeMaterial = new THREE.MeshPhongMaterial({ map: texture });
         const globe = new THREE.Mesh(globeGeometry, globeMaterial);
         globeGroup.add(globe);
     });
