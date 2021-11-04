@@ -56,7 +56,7 @@ function loadJSON(url, callback) {
     });
 
     // Convert decimal LatLng to ECEF
-    function latLngToVector(lat, lng) {
+    function latLngToVector(lat, lng, altitude = null) {
         // Y = 1 at north pole,
         // Y = -1 at south pole,
 
@@ -66,13 +66,31 @@ function loadJSON(url, callback) {
         const vector = new THREE.Vector3();
 
         //const N = a / Math.sqrt(1 - (e*e) * (Math.sin(latRadians)*Math.sin(latRadians)));
-        const N = GLOBE_RADIUS;
+        var N = GLOBE_RADIUS;
+        if (altitude !== null) N = altitude;
         vector.z = N * Math.cos(latRadians) * Math.cos(lngRadians);
         vector.x = N * Math.cos(latRadians) * Math.sin(lngRadians);
         //vector.z = GLOBE_RADIUS * Math.sin(latRadians);
         vector.y = N * Math.sin(latRadians);
         console.log(lat, lng, "->", vector.x, vector.y, vector.z);
         return vector;
+    }
+
+    function latLngMidpoint(lat1, lng1, lat2, lng2) {
+		// Following https://stackoverflow.com/a/4656937
+		var dLng = (lng2 - lng1) * Math.PI / 180.0;
+
+		//convert to radians
+		var lat1 = (lat1) * Math.PI / 180.0;
+		var lat2 = (lat2) * Math.PI / 180.0;
+		var lng1 = (lng1) * Math.PI / 180.0;
+
+		var Bx = Math.cos(lat2) * Math.cos(dLng);
+		var By = Math.cos(lat2) * Math.sin(dLng);
+		var lat3 = Math.atan2(Math.sin(lat1) + Math.sin(lat2), Math.sqrt((Math.cos(lat1) + Bx) * (Math.cos(lat1) + Bx) + By * By));
+		var lng3 = lng1 + Math.atan2(By, Math.cos(lat1) + Bx);
+
+		return [(lat3) * 180.0 / Math.PI, (lng3) * 180.0 / Math.PI];
     }
 
     function drawArc(start, end, smoothness, width, colour) {
@@ -151,7 +169,18 @@ function loadJSON(url, callback) {
                 continue;
             }
             // TODO(iandioch): We could optimise by drawing shorter legs with a much lower smoothness.
-            drawArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(leg.arr.lat, leg.arr.lng), 64, leg.count, 0xFFFFFF);
+
+			const midpoint = latLngMidpoint(leg.dep.lat, leg.dep.lng, leg.arr.lat, leg.arr.lng);
+			/*drawArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], GLOBE_RADIUS*1.1), 64, leg.count, 0xFFFFFF);
+			drawArc(latLngToVector(midpoint[0], midpoint[1], GLOBE_RADIUS*1.1),latLngToVector(leg.arr.lat, leg.arr.lng),  64, leg.count, 0xFFFFFF);*/
+            const curve = new THREE.CatmullRomCurve3([latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], GLOBE_RADIUS*1.1), latLngToVector(leg.arr.lat, leg.arr.lng)]);
+            //const geom = new THREE.TubeGeometry({path:curve, radius: 1});
+            const geom = new THREE.BufferGeometry().setFromPoints(curve.getPoints(50));
+            const material = new THREE.LineBasicMaterial({ color: 0xFFFFFF, linewidth: 1 + leg.count});
+            const arc = new THREE.Line(geom, material);
+            globeGroup.add(arc);
+
+            //drawArc(latLngToVector(leg.dep.lat, leg.dep.lng, GLOBE_RADIUS*1.1), latLngToVector(leg.arr.lat, leg.arr.lng, GLOBE_RADIUS*1.1), 64, leg.count, 0xFFFFFF);
         }
     });
 
