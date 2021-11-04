@@ -29,7 +29,7 @@ function loadJSON(url, callback) {
     const camera = new THREE.PerspectiveCamera(45, 2, 0.01, 500);
     camera.position.z = 2;
     const controls = new OrbitControls(camera, canvas);
-    const MIN_CAMERA_DISTANCE = GLOBE_RADIUS * 1.1;
+    const MIN_CAMERA_DISTANCE = GLOBE_RADIUS * 1.025;
     const MAX_CAMERA_DISTANCE = GLOBE_RADIUS * 3;
     controls.minDistance = MIN_CAMERA_DISTANCE;
     controls.maxDistance = MAX_CAMERA_DISTANCE;
@@ -217,7 +217,9 @@ function loadJSON(url, callback) {
                 colour = 0x5555FF;
                 //radius = 0.005;
             }
-            drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, 0.05 + visit.num_visits/100, colour);
+            const height = mapToRange(1, highestVisits, 0.025, GLOBE_RADIUS/10, visit.num_visits);
+            console.log("Num visits: ", visit.num_visits, ", height: ", height);
+            drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour);
         }
         for (var i in data.legs) {
             const leg = data.legs[i];
@@ -256,6 +258,12 @@ function loadJSON(url, callback) {
             const canvas = renderer.domElement;
             camera.aspect = canvas.clientWidth / canvas.clientHeight;
             camera.updateProjectionMatrix();
+        }
+
+        const scale = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.2, 3, cameraDistance);
+        for (var i in pointGroup.children) {
+            const point = pointGroup.children[i];
+            point.scale.set(scale, scale, scale);
         }
 
         //globeGroup.rotation.y = seconds/40.0;
