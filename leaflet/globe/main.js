@@ -78,8 +78,11 @@ function loadJSON(url, callback) {
     }
 
     { 
-        const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
+        const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.9);
         scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xF9D78C, 1);
+        directionalLight.position.set(-1, 2, 4);
+        scene.add(directionalLight);
     }
 
     const globeGroup = new THREE.Group();
@@ -198,7 +201,7 @@ function loadJSON(url, callback) {
         const base = new THREE.Mesh(baseGeom, baseMaterial);
         pointObj.add(base);
 
-        const geom = new THREE.CylinderGeometry(radius, radius, height, 16);
+        const geom = new THREE.CylinderGeometry(radius, radius*0.5, height, 16);
         geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
         const material = new THREE.MeshPhongMaterial({color: colour});
         const point = new THREE.Mesh(geom, material);
@@ -219,6 +222,11 @@ function loadJSON(url, callback) {
         label.position.set(0, margin, 0);
         pointObj.add(label);
 
+        const sphereGeom = new THREE.SphereGeometry(radius*3, 16, 16);
+        const sphere = new THREE.Mesh(sphereGeom, material);
+        sphere.position.z = -height;
+        pointObj.add(sphere);
+
         pointGroup.add(pointObj);
     }
 
@@ -232,22 +240,14 @@ function loadJSON(url, callback) {
         for (var i in data.visits) {
             const visit = data.visits[i];
             console.log("Visit: ", visit)
-            var radius = 0.002;
+            var radius = 0.001;
             var colour = 0x559955;
-            if (visit.num_visits >= highestVisits/3) {
-                //colour = 0xAA3333;
-                //radius = 0.008;
-            } else if (visit.num_visits >= 2) {
-                //colour = 0x5555FF;
-                //radius = 0.005;
-            }
-
             if (visit.location.type === "AIRPORT") {
                 colour = 0xAA3333;
             } else if (visit.location.type === "CLUSTER") {
                 colour = 0xfcba03;
             }
-            const height = mapToRange(1, highestVisits, GLOBE_RADIUS/100, GLOBE_RADIUS/10, visit.num_visits);
+            const height = mapToRange(1, highestVisits, GLOBE_RADIUS/50, GLOBE_RADIUS/12, visit.num_visits);
             console.log("Num visits: ", visit.num_visits, ", height: ", height);
             const name = visit.location.human_readable_name + " (" + visit.num_visits + "x)";
             drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, name, visit.hasOwnProperty("cluster"), (visit.location.type === "CLUSTER"));
