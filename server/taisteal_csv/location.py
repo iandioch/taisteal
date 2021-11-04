@@ -84,14 +84,10 @@ class Location:
         for component in loc.components:
             typeset = set(component['types'])
             if 'locality' in typeset:
-                #loc.region = component['long_name']
                 if not loc.human_readable_name:
                     loc.human_readable_name = component['long_name']
                 if loc.type == TYPE_UNKNOWN:
                     loc.type = TYPE_TOWN
-            if 'administrative_area_level_2' in typeset:
-                if not loc.region:
-                    loc.region = component['long_name']
             if 'country' in typeset:
                 country_name = component['long_name']
                 if country_name == query:
@@ -116,9 +112,6 @@ class Location:
 
         if not loc.human_readable_name:
             loc.human_readable_name = loc.address
-        if not loc.region:
-            loc.region = loc.human_readable_name
-
         loc.region = Location._get_region_name(loc)
         return loc
 
