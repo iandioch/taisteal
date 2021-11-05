@@ -299,7 +299,7 @@ function loadJSON(url, callback) {
     function renderInfoForVisit(visitObj, visitNames) {
         console.log("Rendering info for visits: ", visitNames, " under ", visitObj);
         infoPanelTitleDiv.textContent = visitObj.location.human_readable_name;
-        infoPanelContentDiv.textContent = `Visits: ${visitObj.num_visits}\r\nDays: ${visitObj.days}`;
+        infoPanelContentDiv.textContent = `${visitNames.join(" | ")}\r\nVisits: ${visitObj.num_visits}\r\nDays: ${visitObj.days}`;
         infoPanelDiv.style.visibility = "visible";
     }
 
@@ -417,7 +417,7 @@ function loadJSON(url, callback) {
         }
 
         const scale = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.2, 5, cameraDistance);
-        const showClusters = (cameraDistance > MAX_CAMERA_DISTANCE/4.0);
+        const showClusters = (cameraDistance > MAX_CAMERA_DISTANCE/3.0);
         for (var i in pointGroup.children) {
             const point = pointGroup.children[i];
             point.scale.set(scale, scale, scale);
