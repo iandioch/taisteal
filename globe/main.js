@@ -101,6 +101,8 @@ function loadJSON(url, callback) {
         const globe = new THREE.Mesh(globeGeometry, globeMaterial);
         globeGroup.add(globe);
     });
+    const arcGroup = new THREE.Group();
+    globeGroup.add(arcGroup);
 
     // Convert decimal LatLng to ECEF
     function latLngToVector(lat, lng, altitude = null) {
@@ -177,13 +179,14 @@ function loadJSON(url, callback) {
     }
 
     // [start, controlPoint, end] should all be Vector3.
-    function drawRaisedArc(start, controlPoint, end, smoothness, width, colour) {
+    function drawRaisedArc(start, controlPoint, end, smoothness, width, colour, leg) {
             const curve = new THREE.QuadraticBezierCurve3(start, controlPoint, end);
             const points = curve.getPoints(smoothness);
             const geom = new THREE.BufferGeometry().setFromPoints(points);
             const material = new THREE.LineBasicMaterial({ color: colour, linewidth: width, transparent: true, opacity: 0.4});
             const arc = new THREE.Line(geom, material);
-            globeGroup.add(arc);
+            arc.userData.leg = leg;
+            arcGroup.add(arc);
     }
 
     function drawPoint(pos, radius, height, colour, label, clusterOrNull, isCluster, visitObj) {
@@ -269,7 +272,7 @@ function loadJSON(url, callback) {
             const controlPointHeight = mapToRange(0, globeCircumference, GLOBE_RADIUS, GLOBE_RADIUS * 3, legDistance);
             const smoothness = Math.ceil(mapToRange(0, globeCircumference, 8, 256, legDistance));
 			const midpoint = latLngMidpoint(leg.dep.lat, leg.dep.lng, leg.arr.lat, leg.arr.lng);
-            drawRaisedArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], controlPointHeight), latLngToVector(leg.arr.lat, leg.arr.lng), smoothness, leg.count*2, 0xFFFFFF);
+            drawRaisedArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], controlPointHeight), latLngToVector(leg.arr.lat, leg.arr.lng), smoothness, leg.count*2, 0xFFFFFF, leg);
         }
     });
 
@@ -294,6 +297,45 @@ function loadJSON(url, callback) {
     infoPanelDiv.appendChild(infoPanelContentDiv);
     document.body.appendChild(infoPanelDiv);
 
+    // Make semitransparent most plcaes except the one the user just clicked on.
+    function toggleRoutesForSelectedVisits(visitNames) {
+        const visitSet = new Set(visitNames);
+        // Build up a set of everywhere that shares a leg with these visitNames.
+        const connectedVisitSet = new Set(visitNames);
+        for (let i in arcGroup.children) {
+            const arc = arcGroup.children[i];
+            const leg = arc.userData.leg;
+            var visible = false;
+            if (visitSet.has(leg.arr.name)) {
+                connectedVisitSet.add(leg.dep.name);
+                visible = true;
+            } else if (visitSet.has(leg.dep.name)) {
+                connectedVisitSet.add(leg.arr.name);
+                visible = true;
+            }
+            arc.material.visible = visible;
+        }
+        // Also add any relevant clusters to the set, so that if we zoom in/out
+        // the clusters will be shown as needed in place of the specific locations.
+        for (let i in visits) {
+            const visit = visits[i];
+            if (!('cluster' in visit)) continue;
+            if (connectedVisitSet.has(visit.location.name)) {
+                connectedVisitSet.add(visit.cluster);
+            }
+        }
+        // Make semitransparent all of the pins not in the connectedVisitSet.
+        for (let i in pointGroup.children) {
+            const pointParent = pointGroup.children[i];
+            const visible = connectedVisitSet.has(pointParent.visit.location.name);
+            const opacity = visible ? 1.0 : 0.3;
+            pointParent.children[0].material.opacity = opacity;
+            pointParent.children[0].material.transparent = !visible;
+            pointParent.children[1].material.opacity = opacity;
+            pointParent.children[1].material.transparent = !visible;
+        }
+    }
+
     // visitObj containining info like num days visited, div title, etc.
     // visitNames is names of places to render legs for.
     function renderInfoForVisit(visitObj, visitNames) {
@@ -301,6 +343,8 @@ function loadJSON(url, callback) {
         infoPanelTitleDiv.textContent = visitObj.location.human_readable_name;
         infoPanelContentDiv.textContent = `${visitNames.join(" | ")}\r\nVisits: ${visitObj.num_visits}\r\nDays: ${visitObj.days}`;
         infoPanelDiv.style.visibility = "visible";
+
+        toggleRoutesForSelectedVisits(visitNames);
     }
 
     function renderInfoForPoint(point) {
@@ -350,7 +394,7 @@ function loadJSON(url, callback) {
         var intersectedPoints = raycaster.intersectObjects(pointGroup.children, true);
         if (intersectedPoints.length > 0) {
             for (var i in intersectedPoints) {
-                if (intersectedPoints[i].object.material.transparent) continue;
+                if (!intersectedPoints[i].object.material.visible) continue;
                 // First point is the one closest to camera.
                 const pointParent = intersectedPoints[i].object.parent;
                 if (pointParent != highlightedPoint) {
