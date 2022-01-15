@@ -1,6 +1,7 @@
 import * as THREE from 'https://unpkg.com/three@0.108.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.108.0/examples/jsm/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'https://unpkg.com/three@0.108.0/examples/jsm/renderers/CSS2DRenderer.js';
+import {TWEEN} from 'https://unpkg.com/three@0.108.0/examples/jsm/libs/tween.module.min'
 
 
 function loadJSON(url, callback) {
@@ -242,9 +243,16 @@ function loadJSON(url, callback) {
     loadJSON('/taisteal/api/travel_map', (data) => {
         legs = data.legs;
         var highestVisits = 0;
+        var mostVisited = undefined;
         for (var i in data.visits) {
             var numVisits = data.visits[i].num_visits;
-            highestVisits = (highestVisits > numVisits ? highestVisits : numVisits);
+            if (numVisits > highestVisits) {
+                highestVisits = numVisits;
+                mostVisited = data.visits[i];
+            }
+        }
+        if (mostVisited) {
+            lookAt(mostVisited.location.lat, mostVisited.location.lng, 2);
         }
         for (var i in data.visits) {
             const visit = data.visits[i];
@@ -414,6 +422,21 @@ function loadJSON(url, callback) {
         }
     }
 
+    function getCameraDistance() {
+        return camera.position.distanceTo(controls.target);
+    }
+
+    function lookAt(lat, lng, distance) {
+        console.log("Tweening camera to ", lat, ", ", lng, " at distance ", distance);
+        TWEEN.removeAll();
+        // TODO: Instead need to do latLngToVector(lat, lng) plus some other vector of distance*(some direction)
+        const newCameraPos = latLngToVector(lat, lng, distance);
+        //newCameraPos.add(new THREE.Vector3(0, 0, 0).lookAt(
+        //newCameraPos.addScaledVector(new THREE.Vector3(1, 0, 0).lookAt(new THREE.Vector3(0, 0, 0), distance));
+        new TWEEN.Tween(camera.position).to(newCameraPos, 500).easing(TWEEN.Easing.Cubic.Out).start();
+        /*const newCameraTarget = latLngToVector(lat, lng);
+        new TWEEN.Tween(controls.target).to(newCameraTarget, 500).easing(TWEEN.Easing.Cubic.Out).start();*/
+    }
 
     // If we receive any touch event, set this value.
     var TOUCH_SCREEN = false; 
@@ -439,12 +462,13 @@ function loadJSON(url, callback) {
 
         if (highlightedPoint) {
             renderInfoForPoint(highlightedPoint);
+            lookAt(highlightedPoint.visit.location.lat, highlightedPoint.visit.location.lng, getCameraDistance());
         }
     }
 
     function render(time) {
         const seconds = time * 0.001;
-        const cameraDistance = camera.position.distanceTo(controls.target);
+        const cameraDistance = getCameraDistance();
         // Only update the highlighted point if it is not a touchscreen. If it
         // is a touchscreen, and we touch somewhere with a swipe, the globe will
         // spin, and if any point happens to be under the place we touched as
@@ -452,6 +476,7 @@ function loadJSON(url, callback) {
         if (!TOUCH_SCREEN) updateHighlightedPoint();
 
         controls.rotateSpeed = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.05, 0.8, cameraDistance);
+        TWEEN.update();
         controls.update();
 
         if (resizeRendererToDisplaySize(renderer)) {
