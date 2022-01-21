@@ -25,15 +25,27 @@ function loadJSON(url, callback) {
 }
 
 (function() {
+    Vue.component('poi', {
+        props: {
+            text: String,
+            id: String,
+        },
+        template: `<a class="poi" href='#' v-on:click="handleClick">{{text}}</a>`,
+        methods: {
+            handleClick() {
+                renderInfoForPOI(this.id);
+            }
+        }
+    });
     Vue.component('top-poi-table', {
         props: {
-            pois: Array, // Expecting a list of (name, number)
+            pois: Array, // Expecting a list of (user-visible text, poi id/name, number)
             metric: String
         },
         template: `
             <ul>
                 <li v-for="poi in pois">
-                    {{poi[0]}}: {{poi[1]}} {{metric}}
+                    <poi :text="poi[0]" :id="poi[1]"></poi>: <span class="fact">{{poi[2]}} {{metric}}</span>
                 </li>
             </ul>`
     });
@@ -44,8 +56,11 @@ function loadJSON(url, callback) {
             poi: Object, // a single visitObj
         },
         template: `<div>
-            <p>Component places: {{visits.join(" | ")}}</p>
-            <p>Number of times visited: {{poi.num_visits}}</p>
+            <div class="poi-list">
+                <p v-if="visits.length > 1">This cluster is composed of multiple adjacent places:<br><span v-for="poi in visits"><poi :text="poi" :id="poi"></poi> </span><p>
+                <p v-if="visits.length == 1"><poi :text="visits[0]" :id="visits[0]"></poi></p>
+            </div>
+            <p>Number of visits: {{poi.num_visits}}</p>
             <p>Total days visited: {{poi.days}}.</p>
         </div>`,
     });
@@ -60,9 +75,9 @@ function loadJSON(url, callback) {
                 console.log(visits);
                 for (let i in visits) {
                     if (visits[i].location.type == "CLUSTER") continue;
-                    allPOIs.push([visits[i].location.human_readable_name, visits[i].days]);
+                    allPOIs.push([visits[i].location.human_readable_name, visits[i].location.name, visits[i].days]);
                 }
-                allPOIs.sort(function(a, b) { return b[1]-a[1]; });
+                allPOIs.sort(function(a, b) { return b[2]-a[2]; });
                 console.log(allPOIs);
                 console.log(allPOIs.slice(0, 10));
                 return allPOIs.slice(0, 10);

@@ -1,5 +1,4 @@
-<html>
-    <head>
+<html> <head>
         <title>Travel globe</title>
         <meta charset="utf-8">
         <style>
@@ -23,31 +22,67 @@
 
             #vue-dashboard {
                 background-color: rgba(0, 0, 0, 0.5);
-                font-family: "Arial, Helvetica, sans-serif";
+                font-family: Arial, Helvetica, sans-serif;
                 color: #ffffff;
                 padding: 4px;
                 position: fixed;
-                top: 80%;
                 overflow-x: hidden;
                 overflow-y: auto;
-                height: 20%;
+                max-height: 35%;
+                min-height: 10%;
+                bottom: 0;
                 left: 0;
                 right: 0;
             }
 
             #dashboard-title {
-                display: flex;
                 font-size: 3em;
+                font-family: 'Corben', cursive;
+                text-align: center;
+            }
+
+
+            #dashboard-title span {
+                text-align: center;
+                margin: auto;
+                line-height: 1.1;
             }
 
             #dashboard-back-button {
-                margin-left: auto;
-                display: inline-block;
-                font-size: 1rem;
                 display: block;
-                align-self: flex-start;
+                font-size: 1.5rem;
+                position: absolute;
+                right: 5px;
+                top: 5px;
+            }
+
+            .poi {
+                background-color: #999;
+                color: #000;
+                border-radius: 5px;
+                text-decoration: none;
+                display: inline-block;
+                margin: 2px;
+                padding: 1px 2px;
+                font-family: 'Corben', cursive;
+            }
+
+            .poi:hover {
+                background-color: #fff;
+            }
+
+            .fact {
+                font-family: 'Corben', cursive;
+                font-weight: bold;
+            }
+
+            .poi-list {
+                text-align: center;
             }
         </style>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Corben&display=swap" rel="stylesheet">
     </head>
     <!-- TODO: Load prod version of vue later. -->
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
@@ -58,7 +93,7 @@
         <div id="vue-dashboard">
             <div>
                 <div id="dashboard-title">
-                    {{title}}
+                    <span>{{title}}</span>
                     <button v-if="!hideBackButton" v-on:click="renderHome" id="dashboard-back-button">X</button>
                 </div>
                 <component :is="activeDashboard"></component>
