@@ -51,9 +51,7 @@ function loadJSON(url, callback) {
     });
     Vue.component('home-dashboard', {
 		props: ['legs', 'visits'],
-        template: `<div>
-            <p>hello. I am homeDashboard.</p>
-            Longest stayed places:
+        template: `<div>Longest stayed places:
             <top-poi-table v-bind:pois="longestStayedPOIs" metric="days"></top-poi-table>
         </div>`,
         computed: {
@@ -417,8 +415,17 @@ function loadJSON(url, callback) {
         }
     }
 
-    function renderInfoForPoint(point) {
-        console.log("Rendering info for clicked point: ", point);
+    function getPointForName(poi_name) {
+        for (let i in pointGroup.children) {
+            const point = pointGroup.children[i];
+            if (point.visit.location.name == poi_name) return point;
+        }
+        return null;
+    }
+
+    function renderInfoForPOI(poi_name) {
+        console.log("Rendering info for clicked point: ", poi_name);
+        const point = getPointForName(poi_name);
         var locations = [];
         // If the point is a cluster, get the info for the component locations.
         if (point.isCluster) {
@@ -433,6 +440,8 @@ function loadJSON(url, callback) {
         }
         toggleRoutesForSelectedVisits(locations);
         dashboard.renderPOI(point, locations);
+        lookAt(point.visit.location.lat, point.visit.location.lng, getCameraDistance());
+
     }
 
     // Returns true if we needed to resize.
@@ -525,8 +534,7 @@ function loadJSON(url, callback) {
         updateHighlightedPoint();
 
         if (highlightedPoint) {
-            renderInfoForPoint(highlightedPoint);
-            lookAt(highlightedPoint.visit.location.lat, highlightedPoint.visit.location.lng, getCameraDistance());
+            renderInfoForPOI(highlightedPoint.visit.location.name);
         }
     }
 
