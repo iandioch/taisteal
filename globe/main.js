@@ -378,27 +378,6 @@ function loadJSON(url, callback) {
         dashboard.loadData(data);
     });
 
-    const infoPanelDiv = document.createElement("div");
-    infoPanelDiv.id = "info-panel";
-    infoPanelDiv.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-    infoPanelDiv.style.fontFamily = "Arial, Helvetica, sans-serif";
-    infoPanelDiv.style.color = "#FFFFFF";
-    infoPanelDiv.style.width = "100%";
-    infoPanelDiv.style.visibility = "hidden";
-    infoPanelDiv.style.position = "fixed";
-    infoPanelDiv.style.bottom = "0";
-    infoPanelDiv.style.padding= "4px";
-    const infoPanelTitleDiv = document.createElement("div");
-    infoPanelTitleDiv.textContent = "test content";
-    infoPanelTitleDiv.style.fontSize = "3em";
-    infoPanelDiv.appendChild(infoPanelTitleDiv);
-    const infoPanelContentDiv = document.createElement("div");
-    infoPanelContentDiv.style.fontSize = "1em";
-    infoPanelContentDiv.style.whiteSpace = "pre";
-    infoPanelDiv.appendChild(infoPanelTitleDiv);
-    infoPanelDiv.appendChild(infoPanelContentDiv);
-    document.body.appendChild(infoPanelDiv);
-
     // Make semitransparent most plcaes except the one the user just clicked on.
     function toggleRoutesForSelectedVisits(visitNames) {
         const visitSet = new Set(visitNames);
@@ -438,17 +417,6 @@ function loadJSON(url, callback) {
         }
     }
 
-    // visitObj containining info like num days visited, div title, etc.
-    // visitNames is names of places to render legs for.
-    function renderInfoForVisit(visitObj, visitNames) {
-        console.log("Rendering info for visits: ", visitNames, " under ", visitObj);
-        infoPanelTitleDiv.textContent = visitObj.location.human_readable_name;
-        infoPanelContentDiv.textContent = `${visitNames.join(" | ")}\r\nVisits: ${visitObj.num_visits}\r\nDays: ${visitObj.days}`;
-        infoPanelDiv.style.visibility = "visible";
-
-        toggleRoutesForSelectedVisits(visitNames);
-    }
-
     function renderInfoForPoint(point) {
         console.log("Rendering info for clicked point: ", point);
         var locations = [];
@@ -464,7 +432,6 @@ function loadJSON(url, callback) {
             locations.push(point.visit.location.name);
         }
         toggleRoutesForSelectedVisits(locations);
-        //renderInfoForVisit(point.visit, locations);*/
         dashboard.renderPOI(point, locations);
     }
 
