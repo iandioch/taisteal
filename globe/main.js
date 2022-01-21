@@ -25,16 +25,108 @@ function loadJSON(url, callback) {
 }
 
 (function() {
+    Vue.component('top-poi-table', {
+        props: {
+            pois: Array, // Expecting a list of (name, number)
+            metric: String
+        },
+        template: `
+            <ul>
+                <li v-for="poi in pois">
+                    {{poi[0]}}: {{poi[1]}} {{metric}}
+                </li>
+            </ul>`
+    });
+
+    Vue.component('poi-visit-dashboard', {
+        props: {
+            visits: Array, // One (or more, if poi is a cluster) names of places
+            poi: Object, // a single visitObj
+        },
+        template: `<div>
+            <p>Component places: {{visits.join(" | ")}}</p>
+            <p>Number of times visited: {{poi.num_visits}}</p>
+            <p>Total days visited: {{poi.days}}.</p>
+        </div>`,
+    });
+    Vue.component('home-dashboard', {
+		props: ['legs', 'visits'],
+        template: `<div>
+            <p>hello. I am homeDashboard.</p>
+            Longest stayed places:
+            <top-poi-table v-bind:pois="longestStayedPOIs" metric="days"></top-poi-table>
+        </div>`,
+        computed: {
+            longestStayedPOIs() {
+                const allPOIs = [];
+                console.log(visits);
+                for (let i in visits) {
+                    if (visits[i].location.type == "CLUSTER") continue;
+                    allPOIs.push([visits[i].location.human_readable_name, visits[i].days]);
+                }
+                allPOIs.sort(function(a, b) { return b[1]-a[1]; });
+                console.log(allPOIs);
+                console.log(allPOIs.slice(0, 10));
+                return allPOIs.slice(0, 10);
+            }
+        }
+    });
+
+    function createComponentForPOI(point, locations) {
+        return {
+            data: () => {
+                return {
+                    visits: locations,
+                    poi: point.visit,
+                }
+            },
+            template: `<poi-visit-dashboard v-bind:visits="visits" v-bind:poi="poi"></poi-visit-dashboard>`,
+        }
+    }
+
+    var dashboard = new Vue({
+        el: '#vue-dashboard',
+        data: {
+            activeDashboard: {
+                template: '<div>Loading...</div>',
+            },
+			legs: [],
+			visits: [],
+            title: "Loading",
+            hideBackButton: true,
+        },
+        methods: {
+            loadData: function(data) {
+                console.log("Loading data in homeDashboard.");
+                console.log(data);
+				this.legs = data.legs;
+				this.visits = data.visits;
+                this.renderHome();
+            },
+            renderHome: function() {
+                this.activeDashboard = "home-dashboard";
+                this.title = "Travel globe";
+                this.hideBackButton = true;
+            },
+            renderPOI: function(point, locations) {
+                this.activeDashboard = createComponentForPOI(point, locations);
+                this.title = point.visit.location.human_readable_name;
+                this.hideBackButton = false;
+            }
+        }
+    });
+
     const GLOBE_RADIUS = 1;
     const GLOBE_TEXTURE_PATH = 'scaled_globe_10800.jpg'
     const canvas = document.querySelector('#globe-canvas');
+    const canvasContainer = document.querySelector('#globe-container');
     const renderer = new THREE.WebGLRenderer({canvas});
 
     const labelRenderer = new CSS2DRenderer();
     labelRenderer.setSize(window.innerWidth, window.innerHeight);
     labelRenderer.domElement.style.position = 'absolute';
     labelRenderer.domElement.style.top = '0px';
-    document.body.appendChild(labelRenderer.domElement);
+    canvasContainer.appendChild(labelRenderer.domElement);
 
     const camera = new THREE.PerspectiveCamera(45, 2, 0.01, 500);
     camera.position.z = 2;
@@ -283,6 +375,7 @@ function loadJSON(url, callback) {
 			const midpoint = latLngMidpoint(leg.dep.lat, leg.dep.lng, leg.arr.lat, leg.arr.lng);
             drawRaisedArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], controlPointHeight), latLngToVector(leg.arr.lat, leg.arr.lng), smoothness, leg.count*2, 0xFFFFFF, leg);
         }
+        dashboard.loadData(data);
     });
 
     const infoPanelDiv = document.createElement("div");
@@ -370,7 +463,9 @@ function loadJSON(url, callback) {
         } else {
             locations.push(point.visit.location.name);
         }
-        renderInfoForVisit(point.visit, locations);
+        toggleRoutesForSelectedVisits(locations);
+        //renderInfoForVisit(point.visit, locations);*/
+        dashboard.renderPOI(point, locations);
     }
 
     // Returns true if we needed to resize.
@@ -452,6 +547,7 @@ function loadJSON(url, callback) {
     }
 
     function onMouseDown(event) {
+        console.log("onMouseDown: " + event);
         event.preventDefault();
         if (("targetTouches" in event) && (event.targetTouches.length == 1)) {
             // Update "mouse" position for touchscreens. Do not do so for pinch-zooms.
