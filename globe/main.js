@@ -45,7 +45,7 @@ function loadJSON(url, callback) {
         template: `
             <ul>
                 <li v-for="poi in pois">
-                    <poi :text="poi[0]" :id="poi[1]"></poi>: <span class="fact">{{poi[2]}} {{metric}}</span>
+                    <poi :text="poi[0]" :id="poi[1]"></poi>: <span class="fact">{{poi[2]}}</span> {{metric}}
                 </li>
             </ul>`
     });
@@ -66,7 +66,9 @@ function loadJSON(url, callback) {
     });
     Vue.component('home-dashboard', {
 		props: ['legs', 'visits'],
-        template: `<div>Longest stayed places:
+        template: `<div>
+            Logged <span class="fact">{{statistics.num_legs}}</span> trips to <span class="fact">{{statistics.num_unique_pois}}</span> different places.<br>
+            Places I have spent the most time in since I started logging:
             <top-poi-table v-bind:pois="longestStayedPOIs" metric="days"></top-poi-table>
         </div>`,
         computed: {
@@ -81,6 +83,24 @@ function loadJSON(url, callback) {
                 console.log(allPOIs);
                 console.log(allPOIs.slice(0, 10));
                 return allPOIs.slice(0, 10);
+            },
+            statistics() {
+                const POINames = new Set();
+                for (let i in visits) {
+                    POINames.add(visits[i].location.name);
+                }
+                const numUniquePOIs = POINames.size;
+
+                var numLegs = 0;
+                for (let i in legs) {
+                    numLegs += legs[i].count;
+                }
+                console.log(numLegs);
+
+                return {
+                    "num_unique_pois": numUniquePOIs,
+                    "num_legs": numLegs,
+                }
             }
         }
     });
