@@ -120,6 +120,11 @@ function loadJSON(url, callback) {
                 this.activeDashboard = "home-dashboard";
                 this.title = "Travel globe";
                 this.hideBackButton = true;
+                const allVisits = [];
+                for (let i in this.visits) {
+                    allVisits.push(this.visits[i].location.name);
+                }
+                toggleRoutesForSelectedVisits(allVisits, false);
             },
             renderPOI: function(point, locations) {
                 this.activeDashboard = createComponentForPOI(point, locations);
@@ -392,7 +397,7 @@ function loadJSON(url, callback) {
     });
 
     // Make semitransparent most plcaes except the one the user just clicked on.
-    function toggleRoutesForSelectedVisits(visitNames) {
+    function toggleRoutesForSelectedVisits(visitNames, showLegs = true) {
         const visitSet = new Set(visitNames);
         // Build up a set of everywhere that shares a leg with these visitNames.
         const connectedVisitSet = new Set(visitNames);
@@ -407,6 +412,7 @@ function loadJSON(url, callback) {
                 connectedVisitSet.add(leg.arr.name);
                 visible = true;
             }
+            visible = visible && showLegs;
             arc.material.visible = visible;
         }
         // Also add any relevant clusters to the set, so that if we zoom in/out
