@@ -186,6 +186,7 @@ function loadJSON(url, callback) {
             const geom = new THREE.BufferGeometry().setFromPoints(points);
             const material = new THREE.LineBasicMaterial({ color: colour, linewidth: width, transparent: true, opacity: 0.4});
             const arc = new THREE.Line(geom, material);
+            arc.material.visible = false;
             arc.userData.leg = leg;
             arcGroup.add(arc);
     }
@@ -230,7 +231,7 @@ function loadJSON(url, callback) {
         labelDiv.position.set(0, margin, 0);
         pointObj.add(labelDiv);
 
-        const sphereGeom = new THREE.SphereGeometry(radius*3, 16, 16);
+        const sphereGeom = new THREE.SphereGeometry(radius*2.5, 16, 16);
         const sphere = new THREE.Mesh(sphereGeom, material);
         sphere.position.z = -height;
         pointObj.add(sphere);
@@ -258,11 +259,11 @@ function loadJSON(url, callback) {
             const visit = data.visits[i];
             visits[visit.location.name] = visit;
             var radius = 0.0015;
-            var colour = 0x559955;
+            var colour = 0xd1b54d;
             if (visit.location.type === "AIRPORT") {
                 colour = 0xAA3333;
             } else if (visit.location.type === "CLUSTER") {
-                colour = 0xfcba03;
+                colour = 0xe6671e;
             }
             const height = mapToRange(1, highestVisits, GLOBE_RADIUS/50, GLOBE_RADIUS/12, visit.num_visits);
             const label = visit.location.human_readable_name + " (" + visit.num_visits + "x)";
