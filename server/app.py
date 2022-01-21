@@ -111,6 +111,7 @@ def get_clusters(visits, cluster_threshold_km=25):
                     'name': 'CLUSTER("{}")'.format(root),
                     'type': 'CLUSTER',
                     'region': v['location']['region'],
+                    'country': v['location']['country'],
                     'human_readable_name': '{} Region'.format(v['location']['region']),
                 },
                 'num_visits': 0,
@@ -141,13 +142,14 @@ def serve_travel_map():
         return {
             'lat': loc.latitude,
             'lng': loc.longitude,
+            # TODO(iandioch): Rename 'name' to 'id' or similar
             'name': loc.address, # unique
             'type': loc.type,
             'region': loc.region , # used to cluster close places.
+            'country': loc.country, # used for stats
             'human_readable_name': loc.human_readable_name, # no guarantee of uniqueness
         }
 
-    loc = '../../mo_thaistil/2018_02_20_Lugano.csv'
     loc = '../mo_thaistil/full.csv'
     travel_leg_series = parse.parse(loc, config)
 
@@ -163,11 +165,6 @@ def serve_travel_map():
         k = (departure_loc['lat'], departure_loc['lng'], arrival_loc['lat'], arrival_loc['lng'])
         leg_count_dict[k] += 1
         leg_obj_dict[k] = (departure_loc, arrival_loc, leg.mode)
-        #legs.append({
-        #    'dep': departure_loc,
-        #    'arr': arrival_loc,
-        #    'mode': leg.mode,
-        #})
         num_visits[departure_loc['name']] += 1
         num_visits[arrival_loc['name']] += 1
         name_to_loc[departure_loc['name']] = departure_loc
