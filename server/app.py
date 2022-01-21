@@ -45,8 +45,17 @@ def get_clusters(visits, cluster_threshold_km=25):
     # `cluster` should be the cluster, and `component_visits` should be a list
     # of all of the visits that went into this cluster.
     def get_name_for_cluster(cluster, component_visits):
-        regions = set(v['location']['region'] for v in component_visits)
-        return '; '.join(sorted(regions))
+        regions = defaultdict(int)
+        for v in component_visits:
+            regions[v['location']['region']] += v['num_visits']
+        sorted_regions = sorted(regions, key = lambda x: -regions[x])
+        if len(sorted_regions) == 1:
+            return sorted_regions[0]
+        if len(sorted_regions) == 2:
+            return '{} & {}'.format(sorted_regions[0], sorted_regions[1])
+        if len(sorted_regions) == 3:
+            return ', '.join(sorted_regions)
+        return ', '.join(sorted_regions[:3]) + ', & more'
 
     def vkey(v):
         return v['location']['name']
