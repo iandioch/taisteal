@@ -98,9 +98,11 @@ function loadJSON(url, callback) {
     Vue.component('home-dashboard', {
 		props: ['legs', 'visits'],
         template: `<div>
-            Logged <span class="fact">{{statistics.num_legs}}</span> trips to <span class="fact">{{statistics.num_unique_pois}}</span> different places in {{statistics.num_countries}}</span> countries.<br>
+            Logged <span class="fact">{{statistics.num_legs}}</span> trips to <span class="fact">{{statistics.num_unique_pois}}</span> different places in <span class="fact">{{statistics.num_countries}}</span> countries.<br>
             Places I have spent the most time in since I started logging:
             <top-poi-table v-bind:pois="longestStayedPOIs" metric="days"></top-poi-table>
+            <br>
+            <span v-for="country in countries"><country :id="country" :text="country"></country></span>
         </div>`,
         computed: {
             longestStayedPOIs() {
@@ -141,6 +143,13 @@ function loadJSON(url, callback) {
                     "num_legs": numLegs,
                     "num_countries": numCountries,
                 }
+            }
+            countries: function() {
+                var countrySet = new Set();
+                for (let i in this.visits) {
+                    countrySet.add(visits[this.visits[i]].location.country);
+                }
+                return [...countrySet];
             }
         }
     });
