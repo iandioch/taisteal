@@ -37,6 +37,17 @@ function loadJSON(url, callback) {
             }
         }
     });
+
+    // TODO(iandioch): Instead of extending 'poi', both should extend a common parent.
+    Vue.component('country', {
+        extends: Vue.component('poi'),
+        methods: {
+            handleClick() {
+                renderInfoForCountry(this.id);
+            }
+        }
+    });
+
     Vue.component('top-poi-table', {
         props: {
             pois: Array, // Expecting a list of (user-visible text, poi id/name, number)
@@ -50,6 +61,7 @@ function loadJSON(url, callback) {
             </ul>`
     });
 
+    // TODO(iandioch): It might be easier to have separate components for clusters vs. individual POIs, instead of wrapping everything in ifs.
     Vue.component('poi-visit-dashboard', {
         props: {
             visits: Array, // One (or more, if poi is a cluster) names of places
@@ -57,17 +69,36 @@ function loadJSON(url, callback) {
         },
         template: `<div>
             <div class="poi-list">
-                <p v-if="visits.length > 1">This cluster is composed of multiple adjacent places:<br><span v-for="poi in visits"><poi :text="poi" :id="poi"></poi> </span><p>
-                <p v-if="visits.length == 1"><poi :text="visits[0]" :id="visits[0]"></poi></p>
+                <p v-if="visits.length > 1">This cluster is composed of multiple adjacent places:<br><span v-for="poi in visits"><poi :text="poi" :id="poi"></poi> </span><br>in <span v-for="country in countries"><country :id="country" :text="country"></country></span></p>
+                <p v-if="visits.length == 1"><poi :text="visits[0]" :id="visits[0]"></poi> in <country :id="countries[0]" :text="countries[0]"></country></p>
             </div>
             <p>Number of visits: {{poi.num_visits}}</p>
             <p>Total days visited: {{poi.days}}.</p>
+        </div>`,
+        computed: {
+            countries: function() {
+                var countrySet = new Set();
+                for (let i in this.visits) {
+                    countrySet.add(visits[this.visits[i]].location.country);
+                }
+                return [...countrySet];
+            }
+        }
+    });
+    Vue.component('poi-collection-dashboard', {
+        props: {
+            visits: Array // A list of [human_readable_name, id] pairs of places
+        },
+        template:`<div>
+            <div class="poi-list">
+                <span v-for="poi in visits"><poi :text="poi[0]" :id="poi[1]"></poi></span>
+            </div>
         </div>`,
     });
     Vue.component('home-dashboard', {
 		props: ['legs', 'visits'],
         template: `<div>
-            Logged <span class="fact">{{statistics.num_legs}}</span> trips to <span class="fact">{{statistics.num_unique_pois}}</span> different places.<br>
+            Logged <span class="fact">{{statistics.num_legs}}</span> trips to <span class="fact">{{statistics.num_unique_pois}}</span> different places in {{statistics.num_countries}}</span> countries.<br>
             Places I have spent the most time in since I started logging:
             <top-poi-table v-bind:pois="longestStayedPOIs" metric="days"></top-poi-table>
         </div>`,
@@ -87,6 +118,7 @@ function loadJSON(url, callback) {
             statistics() {
                 const POINames = new Set();
                 for (let i in visits) {
+                    if (visits[i].type == 'CLUSTER') continue;
                     POINames.add(visits[i].location.name);
                 }
                 const numUniquePOIs = POINames.size;
@@ -97,9 +129,17 @@ function loadJSON(url, callback) {
                 }
                 console.log(numLegs);
 
+                const countries = new Set();
+                for (let i in visits) {
+                    if (visits[i].type == 'CLUSTER') continue;
+                    countries.add(visits[i].location.country);
+                }
+                const numCountries = countries.size;
+
                 return {
                     "num_unique_pois": numUniquePOIs,
                     "num_legs": numLegs,
+                    "num_countries": numCountries,
                 }
             }
         }
@@ -114,6 +154,33 @@ function loadJSON(url, callback) {
                 }
             },
             template: `<poi-visit-dashboard v-bind:visits="visits" v-bind:poi="poi"></poi-visit-dashboard>`,
+        }
+    }
+
+    function getVisitsForCountry(country) {
+        var locations = [];
+        for (let i in visits) {
+            if (visits[i].location.type == 'CLUSTER') continue;
+            if (visits[i].location.country == country) {
+                locations.push(visits[i]);
+            }
+        }
+        return locations;
+    }
+
+    function createComponentForVisits(visits) {
+        var locations = [];
+        for (let i in visits) {
+            locations.push([visits[i].location.human_readable_name, visits[i].location.name]);
+        }
+        console.log(locations);
+        return {
+            data: () => {
+                return {
+                    visits: locations,
+                }
+            },
+            template: `<poi-collection-dashboard v-bind:visits="visits"></poi-collection-dashboard>`,
         }
     }
 
@@ -150,7 +217,14 @@ function loadJSON(url, callback) {
                 this.activeDashboard = createComponentForPOI(point, locations);
                 this.title = point.visit.location.human_readable_name;
                 this.hideBackButton = false;
-            }
+            },
+            renderCountry: function(country, visits) {
+                console.log("Visits for country " + country);
+                console.log(visits);
+                this.activeDashboard = createComponentForVisits(visits);
+                this.title = country;
+                this.hideBackButton = false;
+            },
         }
     });
 
@@ -483,6 +557,16 @@ function loadJSON(url, callback) {
         dashboard.renderPOI(point, locations);
         lookAt(point.visit.location.lat, point.visit.location.lng, getCameraDistance());
 
+    }
+
+    function renderInfoForCountry(countryName) {
+        const visits = getVisitsForCountry(countryName);
+        dashboard.renderCountry(countryName, visits);
+        var locationNames = [];
+        for (let i in visits) {
+            locationNames.push(visits[i].location.name);
+        }
+        toggleRoutesForSelectedVisits(locationNames);
     }
 
     // Returns true if we needed to resize.
