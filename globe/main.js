@@ -54,9 +54,9 @@ function loadJSON(url, callback) {
             metric: String
         },
         template: `
-            <ul>
+            <ul class="top-poi-table">
                 <li v-for="poi in pois">
-                    <poi :text="poi[0]" :id="poi[1]"></poi>: <span class="fact">{{poi[2]}}</span> {{metric}}
+                    <poi :text="poi[0]" :id="poi[1]"></poi> <span class="fact">{{poi[2]}}</span> {{metric}}
                 </li>
             </ul>`
     });
@@ -102,7 +102,7 @@ function loadJSON(url, callback) {
             Places I have spent the most time in since I started logging:
             <top-poi-table v-bind:pois="longestStayedPOIs" metric="days"></top-poi-table>
             <br>
-            <span v-for="country in countries"><country :id="country" :text="country"></country></span>
+            I have logged trips passing through the following countries: <span v-for="country in countries"><country :id="country" :text="country"></country></span>
         </div>`,
         computed: {
             longestStayedPOIs() {
@@ -143,13 +143,15 @@ function loadJSON(url, callback) {
                     "num_legs": numLegs,
                     "num_countries": numCountries,
                 }
-            }
+            },
             countries: function() {
                 var countrySet = new Set();
-                for (let i in this.visits) {
-                    countrySet.add(visits[this.visits[i]].location.country);
+                for (let i in visits) {
+                    countrySet.add(visits[i].location.country);
                 }
-                return [...countrySet];
+                var countryArray = [...countrySet];
+                countryArray.sort();
+                return countryArray;
             }
         }
     });
@@ -174,6 +176,7 @@ function loadJSON(url, callback) {
                 locations.push(visits[i]);
             }
         }
+        locations.sort((a, b) => { return b.days - a.days });
         return locations;
     }
 
@@ -228,8 +231,6 @@ function loadJSON(url, callback) {
                 this.hideBackButton = false;
             },
             renderCountry: function(country, visits) {
-                console.log("Visits for country " + country);
-                console.log(visits);
                 this.activeDashboard = createComponentForVisits(visits);
                 this.title = country;
                 this.hideBackButton = false;
