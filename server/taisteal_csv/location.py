@@ -60,6 +60,7 @@ class Location:
             ]),
             'locality': set([]),
             'administrative_area_level_2': set([]),
+            # TODO(iandioch): Find a way to get England, Wales, Scotland, NI to the country field instead of United Kingdom.
             'country': set([])
         }
         best_name = None 
@@ -75,7 +76,6 @@ class Location:
                     best_type_value = value
                     best_name = component['long_name']
 
-        bad_admin_area_l1s = set(['England', 'Wales', 'Scotland']) # Too broad.
         if best_name is None:
             return loc.address
         return best_name
