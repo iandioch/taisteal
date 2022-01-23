@@ -70,7 +70,8 @@ function loadJSON(url, callback) {
         template: `<div>
             <div class="poi-list">
                 <p v-if="visits.length > 1">This cluster is composed of multiple adjacent places:<br><span v-for="poi in visits"><poi :text="poi" :id="poi"></poi> </span><br>in <span v-for="country in countries"><country :id="country" :text="country"></country></span></p>
-                <p v-if="visits.length == 1"><poi :text="visits[0]" :id="visits[0]"></poi> is {{humanReadableType}} in <country :id="countries[0]" :text="countries[0]"></country></p>
+                <p v-if="visits.type != 'CLUSTER'"><poi :text="poi.location.id" :id="poi.location.id"></poi> is {{humanReadableType}} in <country :id="countries[0]" :text="countries[0]"></country></p>
+                <p v-if="poi.hasOwnProperty('cluster')">This is a part of <poi :text="poi.cluster" :id="poi.cluster"></poi></p>
             </div>
             <p>Number of visits: {{poi.num_visits}}</p>
             <p>Total days visited: {{poi.days}}.</p>
@@ -88,6 +89,7 @@ function loadJSON(url, callback) {
                     case "CLUSTER":
                         return "a cluster";
                     case "TOWN":
+                    case "TOWN_CLUSTER":
                         return "a locality";
                     case "AIRPORT":
                         return "an airport";
@@ -419,7 +421,7 @@ function loadJSON(url, callback) {
             arcGroup.add(arc);
     }
 
-    function drawPoint(pos, radius, height, colour, label, clusterOrNull, isCluster, visitObj) {
+    function drawPoint(pos, radius, height, colour, label, clusterOrNull, isCluster, isTownCluster, visitObj) {
         const pointObj = new THREE.Group();
         pointObj.position.copy(pos);
         pointObj.lookAt(0, 0, 0);
@@ -427,6 +429,7 @@ function loadJSON(url, callback) {
         pointObj.hasCluster = !!clusterOrNull;
         pointObj.cluster = clusterOrNull;
         pointObj.isCluster = isCluster;
+        pointObj.isTownCluster = isTownCluster;
         pointObj.visit = visitObj;
 
         const margin = 0.0005;
@@ -491,7 +494,7 @@ function loadJSON(url, callback) {
             const height = mapToRange(1, highestVisits, GLOBE_RADIUS/50, GLOBE_RADIUS/12, visit.num_visits);
             const label = visit.location.human_readable_name;
             const cluster = (visit.hasOwnProperty("cluster") ? visit.cluster : null);
-            drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, label, cluster, (visit.location.type === "CLUSTER"), visit);
+            drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, label, cluster, (visit.location.type === "CLUSTER"), (visit.location.type === "TOWN_CLUSTER"), visit);
         }
         for (var i in data.legs) {
             const leg = data.legs[i];
@@ -562,7 +565,7 @@ function loadJSON(url, callback) {
         const point = getPointForName(poi_name);
         var locations = [];
         // If the point is a cluster, get the info for the component locations.
-        if (point.isCluster) {
+        if (point.isCluster || point.isTownCluster) {
             const clusterName = point.visit.location.id;
             for (let i in visits) {
                 if (visits[i].hasOwnProperty("cluster") && (visits[i].cluster == clusterName)) {
@@ -572,6 +575,7 @@ function loadJSON(url, callback) {
         } else {
             locations.push(point.visit.location.id);
         }
+        // TODO(iandioch): Sublocations of this one need to recursively look for their own cluster members...
         toggleRoutesForSelectedVisits(locations);
         dashboard.renderPOI(point, locations);
         lookAt(point.visit.location.lat, point.visit.location.lng, getCameraDistance());
@@ -702,15 +706,27 @@ function loadJSON(url, callback) {
         }
 
         const scale = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.2, 5, cameraDistance);
-        const showClusters = (cameraDistance > MAX_CAMERA_DISTANCE/3.0);
+        const showClusters = (cameraDistance > MAX_CAMERA_DISTANCE/2.0);
+        const showLocalClusters = (cameraDistance > MIN_CAMERA_DISTANCE*1.1);
         for (var i in pointGroup.children) {
             const point = pointGroup.children[i];
             point.scale.set(scale, scale, scale);
 
-            if (point.hasCluster) {
-                point.visible = !showClusters;
-            } else if (point.isCluster) {
+            if (point.isCluster) {
                 point.visible = showClusters;
+            } else if (point.isTownCluster) {
+                point.visible = showLocalClusters;
+            }
+        }
+        for (var i in pointGroup.children) {
+            const point = pointGroup.children[i];
+            if (point.hasCluster) {
+                const clusterPoint = getPointForName(point.visit.cluster);
+                if (clusterPoint.isTownCluster) {
+                    point.visible = !showLocalClusters;
+                } else {
+                    point.visible = !showClusters;
+                }
             }
         }
 
