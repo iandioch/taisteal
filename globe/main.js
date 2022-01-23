@@ -533,6 +533,7 @@ function loadJSON(url, callback) {
         }
         // Also add any relevant clusters to the set, so that if we zoom in/out
         // the clusters will be shown as needed in place of the specific locations.
+        // TODO(iandioch): If a station, which is a member of a TOWN_CLUSTER, is clicked, the associated town's own cluster will not be rendered if you zoom out.
         for (let i in visits) {
             const visit = visits[i];
             if (!('cluster' in visit)) continue;
@@ -560,22 +561,30 @@ function loadJSON(url, callback) {
         return null;
     }
 
-    function renderInfoForPOI(poi_name) {
-        console.log("Rendering info for clicked point: ", poi_name);
+    function getClusterMembers(poi_name) {
         const point = getPointForName(poi_name);
         var locations = [];
-        // If the point is a cluster, get the info for the component locations.
         if (point.isCluster || point.isTownCluster) {
             const clusterName = point.visit.location.id;
             for (let i in visits) {
                 if (visits[i].hasOwnProperty("cluster") && (visits[i].cluster == clusterName)) {
-                    locations.push(visits[i].location.id);
+                    const members = getClusterMembers(visits[i].location.id);
+                    //locations.push(visits[i].location.id);
+                    locations.push(...members);
                 }
             }
         } else {
             locations.push(point.visit.location.id);
         }
-        // TODO(iandioch): Sublocations of this one need to recursively look for their own cluster members...
+        console.log("cluster members for " + poi_name);
+        console.log(locations);
+        return locations;
+    }
+
+    function renderInfoForPOI(poi_name) {
+        console.log("Rendering info for clicked point: ", poi_name);
+        const point = getPointForName(poi_name);
+        const locations = getClusterMembers(poi_name);;
         toggleRoutesForSelectedVisits(locations);
         dashboard.renderPOI(point, locations);
         lookAt(point.visit.location.lat, point.visit.location.lng, getCameraDistance());
