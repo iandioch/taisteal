@@ -431,15 +431,7 @@ function loadJSON(url, callback) {
 
         const div = document.createElement("div");
         div.textContent = label;
-        // TODO(iandioch): This styling should go in a stylesheet, instead of
-        // inlined in the JS.
-        div.style.padding = "2px";
-        div.style.border = "0px";
-        div.style.borderRadius = "5px";
-        div.style.fontFamily = "Arial, Helvetica, sans-serif";
-        div.style.fontSize = "1.5em";
-        div.style.marginTop = '-1em';
-        div.style.backgroundColor = "rgba(255, 255, 255, 0.75)";
+        div.classList.add("poi-tooltip");
         div.style.visibility = "hidden";
         const labelDiv = new CSS2DObject(div);
         labelDiv.position.set(0, margin, 0);
@@ -480,7 +472,7 @@ function loadJSON(url, callback) {
                 colour = 0xe6671e;
             }
             const height = mapToRange(1, highestVisits, GLOBE_RADIUS/50, GLOBE_RADIUS/12, visit.num_visits);
-            const label = visit.location.human_readable_name + " (" + visit.num_visits + "x)";
+            const label = visit.location.human_readable_name;
             const cluster = (visit.hasOwnProperty("cluster") ? visit.cluster : null);
             drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, label, cluster, (visit.location.type === "CLUSTER"), visit);
         }
@@ -532,7 +524,7 @@ function loadJSON(url, callback) {
         for (let i in pointGroup.children) {
             const pointParent = pointGroup.children[i];
             const visible = connectedVisitSet.has(pointParent.visit.location.name);
-            const opacity = visible ? 1.0 : 0.3;
+            const opacity = visible ? 1.0 : 0.2;
             pointParent.children[0].material.opacity = opacity;
             pointParent.children[0].material.transparent = !visible;
             pointParent.children[1].material.opacity = opacity;
