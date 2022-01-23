@@ -466,10 +466,12 @@ function loadJSON(url, callback) {
             visits[visit.location.id] = visit;
             var radius = 0.0015;
             var colour = 0xd1b54d;
+            colour = 0x4287f5;
             if (visit.location.type === "AIRPORT") {
                 colour = 0xAA3333;
             } else if (visit.location.type === "CLUSTER") {
                 colour = 0xe6671e;
+                colour = 0xF0BD1D;
             }
             const height = mapToRange(1, highestVisits, GLOBE_RADIUS/50, GLOBE_RADIUS/12, visit.num_visits);
             const label = visit.location.human_readable_name;
