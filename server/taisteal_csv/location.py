@@ -37,12 +37,48 @@ class Location:
         self.maps_response = ""
         self.parent = None
         self.children = []
-        self.country = "Unknown Country"
+        self.country = None#"Unknown Country"
         self.type = TYPE_UNKNOWN 
         self.region = ''
 
     def __repr__(self):
         return self.query
+
+    @staticmethod
+    def _apply_rewrites(loc):
+        # A hack to get "Bayern" to resolve to "Bavaria" etc.
+        rewrites = {
+            'administrative_area_level_1': {
+                'Bayern': 'Bavaria',
+                'Tessin': 'Ticino',
+                'Zurich': 'Zürich',
+                'Lombardia': 'Lombardy',
+                'Illes Balears': 'Balearic Islands',
+                'Islas Baleares': 'Balearic Islands',
+                'Grisons': 'Graubünden',
+                'Noord-Brabant': 'North Brabant',
+                'Județul Ilfov': 'Bucharest', # technically different
+                'Județul Cluj': 'Cluj County',
+                'Bratislavský kraj': 'Bratislava Region',
+                'Tangier-Tétouan-Al Hoceima': 'Tanger-Tétouan-Al Hoceïma',
+                'Wallis': 'Valais',
+            },
+            'locality': {
+                'Kastrup': 'Copenhagen', # technically different
+            },
+            'administrative_area_level_2': {},
+            'country': {
+                'Unknown Country': 'Palestine',
+            }
+        }
+        for component in loc.components:
+            for type_ in component['types']:
+                if type_ in rewrites:
+                    if component['long_name'] in rewrites[type_]:
+                        print('Applying rewrites to', loc)
+                        component['long_name'] = rewrites[type_][component['long_name']]
+        return loc
+
 
     @staticmethod
     def _get_region_name(loc):
@@ -90,6 +126,7 @@ class Location:
         loc.latitude = float(result['geometry']['location']['lat'])
         loc.longitude = float(result['geometry']['location']['lng'])
         loc.components = result['address_components']
+        Location._apply_rewrites(loc)
         for component in loc.components:
             typeset = set(component['types'])
             if 'locality' in typeset:
@@ -122,6 +159,9 @@ class Location:
         if not loc.human_readable_name:
             loc.human_readable_name = loc.address
         loc.region = Location._get_region_name(loc)
+
+        if not loc.country:
+            loc.country = 'Palestine'
         return loc
 
     @staticmethod
