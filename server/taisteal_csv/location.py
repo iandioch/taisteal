@@ -65,7 +65,8 @@ class Location:
             },
             'locality': {
                 'Kastrup': 'Copenhagen', # technically different
-                'Milano': 'Milan'
+                'Milano': 'Milan',
+                'München': 'Munich',
             },
             'administrative_area_level_2': {},
             'country': {
