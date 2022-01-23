@@ -70,7 +70,7 @@ function loadJSON(url, callback) {
         template: `<div>
             <div class="poi-list">
                 <p v-if="visits.length > 1">This cluster is composed of multiple adjacent places:<br><span v-for="poi in visits"><poi :text="poi" :id="poi"></poi> </span><br>in <span v-for="country in countries"><country :id="country" :text="country"></country></span></p>
-                <p v-if="visits.length == 1"><poi :text="visits[0]" :id="visits[0]"></poi> in <country :id="countries[0]" :text="countries[0]"></country></p>
+                <p v-if="visits.length == 1"><poi :text="visits[0]" :id="visits[0]"></poi> is {{humanReadableType}} in <country :id="countries[0]" :text="countries[0]"></country></p>
             </div>
             <p>Number of visits: {{poi.num_visits}}</p>
             <p>Total days visited: {{poi.days}}.</p>
@@ -82,6 +82,20 @@ function loadJSON(url, callback) {
                     countrySet.add(visits[this.visits[i]].location.country);
                 }
                 return [...countrySet];
+            },
+            humanReadableType: function() {
+                switch(this.poi.location.type) {
+                    case "CLUSTER":
+                        return "a cluster";
+                    case "TOWN":
+                        return "a locality";
+                    case "AIRPORT":
+                        return "an airport";
+                    case "STATION":
+                        return "a station";
+                    default:
+                        return "a place";
+                }
             }
         }
     });
@@ -470,8 +484,9 @@ function loadJSON(url, callback) {
             if (visit.location.type === "AIRPORT") {
                 colour = 0xAA3333;
             } else if (visit.location.type === "CLUSTER") {
-                colour = 0xe6671e;
                 colour = 0xF0BD1D;
+            } else if (visit.location.type == "STATION") {
+                colour = 0xe6671e;
             }
             const height = mapToRange(1, highestVisits, GLOBE_RADIUS/50, GLOBE_RADIUS/12, visit.num_visits);
             const label = visit.location.human_readable_name;
