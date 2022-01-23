@@ -135,8 +135,8 @@ def get_clusters(visits, cluster_threshold_km=25):
 def serve_root():
     return 'Hello World!'
 
-@app.route('/api/travel_map')
-def serve_travel_map():
+
+def create_travel_map():
     def _get_location_dict(loc):
         # Turn a Location object into a json-dumpable form.
         return {
@@ -197,6 +197,14 @@ def serve_travel_map():
     }
     s = json.dumps(data, indent=4)
     return s
+
+TRAVEL_MAP_RESPONSE = None
+@app.route('/api/travel_map')
+def serve_travel_map():
+    global TRAVEL_MAP_RESPONSE
+    if not TRAVEL_MAP_RESPONSE:
+        TRAVEL_MAP_RESPONSE = create_travel_map()
+    return TRAVEL_MAP_RESPONSE
 
 @app.route('/api/get_mapbox_token')
 def serve_get_mapbox_token():
