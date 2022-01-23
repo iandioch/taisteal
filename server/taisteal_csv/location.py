@@ -116,6 +116,24 @@ class Location:
             return loc.address
         return best_name
 
+    @staticmethod
+    def _get_country_name(loc):
+        is_uk = False
+        admin_area = None
+        country = None
+        for component in loc.components:
+            typeset = set(component['types'])
+            if 'country' in typeset:
+                country = component['long_name']
+                if country == 'United Kingdom':
+                    is_uk = True
+            if 'administrative_area_level_1' in typeset:
+                admin_area = component['long_name']
+        if is_uk:
+            return admin_area
+        if country:
+            return country
+        return 'Palestine'
 
     @staticmethod
     def _parse_maps_response(result, query, config):
@@ -127,6 +145,7 @@ class Location:
         loc.longitude = float(result['geometry']['location']['lng'])
         loc.components = result['address_components']
         Location._apply_rewrites(loc)
+
         for component in loc.components:
             typeset = set(component['types'])
             if 'locality' in typeset:
@@ -134,14 +153,6 @@ class Location:
                     loc.human_readable_name = component['long_name']
                 if loc.type == TYPE_UNKNOWN:
                     loc.type = TYPE_TOWN
-            if 'country' in typeset:
-                country_name = component['long_name']
-                if country_name == query:
-                    # TODO(iandioch): Figure out why this if-statement is here. Exit recursion?
-                    continue
-                loc.parent, result = Location.find(country_name, config)
-                loc.parent.children.append(loc)
-                loc.country = country_name
             if 'airport' in typeset:
                 loc.type = TYPE_AIRPORT
                 # Special case for airports, which can be in a differently named
@@ -160,8 +171,7 @@ class Location:
             loc.human_readable_name = loc.address
         loc.region = Location._get_region_name(loc)
 
-        if not loc.country:
-            loc.country = 'Palestine'
+        loc.country = Location._get_country_name(loc)
         return loc
 
     @staticmethod
