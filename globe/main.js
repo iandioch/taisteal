@@ -110,7 +110,7 @@ function loadJSON(url, callback) {
                 console.log(visits);
                 for (let i in visits) {
                     if (visits[i].location.type == "CLUSTER") continue;
-                    allPOIs.push([visits[i].location.human_readable_name, visits[i].location.name, visits[i].days]);
+                    allPOIs.push([visits[i].location.human_readable_name, visits[i].location.id, visits[i].days]);
                 }
                 allPOIs.sort(function(a, b) { return b[2]-a[2]; });
                 console.log(allPOIs);
@@ -121,7 +121,7 @@ function loadJSON(url, callback) {
                 const POINames = new Set();
                 for (let i in visits) {
                     if (visits[i].type == 'CLUSTER') continue;
-                    POINames.add(visits[i].location.name);
+                    POINames.add(visits[i].location.id);
                 }
                 const numUniquePOIs = POINames.size;
 
@@ -183,7 +183,7 @@ function loadJSON(url, callback) {
     function createComponentForVisits(visits) {
         var locations = [];
         for (let i in visits) {
-            locations.push([visits[i].location.human_readable_name, visits[i].location.name]);
+            locations.push([visits[i].location.human_readable_name, visits[i].location.id]);
         }
         console.log(locations);
         return {
@@ -221,7 +221,7 @@ function loadJSON(url, callback) {
                 this.hideBackButton = true;
                 const allVisits = [];
                 for (let i in this.visits) {
-                    allVisits.push(this.visits[i].location.name);
+                    allVisits.push(this.visits[i].location.id);
                 }
                 toggleRoutesForSelectedVisits(allVisits, false);
             },
@@ -463,7 +463,7 @@ function loadJSON(url, callback) {
         }
         for (var i in data.visits) {
             const visit = data.visits[i];
-            visits[visit.location.name] = visit;
+            visits[visit.location.id] = visit;
             var radius = 0.0015;
             var colour = 0xd1b54d;
             if (visit.location.type === "AIRPORT") {
@@ -501,11 +501,11 @@ function loadJSON(url, callback) {
             const arc = arcGroup.children[i];
             const leg = arc.userData.leg;
             var visible = false;
-            if (visitSet.has(leg.arr.name)) {
-                connectedVisitSet.add(leg.dep.name);
+            if (visitSet.has(leg.arr.id)) {
+                connectedVisitSet.add(leg.dep.id);
                 visible = true;
-            } else if (visitSet.has(leg.dep.name)) {
-                connectedVisitSet.add(leg.arr.name);
+            } else if (visitSet.has(leg.dep.id)) {
+                connectedVisitSet.add(leg.arr.id);
                 visible = true;
             }
             visible = visible && showLegs;
@@ -516,14 +516,14 @@ function loadJSON(url, callback) {
         for (let i in visits) {
             const visit = visits[i];
             if (!('cluster' in visit)) continue;
-            if (connectedVisitSet.has(visit.location.name)) {
+            if (connectedVisitSet.has(visit.location.id)) {
                 connectedVisitSet.add(visit.cluster);
             }
         }
         // Make semitransparent all of the pins not in the connectedVisitSet.
         for (let i in pointGroup.children) {
             const pointParent = pointGroup.children[i];
-            const visible = connectedVisitSet.has(pointParent.visit.location.name);
+            const visible = connectedVisitSet.has(pointParent.visit.location.id);
             const opacity = visible ? 1.0 : 0.2;
             pointParent.children[0].material.opacity = opacity;
             pointParent.children[0].material.transparent = !visible;
@@ -535,7 +535,7 @@ function loadJSON(url, callback) {
     function getPointForName(poi_name) {
         for (let i in pointGroup.children) {
             const point = pointGroup.children[i];
-            if (point.visit.location.name == poi_name) return point;
+            if (point.visit.location.id == poi_name) return point;
         }
         return null;
     }
@@ -546,14 +546,14 @@ function loadJSON(url, callback) {
         var locations = [];
         // If the point is a cluster, get the info for the component locations.
         if (point.isCluster) {
-            const clusterName = point.visit.location.name;
+            const clusterName = point.visit.location.id;
             for (let i in visits) {
                 if (visits[i].hasOwnProperty("cluster") && (visits[i].cluster == clusterName)) {
-                    locations.push(visits[i].location.name);
+                    locations.push(visits[i].location.id);
                 }
             }
         } else {
-            locations.push(point.visit.location.name);
+            locations.push(point.visit.location.id);
         }
         toggleRoutesForSelectedVisits(locations);
         dashboard.renderPOI(point, locations);
@@ -566,7 +566,7 @@ function loadJSON(url, callback) {
         dashboard.renderCountry(countryName, visits);
         var locationNames = [];
         for (let i in visits) {
-            locationNames.push(visits[i].location.name);
+            locationNames.push(visits[i].location.id);
         }
         toggleRoutesForSelectedVisits(locationNames);
     }
@@ -661,7 +661,7 @@ function loadJSON(url, callback) {
         updateHighlightedPoint();
 
         if (highlightedPoint) {
-            renderInfoForPOI(highlightedPoint.visit.location.name);
+            renderInfoForPOI(highlightedPoint.visit.location.id);
         }
     }
 

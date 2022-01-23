@@ -40,7 +40,7 @@ def get_clusters(visits, cluster_threshold_km=25):
         # Also not correct, as two half-day visits will each have
         # v['days'] = 1, and they will sum to 2 instead of to 1.
         cluster['days'] += v['days']
-        v['cluster'] = cluster['location']['name']
+        v['cluster'] = cluster['location']['id']
 
     # `cluster` should be the cluster, and `component_visits` should be a list
     # of all of the visits that went into this cluster.
@@ -58,7 +58,7 @@ def get_clusters(visits, cluster_threshold_km=25):
         return ', '.join(sorted_regions[:3]) + ', & more'
 
     def vkey(v):
-        return v['location']['name']
+        return v['location']['id']
     
     parent = {vkey(v): vkey(v) for v in visits}
     count = {vkey(v): 1 for v in visits}
@@ -108,7 +108,7 @@ def get_clusters(visits, cluster_threshold_km=25):
                 'location': {
                     'lat': v['location']['lat'],
                     'lng': v['location']['lng'],
-                    'name': 'CLUSTER("{}")'.format(root),
+                    'id': 'CLUSTER("{}")'.format(root),
                     'type': 'CLUSTER',
                     'region': v['location']['region'],
                     'country': v['location']['country'],
@@ -142,8 +142,7 @@ def create_travel_map():
         return {
             'lat': loc.latitude,
             'lng': loc.longitude,
-            # TODO(iandioch): Rename 'name' to 'id' or similar
-            'name': loc.address, # unique
+            'id': loc.address, # unique
             'type': loc.type,
             'region': loc.region , # used to cluster close places.
             'country': loc.country, # used for stats
@@ -165,10 +164,10 @@ def create_travel_map():
         k = (departure_loc['lat'], departure_loc['lng'], arrival_loc['lat'], arrival_loc['lng'])
         leg_count_dict[k] += 1
         leg_obj_dict[k] = (departure_loc, arrival_loc, leg.mode)
-        num_visits[departure_loc['name']] += 1
-        num_visits[arrival_loc['name']] += 1
-        name_to_loc[departure_loc['name']] = departure_loc
-        name_to_loc[arrival_loc['name']] = arrival_loc 
+        num_visits[departure_loc['id']] += 1
+        num_visits[arrival_loc['id']] += 1
+        name_to_loc[departure_loc['id']] = departure_loc
+        name_to_loc[arrival_loc['id']] = arrival_loc 
     for leg in leg_count_dict:
         departure_loc, arrival_loc, mode = leg_obj_dict[leg]
         n = leg_count_dict[leg]
