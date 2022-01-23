@@ -11,6 +11,21 @@ def estimated_distance_km(lat1, lng1, lat2, lng2):
     r = 6371 # Radius of earth in kilometers. Use 3956 for miles. Determines return value units.
     return c * r
 
+def create_cluster_obj(cluster_id, visit):
+    return {
+        'location': {
+            'lat': visit['location']['lat'],
+            'lng': visit['location']['lng'],
+            'id': cluster_id,
+            'type': 'CLUSTER',
+            'region': visit['location']['region'],
+            'country': visit['location']['country'],
+            'human_readable_name': '{} Region'.format(visit['location']['region']),
+        },
+        'num_visits': 0,
+        'days': 0,
+    }
+
 # Returns a list of new visit dicts for any identified clusters in the given
 # `visits` list. Will modify that given `visits` list, adding `cluster` entries
 # to the dicts for which a cluster was found.
@@ -92,19 +107,8 @@ def get_clusters(visits, cluster_threshold_km=25):
             # This visit wasn't clustered with any others.
             continue
         if root not in cluster:
-            cluster[root] = {
-                'location': {
-                    'lat': v['location']['lat'],
-                    'lng': v['location']['lng'],
-                    'id': 'CLUSTER("{}")'.format(root),
-                    'type': 'CLUSTER',
-                    'region': v['location']['region'],
-                    'country': v['location']['country'],
-                    'human_readable_name': '{} Region'.format(v['location']['region']),
-                },
-                'num_visits': 0,
-                'days': 0,
-            }
+            cluster_id = 'CLUSTER("{}")'.format(root)
+            cluster[root] = create_cluster_obj(cluster_id, v)
         add_location_to_cluster(cluster[root], v)
         components[root].append(v)
 
