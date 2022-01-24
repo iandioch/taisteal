@@ -723,8 +723,6 @@ function loadJSON(url, callback) {
 
             if (point.isCluster) {
                 point.visible = showClusters;
-            } else if (point.isTownCluster) {
-                point.visible = showLocalClusters;
             }
         }
         for (var i in pointGroup.children) {
