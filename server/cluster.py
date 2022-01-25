@@ -20,6 +20,7 @@ def create_cluster_obj(cluster_id, visit):
             'type': 'CLUSTER',
             'region': visit['location']['region'],
             'country': visit['location']['country'],
+            'country_code': visit['location']['country_code'],
             'human_readable_name': '{} Region'.format(visit['location']['region']),
         },
         'num_visits': 0,

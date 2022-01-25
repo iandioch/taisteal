@@ -38,6 +38,7 @@ class Location:
         self.parent = None
         self.children = []
         self.country = None#"Unknown Country"
+        self.country_code = None
         self.type = TYPE_UNKNOWN 
         self.region = ''
 
@@ -119,23 +120,37 @@ class Location:
         return best_name
 
     @staticmethod
-    def _get_country_name(loc):
+    def _get_country_data(loc):
         is_uk = False
         admin_area = None
         country = None
         for component in loc.components:
             typeset = set(component['types'])
             if 'country' in typeset:
-                country = component['long_name']
-                if country == 'United Kingdom':
+                country = (component['long_name'], component['short_name'])
+                if country[0] == 'United Kingdom':
                     is_uk = True
             if 'administrative_area_level_1' in typeset:
-                admin_area = component['long_name']
+                admin_area = (component['long_name'], component['short_name'])
         if is_uk:
+            if (admin_area[0] == 'Scotland'):
+                return 'Scotland', 'GBSCT'
+            elif (admin_area[0] == 'Wales'):
+                return 'Wales', 'GBWLS'
+            elif (admin_area[0] == 'England'):
+                return 'England', 'GBENG'
             return admin_area
         if country:
             return country
-        return 'Palestine'
+        return ('Palestine', 'PS')
+
+    @staticmethod
+    def _get_country_name(loc):
+        return Location._get_country_data(loc)[0]
+
+    @staticmethod
+    def _get_country_code(loc):
+        return Location._get_country_data(loc)[1]
 
     @staticmethod
     def _parse_maps_response(result, query, config):
@@ -174,6 +189,7 @@ class Location:
         loc.region = Location._get_region_name(loc)
 
         loc.country = Location._get_country_name(loc)
+        loc.country_code = Location._get_country_code(loc)
         return loc
 
     @staticmethod

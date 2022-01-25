@@ -29,6 +29,7 @@ def create_travel_map():
             'type': loc.type, # eg. 'CLUSTER', 'STATION', 'TOWN'
             'region': loc.region , # used to cluster close places, and to give names to those clusters.
             'country': loc.country, # used for stats.
+            'country_code': loc.country_code,
             'human_readable_name': loc.human_readable_name, # no guarantee of uniqueness
         }
 

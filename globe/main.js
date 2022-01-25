@@ -25,21 +25,12 @@ function loadJSON(url, callback) {
 }
 
 (function() {
-
-    Vue.component('clickable', {
+    Vue.component('poi', {
         props: {
             text: String,
             id: String,
         },
-        template: `<a class="poi" href='#' v-on:click="handleClick"><img v-if="icon[0]" :src="icon[0]" :title="icon[1]" :alt="icon[1]" style="width: 1em; display: inline; margin-right: 2px; position: relative; vertical-align: middle;"></img>{{text}}</a>`,
-        computed: {
-            icon: function() {
-                return [null, null];
-            }
-        }
-    });
-    Vue.component('poi', {
-        extends: Vue.component('clickable'),
+        template: `<a class="poi" href='#' v-on:click="handleClick"><img :src="icon[0]" :title="icon[1]" :alt="icon[1]" style="width: 1em; display: inline; margin-right: 2px; position: relative; vertical-align: middle;"></img>{{text}}</a>`,
         methods: {
             handleClick() {
                 renderInfoForPOI(this.id);
@@ -62,13 +53,35 @@ function loadJSON(url, callback) {
         }
     });
 
-    // TODO(iandioch): Instead of extending 'poi', both should extend a common parent.
     Vue.component('country', {
-        extends: Vue.component('clickable'),
+        props: {
+            text: String,
+            id: String,
+        },
+        template: `<a class="poi" href='#' v-on:click="handleClick"><span v-if="flag">{{flag}} </span>{{text}}</a>`,
         methods: {
             handleClick() {
-                renderInfoForCountry(this.id);
+                renderInfoForCountry(this.text);
+            },
+            flagEmojiForCountryCode(countryCode) {
+                const codePoints = countryCode.toUpperCase().split('').map(c =>  127397 + c.charCodeAt());
+                return String.fromCodePoint(...codePoints);
             }
+        },
+        computed: {
+            flag: function() {
+                console.log("Getting flag for " + this.id);
+                if (this.id.length != 2) {
+                    // Only the three regional flags of [Scotland, Wales, England] are recommended for general interchange by the Unicode consortium.
+                    switch(this.id) {
+                        case 'GBSCT': return '🏴󠁧󠁢󠁳󠁣󠁴󠁿';
+                        case 'GBWLS': return '🏴󠁧󠁢󠁷󠁬󠁳󠁿';
+                        case 'GBENG': return '🏴󠁧󠁢󠁥󠁮󠁧󠁿';
+                        default: return null;
+                    }
+                }
+                return this.flagEmojiForCountryCode(this.id);
+            },
         }
     });
 
@@ -93,8 +106,8 @@ function loadJSON(url, callback) {
         },
         template: `<div>
             <div class="poi-list">
-                <p v-if="visits.length > 1">This cluster is composed of multiple adjacent places:<br><span v-for="poi in visits"><poi :text="poi" :id="poi"></poi> </span><br>in <span v-for="country in countries"><country :id="country" :text="country"></country></span></p>
-                <p v-if="visits.type != 'CLUSTER'"><poi :text="poi.location.id" :id="poi.location.id"></poi> is {{humanReadableType}} in <country :id="countries[0]" :text="countries[0]"></country></p>
+                <p v-if="visits.length > 1">This cluster is composed of multiple adjacent places:<br><span v-for="poi in visits"><poi :text="poi" :id="poi"></poi> </span><br>in <span v-for="country in countries"><country :id="country.code" :text="country.name"></country></span></p>
+                <p v-if="poi.location.type != 'CLUSTER'"><poi :text="poi.location.id" :id="poi.location.id"></poi> is {{humanReadableType}} in <country :id="countries[0].code" :text="countries[0].name"></country></p>
                 <p v-if="poi.hasOwnProperty('cluster')">This is a part of <poi :text="poi.cluster" :id="poi.cluster"></poi></p>
             </div>
             <p>Number of visits: {{poi.num_visits}}</p>
@@ -102,11 +115,19 @@ function loadJSON(url, callback) {
         </div>`,
         computed: {
             countries: function() {
-                var countrySet = new Set();
+                var seenCountries = new Set();
+                var results = [];
                 for (let i in this.visits) {
-                    countrySet.add(visits[this.visits[i]].location.country);
+                    const visit = visits[this.visits[i]]
+                    if (seenCountries.has(visit.location.country)) continue;
+
+                    seenCountries.add(visit.location.country);
+                    results.push({
+                        name: visit.location.country, 
+                        code: visit.location.country_code
+                    });
                 }
-                return [...countrySet];
+                return results;
             },
             humanReadableType: function() {
                 switch(this.poi.location.type) {
@@ -142,7 +163,7 @@ function loadJSON(url, callback) {
             Places I have spent the most time in since I started logging:
             <top-poi-table v-bind:pois="longestStayedPOIs" metric="days"></top-poi-table>
             <br>
-            I have logged trips passing through the following countries: <span v-for="country in countries"><country :id="country" :text="country"></country></span>
+            I have logged trips passing through the following countries: <span v-for="country in countries"><country :id="country.code" :text="country.name"></country></span>
         </div>`,
         computed: {
             longestStayedPOIs() {
@@ -185,13 +206,24 @@ function loadJSON(url, callback) {
                 }
             },
             countries: function() {
-                var countrySet = new Set();
+                var seenCountries = new Set();
+                var results = [];
                 for (let i in visits) {
-                    countrySet.add(visits[i].location.country);
+                    const visit = visits[i];
+                    const countryCode = visit.location.country_code;
+                    const countryName = visit.location.country;
+                    if (seenCountries.has(countryName)) continue;
+
+                    seenCountries.add(countryName);
+                    results.push({
+                        name: countryName, 
+                        code: countryCode,
+                    });
                 }
-                var countryArray = [...countrySet];
-                countryArray.sort();
-                return countryArray;
+                console.log(results);
+                results.sort((a, b) => {return a.name.localeCompare(b.name)});
+                console.log(results);
+                return results;
             }
         }
     });
