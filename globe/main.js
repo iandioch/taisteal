@@ -25,22 +25,46 @@ function loadJSON(url, callback) {
 }
 
 (function() {
-    Vue.component('poi', {
+
+    Vue.component('clickable', {
         props: {
             text: String,
             id: String,
         },
-        template: `<a class="poi" href='#' v-on:click="handleClick">{{text}}</a>`,
+        template: `<a class="poi" href='#' v-on:click="handleClick"><img v-if="icon[0]" :src="icon[0]" :title="icon[1]" :alt="icon[1]" style="width: 1em; display: inline; margin-right: 2px; position: relative; vertical-align: middle;"></img>{{text}}</a>`,
+        computed: {
+            icon: function() {
+                return [null, null];
+            }
+        }
+    });
+    Vue.component('poi', {
+        extends: Vue.component('clickable'),
         methods: {
             handleClick() {
                 renderInfoForPOI(this.id);
+            }
+        },
+        computed: {
+            icon: function() {
+                // TODO(iandioch): It's dumb to get this point instead of just having a getVisitForID(this.id) func.
+                const visit = getPointForName(this.id).visit;
+                console.log(visit);
+                if (visit.location.type == 'TOWN' || visit.location.type == "TOWN_CLUSTER") {
+                    return ['town.svg', 'Town by mapbox on svgrepo.com'];
+                } else if (visit.location.type == "STATION") {
+                    return ['station.svg', 'Railway Station 14 by gmgeo on svgrepo.com'];
+                } else if (visit.location.type == "AIRPORT") {
+                    return ['airport.svg', 'Airplane Plane by SVG Repo on svgrepo.com'];
+                }
+                return ['town.svg', 'TODO'];
             }
         }
     });
 
     // TODO(iandioch): Instead of extending 'poi', both should extend a common parent.
     Vue.component('country', {
-        extends: Vue.component('poi'),
+        extends: Vue.component('clickable'),
         methods: {
             handleClick() {
                 renderInfoForCountry(this.id);
@@ -432,7 +456,7 @@ function loadJSON(url, callback) {
         pointObj.isTownCluster = isTownCluster;
         pointObj.visit = visitObj;
 
-        const margin = 0.0005;
+        const margin = 0.00075;
         const baseGeom = new THREE.CylinderGeometry(radius + margin*2, radius + margin*2, margin, 16);
         baseGeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
         const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF});
