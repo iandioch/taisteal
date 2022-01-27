@@ -48,6 +48,7 @@ class Location:
     @staticmethod
     def _apply_rewrites(loc):
         # A hack to get "Bayern" to resolve to "Bavaria" etc.
+        # These are applied before the location lookup cache is saved; as such, the cache needs to be refreshed to reflect changes made here.
         rewrites = {
             'administrative_area_level_1': {
                 'Bayern': 'Bavaria',
@@ -63,6 +64,7 @@ class Location:
                 'Bratislavský kraj': 'Bratislava Region',
                 'Tangier-Tétouan-Al Hoceima': 'Tanger-Tétouan-Al Hoceïma',
                 'Wallis': 'Valais',
+                #'Stockholms län': 'Stockholm County',
             },
             'locality': {
                 'Kastrup': 'Copenhagen', # technically different
@@ -80,6 +82,20 @@ class Location:
                     if component['long_name'] in rewrites[type_]:
                         print('Applying rewrites to', loc)
                         component['long_name'] = rewrites[type_][component['long_name']]
+
+        def rewrite_tegel_airport(loc):
+            for component in loc.components:
+                if component['long_name'] == 'Tegel, Berlin, Germany':
+                    component['types'].append('airport')
+                    return True
+            return False
+
+        # Non-standard rewrites that don't cleanly fit as a name substitution. Each should return True if they applied to the given loc.
+        ad_hoc_rewrites = {'tegel': rewrite_tegel_airport}
+        for rewrite_id in ad_hoc_rewrites:
+            func= ad_hoc_rewrites[rewrite_id]
+            if func(loc):
+                print('Applied ad-hoc rewrite', rewrite_id, 'to', loc)
         return loc
 
 
@@ -197,7 +213,7 @@ class Location:
         u = 'https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}'
         resp = json.loads(requests.get(u.format(query, config['google_api_key'])).text)
         if resp['status'] != 'OK':
-            return resp['status'], None
+            return resp, None
         for result in resp['results']:
             loc = Location._parse_maps_response(result, query, config)
             return None, loc
@@ -212,6 +228,7 @@ class Location:
         for _ in range(MAXIMUM_LOCATION_LOOKUP_ATTEMPTS):
             error, loc = Location._fetch_location(query, config)
             if error:
+                print('Error fetching location {}: {}'.format(query, error))
                 return None, error
             print('Created Location', loc.address)
             loc.query = query
@@ -241,4 +258,4 @@ def save_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
     d = {
         q: LOCATION_LOOKUP_CACHE[q].maps_response for q in LOCATION_LOOKUP_CACHE}
     with open(path, 'w') as f:
-        json.dump(d, f)
+        json.dump(d, f, indent=2)
