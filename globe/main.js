@@ -599,7 +599,7 @@ function loadJSON(url, callback) {
     });
 
     // Make semitransparent most plcaes except the one the user just clicked on.
-    function toggleRoutesForSelectedVisits(visitNames, showLegs = true) {
+    function toggleRoutesForSelectedVisits(visitNames, showLegs = true, showConnectedLocations = true) {
         const visitSet = new Set(visitNames);
         // Build up a set of everywhere that shares a leg with these visitNames.
         const connectedVisitSet = new Set(visitNames);
@@ -608,10 +608,10 @@ function loadJSON(url, callback) {
             const leg = arc.userData.leg;
             var visible = false;
             if (visitSet.has(leg.arr.id)) {
-                connectedVisitSet.add(leg.dep.id);
+                if (showConnectedLocations) connectedVisitSet.add(leg.dep.id);
                 visible = true;
             } else if (visitSet.has(leg.dep.id)) {
-                connectedVisitSet.add(leg.arr.id);
+                if (showConnectedLocations) connectedVisitSet.add(leg.arr.id);
                 visible = true;
             }
             visible = visible && showLegs;
@@ -684,7 +684,7 @@ function loadJSON(url, callback) {
         for (let i in visits) {
             locationNames.push(visits[i].location.id);
         }
-        toggleRoutesForSelectedVisits(locationNames);
+        toggleRoutesForSelectedVisits(locationNames, true, false);
     }
 
     function renderInfoForRegion(countryName, regionName) {
@@ -698,6 +698,7 @@ function loadJSON(url, callback) {
             }
         }
         dashboard.renderCountry(regionName, regionVisits);
+        toggleRoutesForSelectedVisits(regionLocationIDs, true, false);
     }
 
     // Returns true if we needed to resize.
