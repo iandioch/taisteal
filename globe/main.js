@@ -85,6 +85,19 @@ function loadJSON(url, callback) {
         }
     });
 
+    Vue.component('region', {
+        props: {
+            country: String, // name of country
+            name: String, // name of region
+        },
+        template: `<a class="poi" href='#' v-on:click="handleClick"><img src="region.svg" title="Location by SVG Repo on svgrepo.com" style="width: 1em; display: inline; margin-right: 2px; position: relative; vertical-align: middle"></img>{{name}}</a>`,
+        methods: {
+            handleClick() {
+                renderInfoForRegion(this.country, this.name);
+            },
+        }
+    });
+
     Vue.component('top-poi-table', {
         props: {
             pois: Array, // Expecting a list of (user-visible text, poi id/name, number)
@@ -107,8 +120,9 @@ function loadJSON(url, callback) {
         template: `<div>
             <div class="poi-list">
                 <p v-if="visits.length > 1">This cluster is composed of multiple adjacent places:<br><span v-for="poi in visits"><poi :text="poi" :id="poi"></poi> </span><br>in <span v-for="country in countries"><country :id="country.code" :text="country.name"></country></span></p>
-                <p v-if="poi.location.type != 'CLUSTER'"><poi :text="poi.location.id" :id="poi.location.id"></poi> is {{humanReadableType}} in <country :id="countries[0].code" :text="countries[0].name"></country></p>
+                <p v-if="poi.location.type != 'CLUSTER'"><poi :text="poi.location.id" :id="poi.location.id"></poi> is {{humanReadableType}} in <region :name="regions[0].name" :country="regions[0].country"></region> in <country :id="countries[0].code" :text="countries[0].name"></country></p>
                 <p v-if="poi.hasOwnProperty('cluster')">This is a part of <poi :text="poi.cluster" :id="poi.cluster"></poi></p>
+                <p><span v-for="region in regions"><region :name="region.name" :country="region.country"></region></span></p>
             </div>
             <p>Number of visits: {{poi.num_visits}}</p>
             <p>Total days visited: {{poi.days}}.</p>
@@ -118,13 +132,29 @@ function loadJSON(url, callback) {
                 var seenCountries = new Set();
                 var results = [];
                 for (let i in this.visits) {
-                    const visit = visits[this.visits[i]]
+                    const visit = visits[this.visits[i]];
                     if (seenCountries.has(visit.location.country)) continue;
 
                     seenCountries.add(visit.location.country);
                     results.push({
                         name: visit.location.country, 
                         code: visit.location.country_code
+                    });
+                }
+                return results;
+            },
+            regions: function() {
+                // seenRegions will conflict if two regions have the same name but are in different countries.
+                var seenRegions = new Set();
+                var results = [];
+                for (let i in this.visits) {
+                    const visit = visits[this.visits[i]]
+                    if (seenRegions.has(visit.location.region)) continue;
+
+                    seenRegions.add(visit.location.region);
+                    results.push({
+                        name: visit.location.region, 
+                        country: visit.location.country,
                     });
                 }
                 return results;
@@ -655,6 +685,19 @@ function loadJSON(url, callback) {
             locationNames.push(visits[i].location.id);
         }
         toggleRoutesForSelectedVisits(locationNames);
+    }
+
+    function renderInfoForRegion(countryName, regionName) {
+        const visits = getVisitsForCountry(countryName);
+        const regionVisits = [];
+        const regionLocationIDs = [];
+        for (let i in visits) {
+            if (visits[i].location.region == regionName) {
+                regionVisits.push(visits[i]);
+                regionLocationIDs.push(visits[i].location.id);
+            }
+        }
+        dashboard.renderCountry(regionName, regionVisits);
     }
 
     // Returns true if we needed to resize.
