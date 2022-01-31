@@ -7,6 +7,8 @@ from math import radians, asin, sqrt, cos, sin
 from taisteal_csv import parse
 import cluster
 import database
+
+import pendulum
 from flask import Flask
 from flask_cors import CORS
 
@@ -40,44 +42,62 @@ def create_travel_map():
     loc = '../mo_thaistil/full.csv'
     travel_leg_series = parse.parse(loc, config)
 
-    legs = []
-    num_visits = defaultdict(int)
-    time_spent = defaultdict(int)
-    name_to_loc = {}
-    leg_count_dict = defaultdict(int)
-    leg_obj_dict = {}
+    id_to_location = {}
+    location_visits = defaultdict(lambda: {
+        'num_visits': 0,
+        'duration': pendulum.now() - pendulum.now()
+    })
+    aggregated_legs = defaultdict(lambda: {
+        'count': 0,
+        'mode': None
+    })
+    prev_loc_id = None
+    prev_loc_date = None
     for leg in travel_leg_series.legs:
-        departure_loc = _get_location_dict(leg.dep.loc)
-        arrival_loc = _get_location_dict(leg.arr.loc)
-        k = (departure_loc['lat'], departure_loc['lng'], arrival_loc['lat'], arrival_loc['lng'])
-        leg_count_dict[k] += 1
-        leg_obj_dict[k] = (departure_loc, arrival_loc, leg.mode)
-        num_visits[departure_loc['id']] += 1
-        num_visits[arrival_loc['id']] += 1
-        name_to_loc[departure_loc['id']] = departure_loc
-        name_to_loc[arrival_loc['id']] = arrival_loc 
-    for leg in leg_count_dict:
-        departure_loc, arrival_loc, mode = leg_obj_dict[leg]
-        n = leg_count_dict[leg]
+        dep = _get_location_dict(leg.dep.loc)
+        arr = _get_location_dict(leg.arr.loc)
+        id_to_location[dep['id']] = dep
+        id_to_location[arr['id']] = arr
+
+        k = (dep['id'], arr['id'], leg.mode)
+        aggregated_legs[k]['count'] += 1
+        aggregated_legs[k]['mode'] = leg.mode
+        if leg.dep.date >= leg.arr.date:
+            print('Warning: travel leg does not have positive duration: {} ({}) to {} ({})'.format(leg.dep.loc['name'], leg.dep.date, leg.arr.loc['name'], leg.arr.date))
+
+        if prev_loc_id is not None:
+            # Try to account for places which never appear as an arrival, and only as a departure location.
+            if prev_loc_id == dep['id']:
+                location_visits[prev_loc_id]['duration'] += (leg.dep.date - prev_loc_date)
+                location_visits[prev_loc_id]['num_visits'] += 1
+            else:
+                location_visits[dep['id']]['duration'] += (leg.dep.date - prev_loc_date)/2
+                location_visits[dep['id']]['num_visits'] += 1
+                location_visits[prev_loc_id]['duration'] += (leg.dep.date - prev_loc_date)/2
+                location_visits[prev_loc_id]['num_visits'] += 1
+
+        prev_loc_id = arr['id']
+        prev_loc_date = leg.arr.date
+
+    legs = []
+    for k in aggregated_legs:
+        dep_id, arr_id, _ = k
+        mode = aggregated_legs[k]['mode']
+        count = aggregated_legs[k]['count']
         legs.append({
-            'dep': departure_loc,
-            'arr': arrival_loc,
+            'dep': id_to_location[dep_id],
+            'arr': id_to_location[arr_id],
             'mode': mode,
-            'count': n,
+            'count': count,
         })
-
-    stats = travel_leg_series.stats
-    for v in num_visits:
-        time_spent[v] = stats.locality_to_time_spent[v].days
-
     visits = []
-    for v in sorted(num_visits, key=lambda x:num_visits[x]):
+    for id_ in location_visits:
         visits.append({
-            'location': name_to_loc[v],
-            'num_visits': max(1, num_visits[v]//2),
-            'days': time_spent[v],
+            'location': id_to_location[id_],
+            'num_visits': location_visits[id_]['num_visits'],
+            'days': int(0.5 + location_visits[id_]['duration'].total_days()),
+            'hours': max(1, int(0.5 + location_visits[id_]['duration'].total_hours())),
         })
-
     data = {
         'legs': legs,
         'visits': visits + cluster.get_clusters(visits),
