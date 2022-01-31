@@ -64,7 +64,8 @@ class Location:
                 'Bratislavský kraj': 'Bratislava Region',
                 'Tangier-Tétouan-Al Hoceima': 'Tanger-Tétouan-Al Hoceïma',
                 'Wallis': 'Valais',
-                #'Stockholms län': 'Stockholm County',
+                'Niederösterreich': 'Lower Austria',
+                'Stockholms län': 'Stockholm County',
             },
             'locality': {
                 'Kastrup': 'Copenhagen', # technically different
