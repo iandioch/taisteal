@@ -125,7 +125,7 @@ function loadJSON(url, callback) {
                 <p><span v-for="region in regions"><region :name="region.name" :country="region.country"></region></span></p>
             </div>
             <p>Number of visits: {{poi.num_visits}}</p>
-            <p>Total days visited: {{poi.days}}.</p>
+            <p>Total time visited: {{poi.days > 0 ? poi.days + " days": poi.hours + " hours"}}.</p>
         </div>`,
         computed: {
             countries: function() {
