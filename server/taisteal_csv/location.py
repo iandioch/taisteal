@@ -6,7 +6,6 @@ import requests
 import database
 
 # Constants
-LOCATION_LOOKUP_CACHE_PATH = '.taisteal/location_cache.json'
 MAXIMUM_LOCATION_LOOKUP_ATTEMPTS = 5
 
 # Lookup results
@@ -16,8 +15,6 @@ LOOKUP_NO_RESULTS = 'NO_RESULTS'
 LOOKUP_OVER_QUERY_LIMIT = 'OVER_QUERY_LIMIT'
 LOOKUP_FETCHED_FROM_GOOGLE = 'FETCHED_FROM_GOOGLE'
 
-
-LOCATION_LOOKUP_CACHE = {}
 
 TYPE_UNKNOWN = 'UNKNOWN'
 TYPE_AIRPORT = 'AIRPORT'
@@ -227,15 +224,10 @@ class Location:
     def find(query, config):
         query = query.strip()
         db_result = database.get_location_lookup(query)
-        if db_result is None:
-            print('Could not find {} in location_lookups table'.format(query))
-        else:
+        if db_result is not None:
             return Location._parse_maps_response(json.loads(db_result['result']), query, config), LOOKUP_FETCHED_FROM_CACHE
-        if query in LOCATION_LOOKUP_CACHE:
-            cached_location = LOCATION_LOOKUP_CACHE[query]
-            database.save_location_lookup(query, json.dumps(cached_location.maps_response))
-            return cached_location, LOOKUP_FETCHED_FROM_CACHE
-        print('Could not find given location ("{}") in lookup cache.'.format(query))
+        
+        print('Could not find {} in location_lookups table'.format(query))
         for _ in range(MAXIMUM_LOCATION_LOOKUP_ATTEMPTS):
             error, loc = Location._fetch_location(query, config)
             if error:
@@ -243,30 +235,4 @@ class Location:
                 return None, error
             print('Created Location', loc.address)
             loc.query = query
-            LOCATION_LOOKUP_CACHE[query] = loc
-            LOCATION_LOOKUP_CACHE[loc.address] = loc
             return loc, LOOKUP_FETCHED_FROM_GOOGLE 
-
-
-def load_location_lookup_cache(config, path=LOCATION_LOOKUP_CACHE_PATH):
-    try:
-        with open(path, 'r') as f:
-            d = json.load(f)
-            for e in d:
-                LOCATION_LOOKUP_CACHE[e] = Location._parse_maps_response(
-                    d[e], e, config)
-            print('Location lookup cache successfully loaded. It is {} elements long.'.format(len(LOCATION_LOOKUP_CACHE)))
-    except OSError as e:
-        print('Could not find location lookup cache file "{}"'.format(path))
-    except json.JSONDecodeError as e:
-        print('Location lookup cache file did not contain valid JSON.')
-    except Exception as e:
-        print('Error while loading location lookup cache file: {}'.format(e))
-
-
-def save_location_lookup_cache(path=LOCATION_LOOKUP_CACHE_PATH):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    d = {
-        q: LOCATION_LOOKUP_CACHE[q].maps_response for q in LOCATION_LOOKUP_CACHE}
-    with open(path, 'w') as f:
-        json.dump(d, f, indent=2)

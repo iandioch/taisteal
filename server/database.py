@@ -48,6 +48,7 @@ def _create_tables():
         /* Computed region, used to group some locations together. Sometimes, this is some official designation (eg. corresponds to NUTS 2 region names), but there is no guarantee. Prefer names in in English. In Switzerland, this is cantons; in Ireland, this is counties; in the US, this is states; in Monaco, there is just one region.*/
         region text
         )''')
+    conn.close()
     print('Database tables created.')
 
 # This runs at the time this file is first imported.
@@ -59,12 +60,14 @@ def save_location_lookup(query, result):
     args = (query, result)
     cursor.execute('insert into location_lookups(query, result) VALUES(?, ?)', args)
     conn.commit()
+    conn.close()
 
 def get_location_lookup(query):
     conn, cursor = _connect()
     args = (query,)
     cursor.execute("SELECT * FROM location_lookups WHERE query=?", args)
     row = cursor.fetchone()
+    conn.close()
     if not row:
         return None
     return {col: row[col] for col in row.keys()}
