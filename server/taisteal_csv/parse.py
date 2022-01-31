@@ -28,18 +28,3 @@ def parse(loc, config):
                 start_time = time.time()
             row_number += 1
     return travel_legs
-
-def main():
-    travel_legs = TravelLegSeries()
-    # Take input from stdin
-    csv_reader = csv.reader(sys.stdin)
-    for row in csv_reader:
-        if len(row) != len(CSV_COLUMNS):
-            print('Error: wrong number of columns in csv.')
-            continue
-        leg = parse_travel_leg(row, {})
-        travel_legs.add_leg(leg, {})
-    print(travel_legs.stats)
-
-if __name__ == '__main__':
-    main()
