@@ -3,6 +3,8 @@ from collections import defaultdict
 
 from .location import Location
 
+import location
+
 import pendulum
 
 class TravelLegPoint:
@@ -13,11 +15,10 @@ class TravelLegPoint:
 
         - loc (str): A raw address.
         - date (str): A datetime'''
-        self.loc, res = Location.find(loc, config)
-        #print("Found location '{}' with result '{}'".format(loc, res))
+        #self.loc, res = Location.find(loc, config)
+        self.id = location.id_for_query(loc, config)
+        self.loc = location.location(self.id)
         self.raw_date = date
-
-        # TODO(iandioch): Parse date.
         self.date = pendulum.parse(self.raw_date)
 
     def __repr__(self):
@@ -79,13 +80,13 @@ class TravelStatistics:
         self.add_travel_leg_point(leg.dep)
 
         if self._prev_loc is not None:
-            self.country_to_visit_duration[leg.dep.loc.country] += (leg.dep.date - self._prev_loc.date)
-            self.locality_to_time_spent[leg.dep.loc.address] += (leg.dep.date - self._prev_loc.date)
+            self.country_to_visit_duration[leg.dep.loc['country_name']] += (leg.dep.date - self._prev_loc.date)
+            self.locality_to_time_spent[leg.dep.loc['address']] += (leg.dep.date - self._prev_loc.date)
 
         self.add_travel_leg_point(leg.arr)
 
-        if leg.dep.loc.country == leg.arr.loc.country:
-            self.country_to_visit_duration[leg.dep.loc.country] += (leg.arr.date - leg.dep.date)
+        if leg.dep.loc['country_name'] == leg.arr.loc['country_name']:
+            self.country_to_visit_duration[leg.dep.loc['country_name']] += (leg.arr.date - leg.dep.date)
         self._prev_loc = leg.arr
 
         self.num_legs += 1
@@ -97,12 +98,9 @@ class TravelStatistics:
         if point.loc is None:
             print('ERROR, point.loc is none for point:', point)
             return
-        for component in point.loc.components:
-            if 'country' in component['types']:
-                self.country_to_num_visits[component['long_name']] += 1
-            if 'locality' in component['types']:
-                s = '{}, {}'.format(component['long_name'], point.loc.country)
-                self.locality_to_num_visits[s] += 1
+        self.country_to_num_visits[point.loc['country_name']] += 1
+        if point.loc['type'] == 'TOWN':
+            self.locality_to_num_visits[point.loc['name']] += 1
 
     def __repr__(self):
         country_visits = ['{}: {}'.format(country, self.country_to_num_visits[country])

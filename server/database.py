@@ -116,3 +116,36 @@ def get_location_lookup(query):
         return None
     return {col: row[col] for col in row.keys()}
 
+def save_id_for_query(id_, query):
+    conn, cursor = _connect()
+    args = (id_, query)
+    cursor.execute('INSERT INTO location_query_to_id(id, query) VALUES(?, ?)', args)
+    conn.commit()
+    conn.close()
+
+def get_id_for_query(query):
+    conn, cursor = _connect()
+    args = (query,)
+    cursor.execute("SELECT id FROM location_query_to_id WHERE query=? LIMIT 1", args)
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return row['id']
+
+def get_location(id_):
+    conn, cursor = _connect()
+    args = (id_,)
+    cursor.execute("SELECT * FROM locations WHERE id=? LIMIT 1", args)
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return {col: row[col] for col in row.keys()}
+
+def save_location(id_, location_data):
+    conn, cursor = _connect()
+    args = (id_, location_data['address'], location_data['name'], location_data['latitude'], location_data['longitude'], location_data['country_name'], location_data['country_code'], location_data['type'], location_data['region'])
+    cursor.execute('INSERT INTO locations(id, address, name, latitude, longitude, country_name, country_code, type, region) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)', args)
+    conn.commit()
+    conn.close()

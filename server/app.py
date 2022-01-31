@@ -25,19 +25,20 @@ def create_travel_map():
     def _get_location_dict(loc):
         # Turn a Location object into a json-dumpable form.
         return {
-            'lat': loc.latitude,
-            'lng': loc.longitude,
-            'id': loc.address, # must be unique. Using address for now, which we know is unique because otherwise the places would have been merged.
-            'type': loc.type, # eg. 'CLUSTER', 'STATION', 'TOWN'
-            'region': loc.region , # used to cluster close places, and to give names to those clusters.
-            'country': loc.country, # used for stats.
-            'country_code': loc.country_code,
-            'human_readable_name': loc.human_readable_name, # no guarantee of uniqueness
+            'lat': loc['latitude'],
+            'lng': loc['longitude'],
+            'id': loc['address'], # TODO(iandioch): Should use loc['id'] instead, once it is no longer user-visible.
+            'address': loc['address'],
+            'type': loc['type'], # eg. 'CLUSTER', 'STATION', 'TOWN'
+            'region': loc['region'], # used to cluster close places, and to give names to those clusters.
+            'country': loc['country_name'], # used for stats.
+            'country_code': loc['country_code'],
+            'human_readable_name': loc['name'], # no guarantee of uniqueness
         }
 
+    database.regenerate_tables()
     loc = '../mo_thaistil/full.csv'
     travel_leg_series = parse.parse(loc, config)
-    database.regenerate_tables()
 
     legs = []
     num_visits = defaultdict(int)
@@ -92,7 +93,7 @@ def serve_travel_map():
     if not TRAVEL_MAP_RESPONSE:
         TRAVEL_MAP_RESPONSE = create_travel_map()
     end_time = time.time()
-    print('Time to serve request:', end_time - start_time)
+    print('Time to serve request {0:.10f} seconds.'.format(end_time - start_time))
     return TRAVEL_MAP_RESPONSE
 
 @app.route('/api/get_mapbox_token')
