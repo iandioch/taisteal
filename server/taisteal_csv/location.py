@@ -3,6 +3,8 @@ import os
 
 import requests
 
+import database
+
 # Constants
 LOCATION_LOOKUP_CACHE_PATH = '.taisteal/location_cache.json'
 MAXIMUM_LOCATION_LOOKUP_ATTEMPTS = 5
@@ -216,6 +218,7 @@ class Location:
         if resp['status'] != 'OK':
             return resp, None
         for result in resp['results']:
+            database.save_location_lookup(query, json.dumps(result))
             loc = Location._parse_maps_response(result, query, config)
             return None, loc
         return LOOKUP_NO_RESULTS, None
@@ -223,8 +226,15 @@ class Location:
     @staticmethod
     def find(query, config):
         query = query.strip()
+        db_result = database.get_location_lookup(query)
+        if db_result is None:
+            print('Could not find {} in location_lookups table'.format(query))
+        else:
+            return Location._parse_maps_response(json.loads(db_result['result']), query, config), LOOKUP_FETCHED_FROM_CACHE
         if query in LOCATION_LOOKUP_CACHE:
-            return LOCATION_LOOKUP_CACHE[query], LOOKUP_FETCHED_FROM_CACHE
+            cached_location = LOCATION_LOOKUP_CACHE[query]
+            database.save_location_lookup(query, json.dumps(cached_location.maps_response))
+            return cached_location, LOOKUP_FETCHED_FROM_CACHE
         print('Could not find given location ("{}") in lookup cache.'.format(query))
         for _ in range(MAXIMUM_LOCATION_LOOKUP_ATTEMPTS):
             error, loc = Location._fetch_location(query, config)
