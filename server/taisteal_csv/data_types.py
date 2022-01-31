@@ -51,28 +51,11 @@ class TravelLegSeries:
     def add_leg(self, leg, config):
         self.added_legs.append(leg)
         self.added_legs.sort()
-
-        # Add fills
-        self.legs = []
-        for i in range(0, len(self.added_legs)-1):
-            prev = self.added_legs[i]
-            nex = self.added_legs[i+1]
-            self.legs.append(prev)
-            if prev.arr.loc is None or nex.dep.loc is None:
-                print('Cannot add FILL leg between {} to {}'.format(prev, nex))
-                continue
-            if prev.arr.loc != nex.dep.loc:
-                parts = [
-                    prev.arr.loc.query,
-                    prev.arr.raw_date,
-                    nex.dep.loc.query,
-                    nex.dep.raw_date,
-                    'FILL'
-                ]
-                filler = TravelLeg(parts, config)
-                self.legs.append(filler)
-        self.legs.append(self.added_legs[-1])
-
+        # TODO(iandioch): We probably don't need to differentiate between .added_legs and .legs .
+        self.legs.append(leg)
+        # TODO(iandioch): This func call is where durations and num visits are calculated.
+        # This would better be moved to somewhere (front end?) or re-orged so we can
+        # calculate combined numbers for regions, etc.
         self.stats.add_travel_leg(leg)
 
     def _compute_statistics(self):
