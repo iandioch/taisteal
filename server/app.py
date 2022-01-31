@@ -1,10 +1,12 @@
 import json
 
+import time
 from collections import defaultdict
 from math import radians, asin, sqrt, cos, sin
 
 from taisteal_csv import parse
 import cluster
+import database
 from flask import Flask
 from flask_cors import CORS
 
@@ -35,6 +37,7 @@ def create_travel_map():
 
     loc = '../mo_thaistil/full.csv'
     travel_leg_series = parse.parse(loc, config)
+    database.regenerate_tables()
 
     legs = []
     num_visits = defaultdict(int)
@@ -84,9 +87,12 @@ def create_travel_map():
 TRAVEL_MAP_RESPONSE = None
 @app.route('/api/travel_map')
 def serve_travel_map():
+    start_time = time.time()
     global TRAVEL_MAP_RESPONSE
     if not TRAVEL_MAP_RESPONSE:
         TRAVEL_MAP_RESPONSE = create_travel_map()
+    end_time = time.time()
+    print('Time to serve request:', end_time - start_time)
     return TRAVEL_MAP_RESPONSE
 
 @app.route('/api/get_mapbox_token')

@@ -1,4 +1,8 @@
 import sqlite3
+import json
+import time
+
+import location_database_utils 
 
 DB_PATH = '.taisteal.db'
 
@@ -22,7 +26,7 @@ def _create_tables():
     # locations table. There may be multiple queries associated with the same
     # id (eg. "Zurich Hauptbahnhof" and "Zurich Main Station" ideally point to
     # the same underyling location).
-    cursor.execute('''CREATE TABLE IF NOT EXISTS location_query_id (
+    cursor.execute('''CREATE TABLE IF NOT EXISTS location_query_to_id (
         query text PRIMARY KEY,
         id text
     )''')
@@ -54,18 +58,58 @@ def _create_tables():
 # This runs at the time this file is first imported.
 _create_tables()
 
+# Regenerate derived tables.
+def regenerate_tables():
+    print('Regenerating tables...')
+    start_time = time.time()
+    conn, cursor = _connect()
+    cursor.execute('DELETE FROM location_query_to_id')
+    cursor.execute('DELETE FROM locations')
+    conn.commit()
+    cursor.execute('SELECT * FROM location_lookups')
+    for lookup in cursor.fetchall():
+        parsed_lookup_result = json.loads(lookup['result'])
+        id_ = location_database_utils.get_id_for_location_lookup(lookup['query'], parsed_lookup_result)
+        args = (lookup['query'], id_)
+        cursor.execute('INSERT INTO location_query_to_id(query, id) VALUES(?, ?)', args)
+    conn.commit()
+
+    cursor.execute('''
+    SELECT
+        location_query_to_id.id,
+        location_lookups.result
+    FROM
+        location_query_to_id
+    LEFT OUTER JOIN
+        location_lookups
+    ON
+        location_query_to_id.query = location_lookups.query
+    GROUP BY
+        location_query_to_id.id
+    ''')
+    for lookup in cursor.fetchall():
+        parsed_lookup_result = json.loads(lookup['result'])
+        id_ = lookup['id']
+        location_data = location_database_utils.create_locations_row_for_lookup(parsed_lookup_result)
+        args = (id_, location_data['address'], location_data['name'], location_data['latitude'], location_data['longitude'], location_data['country_name'], location_data['country_code'], location_data['type'], location_data['region'])
+        cursor.execute('INSERT INTO locations(id, address, name, latitude, longitude, country_name, country_code, type, region) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)', args)
+    conn.commit()
+    conn.close()
+    end_time = time.time()
+    print('Tables regenerated. It took {} seconds.'.format(end_time - start_time))
+
 def save_location_lookup(query, result):
     print('Putting {} into location_lookups'.format(query))
     conn, cursor = _connect()
     args = (query, result)
-    cursor.execute('insert into location_lookups(query, result) VALUES(?, ?)', args)
+    cursor.execute('INSERT INTO location_lookups(query, result) VALUES(?, ?)', args)
     conn.commit()
     conn.close()
 
 def get_location_lookup(query):
     conn, cursor = _connect()
     args = (query,)
-    cursor.execute("SELECT * FROM location_lookups WHERE query=?", args)
+    cursor.execute("SELECT * FROM location_lookups WHERE query=? LIMIT 1", args)
     row = cursor.fetchone()
     conn.close()
     if not row:

@@ -1,5 +1,6 @@
 from .data_types import TravelLeg, TravelLegSeries
 
+import time
 import csv
 import sys
 
@@ -10,14 +11,22 @@ def parse_travel_leg(row, config):
     return TravelLeg(row, config)
 
 def parse(loc, config):
+    print('Parsing taisteal CSV.')
     travel_legs = TravelLegSeries()
     with open(loc) as f:
         csv_reader = csv.reader(f)
+        row_number = 0
+        start_time = time.time()
         for row in csv_reader:
             if len(row) != len(CSV_COLUMNS):
                 print('Error: wrong number of columns in CSV.')
             leg = parse_travel_leg(row, config)
             travel_legs.add_leg(leg, config)
+            if row_number % 50 == 0:
+                end_time = time.time()
+                print('Parsed up to row', row_number, 'in', end_time - start_time, 'seconds.')
+                start_time = time.time()
+            row_number += 1
     return travel_legs
 
 def main():

@@ -34,8 +34,6 @@ class Location:
         self.longitude = 0
         self.components = []
         self.maps_response = ""
-        self.parent = None
-        self.children = []
         self.country = None#"Unknown Country"
         self.country_code = None
         self.type = TYPE_UNKNOWN 
