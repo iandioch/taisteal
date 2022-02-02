@@ -183,8 +183,23 @@ function loadJSON(url, callback) {
         template:`<div>
             <div class="poi-list">
                 <span v-for="poi in visits"><poi :text="poi[0]" :id="poi[1]"></poi></span>
+                <p>Stayed here for {{hours}} hours ({{days}} days).</p>
             </div>
         </div>`,
+        computed: {
+            hours: function() {
+                var hours = 0;
+                for (let i in this.visits) {
+                    console.log(this.visits[i]);
+                    let visit = visits[this.visits[i][1]];
+                    hours += visit.hours;
+                }
+                return hours;
+            },
+            days: function() {
+                return Math.ceil(this.hours / 24.0);
+            }
+        }
     });
     Vue.component('home-dashboard', {
 		props: ['legs', 'visits'],
