@@ -577,7 +577,14 @@ function loadJSON(url, callback) {
             } else if (visit.location.type == "STATION") {
                 colour = 0xe6671e;
             }
-            const height = mapToRange(1, highestVisits, GLOBE_RADIUS/50, GLOBE_RADIUS/12, visit.num_visits);
+            // TODO(iandioch): fix this mess of sizing...
+            let height = mapToRange(1, highestVisits, GLOBE_RADIUS/50, GLOBE_RADIUS/12, visit.num_visits);
+            if (visit.hours < 12) {
+                // if the visit is short (by an arbitrary definition of "short"
+                // here), reduce the size of the points (by an arbitrary size).
+                height *= 0.6;
+                radius *= 0.6;
+            }
             const label = visit.location.human_readable_name;
             const cluster = (visit.hasOwnProperty("cluster") ? visit.cluster : null);
             drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, label, cluster, (visit.location.type === "CLUSTER"), (visit.location.type === "TOWN_CLUSTER"), visit);
