@@ -40,6 +40,9 @@ def add_location_to_cluster(cluster, v):
 
 # Modifies the given list of visits to reflect discovered local clusters. These local clusters are situations where a STATION can be clearly identified as associated with a nearby TOWN; the STATION will label the TOWN as a clusterfor it.
 def get_local_clusters(visits, cluster_threshold_km=15):
+    # TODO(iandioch): Disabled for now, should later create unique CLUSTER
+    # points instead of changing TOWNs to TOWN_CLUSTER.
+    return 
     town_pos_set = set()
     for i, v in enumerate(visits):
         if v['location']['type'] == 'TOWN':
