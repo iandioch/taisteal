@@ -1,5 +1,9 @@
+import json
+
 import database
 import location_database_utils
+
+import requests
 
 def location(id_):
     return database.get_location(id_)
@@ -22,11 +26,10 @@ def id_for_query(query, config):
     if id_:
         return id_
 
-    raw_result = lookup(query, config['google_api_key'])
-    database.save_location_lookup(query, raw_result)
+    parsed_result = lookup(query, config['google_api_key'])
+    database.save_location_lookup(query, json.dumps(parsed_result))
 
-    parsed_result = json.loads(raw_result)
-    id_ = location_database_utils.get_id_for_location_lookup(parsed_result)
+    id_ = location_database_utils.get_id_for_location_lookup(query, parsed_result)
     database.save_id_for_query(query, id_)
 
     if database.get_location(id_):

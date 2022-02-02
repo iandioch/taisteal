@@ -43,7 +43,6 @@ class TravelLegSeries:
     def __init__(self):
         self.added_legs = []
         self.legs = []
-        self._compute_statistics()
 
     def add_leg(self, leg, config):
         self.added_legs.append(leg)
