@@ -375,8 +375,10 @@ function loadJSON(url, callback) {
     controls.maxDistance = MAX_CAMERA_DISTANCE;
     controls.enablePan = false;
     controls.enableDamping = true;
-    controls.rotateSpeed = 0.75;
-    controls.zoomSpeed = 0.5;
+    // Increase this number to make the scrolling snappier.
+    controls.dampingFactor = 0.10;
+    controls.rotateSpeed = 0.85;
+    controls.zoomSpeed = 0.7;
     const scene = new THREE.Scene();
 
     var raycaster = new THREE.Raycaster(); 
@@ -425,14 +427,17 @@ function loadJSON(url, callback) {
 
     // Create the sphere obj.
     const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS*0.999, 64, 64);
-    const globeMaterial = new THREE.MeshPhongMaterial({ color: 0x0f5e9c});
+    const globeMaterial = new THREE.MeshPhongMaterial({ color: 0x90C8F4});
     const globe = new THREE.Mesh(globeGeometry, globeMaterial);
     globeGroup.add(globe);
 
     loadJSON('/globe/countries.json', (data) => {
         const countryGroup = new THREE.Group();
         globeGroup.add(countryGroup);
-        const material = new THREE.MeshPhongMaterial({ color: 0xf0ead6, side: THREE.DoubleSide, shininess: 0}); // top cap material
+        const material = new THREE.MeshPhongMaterial({
+            color: 0xb2bf9d,// 0xd1cbb8,
+            side: THREE.DoubleSide, shininess: 0
+        });
         const fineness = 2; // The smaller this number, the worse the performance. However, if this number is big, the ConicPolygonGeometry will have parts in the middle where it sags below the globe size.
                                       //];
         data.features.forEach(({properties, geometry}) => {
@@ -545,7 +550,7 @@ function loadJSON(url, callback) {
         const margin = 0.00075;
         const baseGeom = new THREE.CylinderGeometry(radius + margin, radius + margin, margin, 16);
         baseGeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
-        const baseMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
+        const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF});
         const base = new THREE.Mesh(baseGeom, baseMaterial);
         pointObj.add(base);
 
@@ -592,14 +597,13 @@ function loadJSON(url, callback) {
             const visit = data.visits[i];
             visits[visit.location.id] = visit;
             var radius = 0.0015;
-            var colour = 0xd1b54d;
-            colour = 0x4287f5;
+            var colour = 0x3B6238;
             if (visit.location.type === "AIRPORT") {
-                colour = 0xAA3333;
+                colour = 0xA63939;
             } else if (visit.location.type === "CLUSTER") {
-                colour = 0xF0BD1D;
+                colour = 0xe9c440;
             } else if (visit.location.type == "STATION") {
-                colour = 0xe6671e;
+                colour = 0xDC6F3D;
             }
             // TODO(iandioch): fix this mess of sizing...
             let height = mapToRange(1, highestVisits, GLOBE_RADIUS/50, GLOBE_RADIUS/12, visit.num_visits);
@@ -826,7 +830,15 @@ function loadJSON(url, callback) {
         }
     }
 
+    var lastTime = 0;
+    var frameCount = 0;
     function render(time) {
+        frameCount ++;
+        if (frameCount % 100 == 0) {
+            const elapsedSeconds = (time - lastTime) * 0.001;
+            console.info("Frame #", frameCount, ": ", 1/elapsedSeconds, "fps");
+        }
+        lastTime = time;
         const seconds = time * 0.001;
         const cameraDistance = getCameraDistance();
         // Only update the highlighted point if it is not a touchscreen. If it
@@ -835,7 +847,7 @@ function loadJSON(url, callback) {
         // the globe spins, it will activate without this !TOUCH_SCREEN check.
         if (!TOUCH_SCREEN) updateHighlightedPoint();
 
-        controls.rotateSpeed = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.05, 0.8, cameraDistance);
+        controls.rotateSpeed = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.1, 1.0, cameraDistance);
         TWEEN.update();
         controls.update();
 
@@ -867,8 +879,6 @@ function loadJSON(url, callback) {
                 }
             }
         }
-
-        //globeGroup.rotation.y = seconds/40.0;
 
         renderer.render(scene, camera);
         labelRenderer.render(scene, camera);
