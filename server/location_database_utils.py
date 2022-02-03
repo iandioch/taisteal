@@ -25,13 +25,20 @@ def _apply_rewrites(parsed_result):
             'Wallis': 'Valais',
             'Niederösterreich': 'Lower Austria',
             'Stockholms län': 'Stockholm County',
+            'Andalucía': 'Andalusia',
+            'Vlaams Gewest': 'Flanders',
         },
         'locality': {
             'Kastrup': 'Copenhagen', # technically different
             'Milano': 'Milan',
             'München': 'Munich',
         },
-        'administrative_area_level_2': {},
+        # For England, try to get "ceremonial counties"
+        'administrative_area_level_2': {
+            'North Somerset': 'Somerset',
+            'Bath and North East Somerset': 'Somerset',
+            'Bristol City': 'Bristol',
+        },
         'country': {
             'Unknown Country': 'Palestine',
         }
@@ -50,8 +57,45 @@ def _apply_rewrites(parsed_result):
                 return True
         return False
 
+    def rewrite_luton_airport(parsed_result):
+        for component in parsed_result['address_components']:
+            if component['long_name'] == 'London Luton Airport':
+                parsed_result['address_components'].append({
+                    'long_name': 'Bedfordshire',
+                    'types': ['administrative_area_level_2'],
+                })
+                return True
+        return False
+
+    def rewrite_kos_airport(parsed_result):
+        for component in parsed_result['address_components']:
+            if component['long_name'] == 'Kos Airport':
+                parsed_result['address_components'].append({
+                    'long_name': 'Kos',
+                    'types': ['administrative_area_level_2'],
+                })
+                return True
+        return False
+
+    def rewrite_heraklion(parsed_result):
+        for component in parsed_result['address_components']:
+            if component['long_name'] == 'Iraklio':
+                parsed_result['address_components'].append({
+                    'long_name': 'Crete',
+                    'types': ['administrative_area_level_2'],
+                })
+                return True
+        return False
+
     # Non-standard rewrites that don't cleanly fit as a name substitution. Each should return True if they applied to the given structure.
-    ad_hoc_rewrites = {'tegel': rewrite_tegel_airport}
+    # TODO(iandioch): it'd be good to get a counter for the number of usages of
+    # these, so we know if any aren't used and can be removed.
+    ad_hoc_rewrites = {
+        'tegel': rewrite_tegel_airport,
+        'luton': rewrite_luton_airport,
+        'kos_airport': rewrite_kos_airport,
+        'heraklion': rewrite_heraklion,
+    }
     for rewrite_id in ad_hoc_rewrites:
         func = ad_hoc_rewrites[rewrite_id]
         if func(parsed_result):
