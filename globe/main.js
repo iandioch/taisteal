@@ -1,7 +1,6 @@
-import * as THREE from 'https://unpkg.com/three@0.108.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.108.0/examples/jsm/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'https://unpkg.com/three@0.108.0/examples/jsm/renderers/CSS2DRenderer.js';
-import {TWEEN} from 'https://unpkg.com/three@0.108.0/examples/jsm/libs/tween.module.min'
+import {TWEEN} from 'https://unpkg.com/three@0.108.0/examples/jsm/libs/tween.module.min';
 
 
 function loadJSON(url, callback) {
@@ -412,9 +411,9 @@ function loadJSON(url, callback) {
     }
 
     { 
-        const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.9);
+        const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.8);
         scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xF9D78C, 1);
+        const directionalLight = new THREE.DirectionalLight(0xF9D78C, 0.2);
         directionalLight.position.set(-1, 2, 4);
         scene.add(directionalLight);
     }
@@ -425,13 +424,24 @@ function loadJSON(url, callback) {
     globeGroup.add(pointGroup);
 
     // Create the sphere obj.
-    const textureLoader = new THREE.TextureLoader();
-    textureLoader.load(GLOBE_TEXTURE_PATH, (texture) => {
-        // TODO(iandioch): it'd be cool here instead of drawing some picture of the earth to instead render the polygon for each country or something; if we did that, there's lots of cool interactions that could be added.
-        const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 128, 128);
-        const globeMaterial = new THREE.MeshPhongMaterial({ map: texture });
-        const globe = new THREE.Mesh(globeGeometry, globeMaterial);
-        globeGroup.add(globe);
+    const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS*0.999, 64, 64);
+    const globeMaterial = new THREE.MeshPhongMaterial({ color: 0x0f5e9c});
+    const globe = new THREE.Mesh(globeGeometry, globeMaterial);
+    globeGroup.add(globe);
+
+    loadJSON('/globe/countries.json', (data) => {
+        const countryGroup = new THREE.Group();
+        globeGroup.add(countryGroup);
+        const material = new THREE.MeshPhongMaterial({ color: 0xf0ead6, side: THREE.DoubleSide, shininess: 0}); // top cap material
+        const fineness = 2; // The smaller this number, the worse the performance. However, if this number is big, the ConicPolygonGeometry will have parts in the middle where it sags below the globe size.
+                                      //];
+        data.features.forEach(({properties, geometry}) => {
+            const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+            polygons.forEach(coords => {
+                const mesh = new THREE.Mesh(new THREE.ConicPolygonGeometry(coords, GLOBE_RADIUS/2, GLOBE_RADIUS, false, true, true, fineness), material);
+                countryGroup.add(mesh);
+            });
+        });
     });
     const arcGroup = new THREE.Group();
     globeGroup.add(arcGroup);
@@ -441,7 +451,6 @@ function loadJSON(url, callback) {
         // Y = 1 at north pole,
         // Y = -1 at south pole,
 
-        lng += 90; // Offset of image we are using for the surface of the globe sphere.
         const latRadians = lat * Math.PI / 180.0;
         const lngRadians = lng * Math.PI / 180.0;
         const vector = new THREE.Vector3();
@@ -534,9 +543,9 @@ function loadJSON(url, callback) {
         pointObj.visit = visitObj;
 
         const margin = 0.00075;
-        const baseGeom = new THREE.CylinderGeometry(radius + margin*2, radius + margin*2, margin, 16);
+        const baseGeom = new THREE.CylinderGeometry(radius + margin, radius + margin, margin, 16);
         baseGeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
-        const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF});
+        const baseMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
         const base = new THREE.Mesh(baseGeom, baseMaterial);
         pointObj.add(base);
 
