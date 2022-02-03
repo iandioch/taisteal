@@ -427,7 +427,7 @@ function loadJSON(url, callback) {
 
     // Create the sphere obj.
     const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS*0.999, 64, 64);
-    const globeMaterial = new THREE.MeshPhongMaterial({ color: 0x90C8F4});
+    const globeMaterial = new THREE.MeshPhongMaterial({ color: 0x3D6F95});
     const globe = new THREE.Mesh(globeGeometry, globeMaterial);
     globeGroup.add(globe);
 
@@ -830,6 +830,43 @@ function loadJSON(url, callback) {
         }
     }
 
+    var prevCameraDistance = 0;
+    function onZoomChange() {
+        // It seems that the iterations we're doing when zooming are extremely
+        // slow, so we should try to avoid doing them if possible.
+        const cameraDistance = getCameraDistance();
+        if (cameraDistance === prevCameraDistance) {
+            return;
+        }
+        prevCameraDistance = cameraDistance;
+
+        const scale = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.2, 5, cameraDistance);
+        const showClusters = (cameraDistance > MAX_CAMERA_DISTANCE/2.0);
+        const showLocalClusters = (cameraDistance > MIN_CAMERA_DISTANCE*1.1);
+        for (var i in pointGroup.children) {
+            const point = pointGroup.children[i];
+            point.scale.set(scale, scale, scale);
+
+            if (point.isCluster) {
+                point.visible = showClusters;
+            }
+        }
+        for (var i in pointGroup.children) {
+            const point = pointGroup.children[i];
+            if (point.hasCluster) {
+                const clusterPoint = getPointForName(point.visit.cluster);
+                if (clusterPoint.isTownCluster) {
+                    point.visible = !showLocalClusters;
+                } else {
+                    point.visible = !showClusters;
+                }
+            }
+        }
+
+    }
+
+    controls.addEventListener('change', onZoomChange);
+
     var lastTime = 0;
     var frameCount = 0;
     function render(time) {
@@ -855,29 +892,6 @@ function loadJSON(url, callback) {
             const canvas = renderer.domElement;
             camera.aspect = canvas.clientWidth / canvas.clientHeight;
             camera.updateProjectionMatrix();
-        }
-
-        const scale = mapToRange(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, 0.2, 5, cameraDistance);
-        const showClusters = (cameraDistance > MAX_CAMERA_DISTANCE/2.0);
-        const showLocalClusters = (cameraDistance > MIN_CAMERA_DISTANCE*1.1);
-        for (var i in pointGroup.children) {
-            const point = pointGroup.children[i];
-            point.scale.set(scale, scale, scale);
-
-            if (point.isCluster) {
-                point.visible = showClusters;
-            }
-        }
-        for (var i in pointGroup.children) {
-            const point = pointGroup.children[i];
-            if (point.hasCluster) {
-                const clusterPoint = getPointForName(point.visit.cluster);
-                if (clusterPoint.isTownCluster) {
-                    point.visible = !showLocalClusters;
-                } else {
-                    point.visible = !showClusters;
-                }
-            }
         }
 
         renderer.render(scene, camera);
