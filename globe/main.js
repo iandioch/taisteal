@@ -1,7 +1,9 @@
 import {OrbitControls} from 'https://unpkg.com/three@0.108.0/examples/jsm/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'https://unpkg.com/three@0.108.0/examples/jsm/renderers/CSS2DRenderer.js';
 import {TWEEN} from 'https://unpkg.com/three@0.108.0/examples/jsm/libs/tween.module.min';
-
+import 'https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js'
+console.log("loading...");
+console.log(chroma);
 
 function loadJSON(url, callback) {
     var request = new XMLHttpRequest;
@@ -594,18 +596,12 @@ function loadJSON(url, callback) {
             lookAt(mostVisited.location.lat, mostVisited.location.lng, 2);
         }
         const highestVisitsLog10 = Math.log10(highestVisits);
+        var colourScale = chroma.scale(["navy", "purple", 0xDC6F3D, 0xe9c440]).mode('lch').gamma(0.5);
         for (var i in data.visits) {
             const visit = data.visits[i];
             visits[visit.location.id] = visit;
             var radius = 0.0025;
-            var colour = 0x3B6238;
-            if (visit.location.type === "AIRPORT") {
-                colour = 0xA63939;
-            } else if (visit.location.type === "CLUSTER") {
-                colour = 0xe9c440;
-            } else if (visit.location.type == "STATION") {
-                colour = 0xDC6F3D;
-            }
+            const colour = colourScale(Math.log(visit.hours)/Math.log(highestVisits)).hex();
 
             const MIN_HEIGHT = GLOBE_RADIUS/100;
             const MAX_HEIGHT = GLOBE_RADIUS/20;
