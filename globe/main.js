@@ -339,7 +339,7 @@ function loadJSON(url, callback) {
                 for (let i in this.visits) {
                     allVisits.push(this.visits[i].location.id);
                 }
-                toggleRoutesForSelectedVisits(allVisits, false);
+                toggleRoutesForSelectedVisits(allVisits, true);
             },
             renderPOI: function(point, locations) {
                 this.activeDashboard = createComponentForPOI(point, locations);
