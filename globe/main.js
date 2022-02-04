@@ -547,14 +547,14 @@ function loadJSON(url, callback) {
         pointObj.isTownCluster = isTownCluster;
         pointObj.visit = visitObj;
 
-        const margin = 0.00075;
-        const baseGeom = new THREE.CylinderGeometry(radius + margin, radius + margin, margin, 16);
+        const margin = radius/10;
+        const baseGeom = new THREE.CylinderGeometry((radius + margin), (radius + margin), margin, 8);
         baseGeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
         const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF});
         const base = new THREE.Mesh(baseGeom, baseMaterial);
         pointObj.add(base);
 
-        const geom = new THREE.CylinderGeometry(radius, radius*0.5, height, 16);
+        const geom = new THREE.CylinderGeometry(radius, radius*0.5, height, 12);
         geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
         const material = new THREE.MeshPhongMaterial({color: colour});
         const point = new THREE.Mesh(geom, material);
@@ -569,7 +569,7 @@ function loadJSON(url, callback) {
         labelDiv.position.set(0, margin, 0);
         pointObj.add(labelDiv);
 
-        const sphereGeom = new THREE.SphereGeometry(radius*2.5, 16, 16);
+        const sphereGeom = new THREE.SphereGeometry(radius, 4, 8);
         const sphere = new THREE.Mesh(sphereGeom, material);
         sphere.position.z = -height;
         pointObj.add(sphere);
@@ -584,7 +584,7 @@ function loadJSON(url, callback) {
         var highestVisits = 0;
         var mostVisited = undefined;
         for (var i in data.visits) {
-            var numVisits = data.visits[i].num_visits;
+            var numVisits = data.visits[i].hours;
             if (numVisits > highestVisits) {
                 highestVisits = numVisits;
                 mostVisited = data.visits[i];
@@ -593,10 +593,11 @@ function loadJSON(url, callback) {
         if (mostVisited) {
             lookAt(mostVisited.location.lat, mostVisited.location.lng, 2);
         }
+        const highestVisitsLog10 = Math.log10(highestVisits);
         for (var i in data.visits) {
             const visit = data.visits[i];
             visits[visit.location.id] = visit;
-            var radius = 0.0015;
+            var radius = 0.0025;
             var colour = 0x3B6238;
             if (visit.location.type === "AIRPORT") {
                 colour = 0xA63939;
@@ -605,14 +606,20 @@ function loadJSON(url, callback) {
             } else if (visit.location.type == "STATION") {
                 colour = 0xDC6F3D;
             }
-            // TODO(iandioch): fix this mess of sizing...
-            let height = mapToRange(1, highestVisits, GLOBE_RADIUS/50, GLOBE_RADIUS/12, visit.num_visits);
-            if (visit.hours < 12) {
-                // if the visit is short (by an arbitrary definition of "short"
-                // here), reduce the size of the points (by an arbitrary size).
-                height *= 0.6;
-                radius *= 0.6;
-            }
+
+            const MIN_HEIGHT = GLOBE_RADIUS/100;
+            const MAX_HEIGHT = GLOBE_RADIUS/20;
+
+            // Use a log-based height, because in a normal case, the place where
+            // you live will have an order of magnitude more visit time than
+            // other places you've visited, and will be 100s of times larger in
+            // a linear scale.
+            const MAX_LOG_HEIGHT = MAX_HEIGHT/2;
+            let height = MIN_HEIGHT + (Math.log10(visit.hours)/highestVisitsLog10)*MAX_LOG_HEIGHT;
+            // However, also use a linear-scaled height in addition, because
+            // we don't want somewhere you stayed for 1000 hours to be the same
+            // height at a glance as somewhere you stayed for 120.
+            height += (visit.hours / highestVisits)*(MAX_HEIGHT - MAX_LOG_HEIGHT - MIN_HEIGHT);
             const label = visit.location.human_readable_name;
             const cluster = (visit.hasOwnProperty("cluster") ? visit.cluster : null);
             drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, label, cluster, (visit.location.type === "CLUSTER"), (visit.location.type === "TOWN_CLUSTER"), visit);
