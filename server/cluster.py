@@ -25,6 +25,7 @@ def create_cluster_obj(cluster_id, visit):
         },
         'num_visits': 0,
         'days': 0,
+        'hours': 0,
     }
 
 def add_location_to_cluster(cluster, v):
@@ -33,9 +34,8 @@ def add_location_to_cluster(cluster, v):
     # arrivals from a place, but if it is a journey between
     # two places being combined, that confuses everything.
     cluster['num_visits'] += v['num_visits']
-    # Also not correct, as two half-day visits will each have
-    # v['days'] = 1, and they will sum to 2 instead of to 1.
-    cluster['days'] += v['days']
+    cluster['hours'] += v['hours']
+    cluster['days'] = int(cluster['hours']/24 + 0.5)
     v['cluster'] = cluster['location']['id']
 
 # Modifies the given list of visits to reflect discovered local clusters. These local clusters are situations where a STATION can be clearly identified as associated with a nearby TOWN; the STATION will label the TOWN as a clusterfor it.
@@ -74,7 +74,7 @@ def get_local_clusters(visits, cluster_threshold_km=15):
 # A cluster will be created for any 2 visits which share a location["region"].
 # A cluster will also be created for any 2 visits which have a location less
 # than cluster_threshold_distance estimated distance from each other.
-def get_clusters(visits, cluster_threshold_km=25):
+def get_clusters(visits, cluster_threshold_km=50):
     print('Getting clusters for {} visits, with a distance threshold of {}.'.format(len(visits), cluster_threshold_km))
     get_local_clusters(visits)
 
