@@ -552,7 +552,7 @@ function loadJSON(url, callback) {
         const margin = radius*0.25;
         const baseGeom = new THREE.CylinderGeometry((radius + margin), (radius + margin), margin, 12);
         baseGeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
-        const baseMaterial = new THREE.MeshBasicMaterial({color: chroma(colour).brighten(2.5).hex()});
+        const baseMaterial = new THREE.MeshBasicMaterial({color: chroma(colour).brighten(2).hex()});
         const base = new THREE.Mesh(baseGeom, baseMaterial);
         base.origMaterial = baseMaterial;
         pointObj.add(base);
@@ -589,6 +589,10 @@ function loadJSON(url, callback) {
         var highestVisits = 0;
         var mostVisited = undefined;
         for (var i in data.visits) {
+            // Do not consider clusters of points when calculating the most-visited places.
+            // We want the height of clusters to be the height of the highest
+            // component part, so this 
+            if (data.visits[i].location.type === "CLUSTER") continue;
             var numVisits = data.visits[i].hours;
             if (numVisits > highestVisits) {
                 highestVisits = numVisits;
@@ -604,7 +608,17 @@ function loadJSON(url, callback) {
             const visit = data.visits[i];
             visits[visit.location.id] = visit;
             var radius = 0.0025;
-            const colour = colourScale(Math.log10(visit.hours)/Math.log10(highestVisits)).hex();
+            if (visit.location.type === "CLUSTER") {
+                console.log("sizing cluster");
+                console.log(visit);
+                radius *= 1.5;
+            }
+
+            var visitHours = visit.hours;
+            if (visit.location.type === "CLUSTER") {
+                visitHours = Math.max(...data.visits.filter(subVisit => (subVisit.location.type !== "CLUSTER" && subVisit.cluster === visit.location.id)).map(v => v.hours));
+            }
+            const colour = colourScale(Math.log10(visitHours)/Math.log10(highestVisits)).hex();
 
             const MIN_HEIGHT = GLOBE_RADIUS/100;
             const MAX_HEIGHT = GLOBE_RADIUS/20;
@@ -614,11 +628,11 @@ function loadJSON(url, callback) {
             // other places you've visited, and will be 100s of times larger in
             // a linear scale.
             const MAX_LOG_HEIGHT = MAX_HEIGHT/2;
-            let height = MIN_HEIGHT + (Math.log10(visit.hours)/highestVisitsLog10)*MAX_LOG_HEIGHT;
+            let height = MIN_HEIGHT + (Math.log10(visitHours)/highestVisitsLog10)*MAX_LOG_HEIGHT;
             // However, also use a linear-scaled height in addition, because
             // we don't want somewhere you stayed for 1000 hours to be the same
             // height at a glance as somewhere you stayed for 120.
-            height += (visit.hours / highestVisits)*(MAX_HEIGHT - MAX_LOG_HEIGHT - MIN_HEIGHT);
+            height += (visitHours / highestVisits)*(MAX_HEIGHT - MAX_LOG_HEIGHT - MIN_HEIGHT);
             const label = visit.location.human_readable_name;
             const cluster = (visit.hasOwnProperty("cluster") ? visit.cluster : null);
             drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, label, cluster, (visit.location.type === "CLUSTER"), (visit.location.type === "TOWN_CLUSTER"), visit);
@@ -669,29 +683,30 @@ function loadJSON(url, callback) {
             }
         }
         // Make semitransparent all of the pins not in the connectedVisitSet.
+        const inactiveBaseMaterial = new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+            shininess: 0,
+        });
+        const inactivePointMaterial = new THREE.MeshPhongMaterial({
+            color: 0xdddddd,
+            opacity: 0.5,
+            transparent: true,
+            side: THREE.DoubleSide,
+            shininess: 0
+        });
         for (let i in pointGroup.children) {
             const pointParent = pointGroup.children[i];
             const visible = connectedVisitSet.has(pointParent.visit.location.id);
-            /*const opacity = visible ? 1.0 : 0.2;
-            pointParent.children[0].material.opacity = opacity;
-            pointParent.children[0].material.transparent = !visible;
-            pointParent.children[0].material.visible = visible;
-            pointParent.children[1].material.opacity = opacity;
-            pointParent.children[1].material.visible = visible;
-            pointParent.children[1].material.transparent = !visible;*/
-            if (visible) {
-                pointParent.children[0].material = pointParent.children[0].origMaterial;
-                pointParent.children[1].material = pointParent.children[1].origMaterial;
-                pointParent.children[3].material = pointParent.children[3].origMaterial;
-            } else {
-                const inactiveMaterial = new THREE.MeshPhongMaterial({
-                    color: 0xdddddd,
-                    side: THREE.DoubleSide, shininess: 0
-                });
-                pointParent.children[0].material = inactiveMaterial;
-                pointParent.children[1].material = inactiveMaterial;
-                pointParent.children[3].material = inactiveMaterial;
+            var baseMaterial = pointParent.children[0].origMaterial;
+            var pointMaterial = pointParent.children[1].origMaterial;
+            if (!visible) {
+                baseMaterial = inactiveBaseMaterial;
+                pointMaterial = inactivePointMaterial;
             }
+            pointParent.children[0].material = baseMaterial;
+            pointParent.children[1].material = pointMaterial;
+            pointParent.children[3].material = pointMaterial;
         }
     }
 
