@@ -27,11 +27,14 @@ def _apply_rewrites(parsed_result):
             'Stockholms län': 'Stockholm County',
             'Andalucía': 'Andalusia',
             'Vlaams Gewest': 'Flanders',
+            'Brussel': 'Brussels',
+            'Nordrhein-Westfalen': 'North Rhine-Westphalia',
         },
         'locality': {
             'Kastrup': 'Copenhagen', # technically different
             'Milano': 'Milan',
             'München': 'Munich',
+            'Brussel': 'Brussels',
         },
         # For England, try to get "ceremonial counties"
         'administrative_area_level_2': {
