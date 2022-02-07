@@ -429,23 +429,23 @@ function loadJSON(url, callback) {
 
     // Create the sphere obj.
     const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS*0.999, 64, 64);
-    const globeMaterial = new THREE.MeshPhongMaterial({ color: 0x3D6F95});
-    const globe = new THREE.Mesh(globeGeometry, globeMaterial);
+    const waterMaterial = new THREE.MeshPhongMaterial({ color: 0x3D6F95});
+    const globe = new THREE.Mesh(globeGeometry, waterMaterial);
     globeGroup.add(globe);
 
+    const landMaterial = new THREE.MeshPhongMaterial({
+        color: 0xb2bf9d,
+        side: THREE.DoubleSide, shininess: 0
+    });
+    const fineness = 2; // The smaller this number, the worse the performance. However, if this number is big, the ConicPolygonGeometry will have parts in the middle where it sags below the globe size.
+                                      //];
     loadJSON('/globe/countries.json', (data) => {
         const countryGroup = new THREE.Group();
         globeGroup.add(countryGroup);
-        const material = new THREE.MeshPhongMaterial({
-            color: 0xb2bf9d,// 0xd1cbb8,
-            side: THREE.DoubleSide, shininess: 0
-        });
-        const fineness = 2; // The smaller this number, the worse the performance. However, if this number is big, the ConicPolygonGeometry will have parts in the middle where it sags below the globe size.
-                                      //];
         data.features.forEach(({properties, geometry}) => {
             const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
             polygons.forEach(coords => {
-                const mesh = new THREE.Mesh(new THREE.ConicPolygonGeometry(coords, GLOBE_RADIUS/2, GLOBE_RADIUS, false, true, true, fineness), material);
+                const mesh = new THREE.Mesh(new THREE.ConicPolygonGeometry(coords, GLOBE_RADIUS/2, GLOBE_RADIUS, false, true, true, fineness), landMaterial);
                 countryGroup.add(mesh);
             });
         });
@@ -549,17 +549,19 @@ function loadJSON(url, callback) {
         pointObj.isTownCluster = isTownCluster;
         pointObj.visit = visitObj;
 
-        const margin = radius/10;
-        const baseGeom = new THREE.CylinderGeometry((radius + margin), (radius + margin), margin, 8);
+        const margin = radius*0.25;
+        const baseGeom = new THREE.CylinderGeometry((radius + margin), (radius + margin), margin, 12);
         baseGeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
-        const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF});
+        const baseMaterial = new THREE.MeshBasicMaterial({color: chroma(colour).brighten(2.5).hex()});
         const base = new THREE.Mesh(baseGeom, baseMaterial);
+        base.origMaterial = baseMaterial;
         pointObj.add(base);
 
-        const geom = new THREE.CylinderGeometry(radius, radius*0.5, height, 12);
+        const geom = new THREE.CylinderGeometry(radius, radius*0.8, height, 8);
         geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
         const material = new THREE.MeshPhongMaterial({color: colour});
         const point = new THREE.Mesh(geom, material);
+        point.origMaterial = material;
         point.position.z = -height/2;
         pointObj.add(point);
 
@@ -573,6 +575,7 @@ function loadJSON(url, callback) {
 
         const sphereGeom = new THREE.SphereGeometry(radius, 4, 8);
         const sphere = new THREE.Mesh(sphereGeom, material);
+        sphere.origMaterial = material;
         sphere.position.z = -height;
         pointObj.add(sphere);
 
@@ -601,7 +604,7 @@ function loadJSON(url, callback) {
             const visit = data.visits[i];
             visits[visit.location.id] = visit;
             var radius = 0.0025;
-            const colour = colourScale(Math.log(visit.hours)/Math.log(highestVisits)).hex();
+            const colour = colourScale(Math.log10(visit.hours)/Math.log10(highestVisits)).hex();
 
             const MIN_HEIGHT = GLOBE_RADIUS/100;
             const MAX_HEIGHT = GLOBE_RADIUS/20;
@@ -669,11 +672,26 @@ function loadJSON(url, callback) {
         for (let i in pointGroup.children) {
             const pointParent = pointGroup.children[i];
             const visible = connectedVisitSet.has(pointParent.visit.location.id);
-            const opacity = visible ? 1.0 : 0.2;
+            /*const opacity = visible ? 1.0 : 0.2;
             pointParent.children[0].material.opacity = opacity;
             pointParent.children[0].material.transparent = !visible;
+            pointParent.children[0].material.visible = visible;
             pointParent.children[1].material.opacity = opacity;
-            pointParent.children[1].material.transparent = !visible;
+            pointParent.children[1].material.visible = visible;
+            pointParent.children[1].material.transparent = !visible;*/
+            if (visible) {
+                pointParent.children[0].material = pointParent.children[0].origMaterial;
+                pointParent.children[1].material = pointParent.children[1].origMaterial;
+                pointParent.children[3].material = pointParent.children[3].origMaterial;
+            } else {
+                const inactiveMaterial = new THREE.MeshPhongMaterial({
+                    color: 0xdddddd,
+                    side: THREE.DoubleSide, shininess: 0
+                });
+                pointParent.children[0].material = inactiveMaterial;
+                pointParent.children[1].material = inactiveMaterial;
+                pointParent.children[3].material = inactiveMaterial;
+            }
         }
     }
 
@@ -762,7 +780,7 @@ function loadJSON(url, callback) {
     function updateHighlightedPoint() {
         function revertHighlightedPoint() {
             if (!highlightedPoint) return;
-            highlightedPoint.children[1].material.color.setHex(colourBeforeHighlight);
+            /*highlightedPoint.children[1].material.color.setHex(colourBeforeHighlight);*/
             highlightedPoint.children[2].element.style.visibility = "hidden";
         }
         raycaster.setFromCamera(mouse, camera);
@@ -776,9 +794,9 @@ function loadJSON(url, callback) {
                     revertHighlightedPoint();
 
                     highlightedPoint = pointParent;
-                    colourBeforeHighlight = pointParent.children[1].material.color.getHex();
+                    /*colourBeforeHighlight = pointParent.children[1].material.color.getHex();
                     pointParent.children[1].material.color.setHex(0x000000);
-                    pointParent.children[2].element.style.visibility = "visible";
+                    */pointParent.children[2].element.style.visibility = "visible";
                 }
                 break;
             }
