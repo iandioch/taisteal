@@ -213,4 +213,8 @@ def create_locations_row_for_lookup(parsed_lookup_result):
     return data
 
 def get_id_for_location_lookup(query, parsed_lookup_result):
-    return base64.b64encode(parsed_lookup_result['formatted_address'].encode('utf-8')).decode('ascii')
+    lat = float(parsed_lookup_result['geometry']['location']['lat'])
+    lng = float(parsed_lookup_result['geometry']['location']['lng'])
+    # Add the country to eg. differentiate Rome and Vatican
+    country, code = _get_country_data(parsed_lookup_result)
+    return '{}:{:.2f},{:.2f}'.format(country, lat/5, lng/5)
