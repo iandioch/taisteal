@@ -71,7 +71,6 @@ function loadJSON(url, callback) {
         },
         computed: {
             flag: function() {
-                console.log("Getting flag for " + this.id);
                 if (this.id.length != 2) {
                     // Only the three regional flags of [Scotland, Wales, England] are recommended for general interchange by the Unicode consortium.
                     switch(this.id) {
@@ -191,7 +190,6 @@ function loadJSON(url, callback) {
             hours: function() {
                 var hours = 0;
                 for (let i in this.visits) {
-                    console.log(this.visits[i]);
                     let visit = visits[this.visits[i][1]];
                     hours += visit.hours;
                 }
@@ -214,13 +212,11 @@ function loadJSON(url, callback) {
         computed: {
             longestStayedPOIs() {
                 const allPOIs = [];
-                console.log(visits);
                 for (let i in visits) {
                     if (visits[i].location.type == "CLUSTER") continue;
                     allPOIs.push([visits[i].location.human_readable_name, visits[i].location.id, visits[i].days]);
                 }
                 allPOIs.sort(function(a, b) { return b[2]-a[2]; });
-                console.log(allPOIs);
                 console.log(allPOIs.slice(0, 10));
                 return allPOIs.slice(0, 10);
             },
@@ -236,7 +232,6 @@ function loadJSON(url, callback) {
                 for (let i in legs) {
                     numLegs += legs[i].count;
                 }
-                console.log(numLegs);
 
                 const countries = new Set();
                 for (let i in visits) {
@@ -266,9 +261,7 @@ function loadJSON(url, callback) {
                         code: countryCode,
                     });
                 }
-                console.log(results);
                 results.sort((a, b) => {return a.name.localeCompare(b.name)});
-                console.log(results);
                 return results;
             }
         }
@@ -303,7 +296,6 @@ function loadJSON(url, callback) {
         for (let i in visits) {
             locations.push([visits[i].location.human_readable_name, visits[i].location.id]);
         }
-        console.log(locations);
         return {
             data: () => {
                 return {
@@ -557,7 +549,7 @@ function loadJSON(url, callback) {
         base.origMaterial = baseMaterial;
         pointObj.add(base);
 
-        const geom = new THREE.CylinderGeometry(radius, radius*0.8, height, 8);
+        const geom = new THREE.CylinderGeometry(radius, radius*0.8, height, 8, 1, true);
         geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
         const material = new THREE.MeshPhongMaterial({color: colour});
         const point = new THREE.Mesh(geom, material);
@@ -573,7 +565,7 @@ function loadJSON(url, callback) {
         labelDiv.position.set(0, margin, 0);
         pointObj.add(labelDiv);
 
-        const sphereGeom = new THREE.SphereGeometry(radius, 4, 8);
+        const sphereGeom = new THREE.SphereGeometry(radius, 8, 4, Math.PI, Math.PI, 0, Math.PI);
         const sphere = new THREE.Mesh(sphereGeom, material);
         sphere.origMaterial = material;
         sphere.position.z = -height;
@@ -609,8 +601,6 @@ function loadJSON(url, callback) {
             visits[visit.location.id] = visit;
             var radius = 0.0025;
             if (visit.location.type === "CLUSTER") {
-                console.log("sizing cluster");
-                console.log(visit);
                 radius *= 1.5;
             }
 
@@ -646,9 +636,9 @@ function loadJSON(url, callback) {
             const legDistance = latLngDistance(leg.dep.lat, leg.dep.lng, leg.arr.lat, leg.arr.lng);
             const globeCircumference = 40000;
             const controlPointHeight = mapToRange(0, globeCircumference, GLOBE_RADIUS, GLOBE_RADIUS * 3, legDistance);
-            const smoothness = Math.ceil(mapToRange(0, globeCircumference, 8, 256, legDistance));
+            const smoothness = Math.ceil(mapToRange(0, globeCircumference, 4, 64, legDistance));
 			const midpoint = latLngMidpoint(leg.dep.lat, leg.dep.lng, leg.arr.lat, leg.arr.lng);
-            drawRaisedArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], controlPointHeight), latLngToVector(leg.arr.lat, leg.arr.lng), smoothness, leg.count*2, 0xFFFFFF, leg);
+            drawRaisedArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], controlPointHeight), latLngToVector(leg.arr.lat, leg.arr.lng), smoothness, 3, 0xFFFFFF, leg);
         }
         dashboard.loadData(data);
     });
