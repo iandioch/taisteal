@@ -29,6 +29,7 @@ def _apply_rewrites(parsed_result):
             'Vlaams Gewest': 'Flanders',
             'Brussel': 'Brussels',
             'Nordrhein-Westfalen': 'North Rhine-Westphalia',
+            'Basel-Stadt': 'Basel City',
         },
         'locality': {
             'Kastrup': 'Copenhagen', # technically different
