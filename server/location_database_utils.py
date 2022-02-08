@@ -220,4 +220,7 @@ def get_id_for_location_lookup(query, parsed_lookup_result):
     lng = float(parsed_lookup_result['geometry']['location']['lng'])
     # Add the country to eg. differentiate Rome and Vatican
     country, code = _get_country_data(parsed_lookup_result)
-    return '{}:{:.2f},{:.2f}'.format(country, lat/5, lng/5)
+    # The larger this number, the further points will be merged (but the merging
+    # is based on lat & long, so it is pretty arbitrary).
+    rounding = 6
+    return '{}:{:.2f},{:.2f}'.format(country, lat/rounding, lng/rounding)
