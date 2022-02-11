@@ -352,7 +352,7 @@ function loadJSON(url, callback) {
     const GLOBE_TEXTURE_PATH = 'scaled_globe_10800.jpg'
     const canvas = document.querySelector('#globe-canvas');
     const canvasContainer = document.querySelector('#globe-container');
-    const renderer = new THREE.WebGLRenderer({canvas});
+    const renderer = new THREE.WebGLRenderer({canvas, antialias: false});
 
     const labelRenderer = new CSS2DRenderer();
     labelRenderer.setSize(window.innerWidth, window.innerHeight);
@@ -360,17 +360,17 @@ function loadJSON(url, callback) {
     labelRenderer.domElement.style.top = '0px';
     canvasContainer.appendChild(labelRenderer.domElement);
 
-    const camera = new THREE.PerspectiveCamera(45, 2, 0.01, 500);
+    const camera = new THREE.PerspectiveCamera(45, 2, 0.025, 12);
     camera.position.z = 2;
     const controls = new OrbitControls(camera, labelRenderer.domElement);
-    const MIN_CAMERA_DISTANCE = GLOBE_RADIUS * 1.025;
+    const MIN_CAMERA_DISTANCE = GLOBE_RADIUS * 1.05;
     const MAX_CAMERA_DISTANCE = GLOBE_RADIUS * 5;
     controls.minDistance = MIN_CAMERA_DISTANCE;
     controls.maxDistance = MAX_CAMERA_DISTANCE;
     controls.enablePan = false;
     controls.enableDamping = true;
     // Increase this number to make the scrolling snappier.
-    controls.dampingFactor = 0.10;
+    controls.dampingFactor = 0.075;
     controls.rotateSpeed = 0.85;
     controls.zoomSpeed = 0.7;
     const scene = new THREE.Scene();
@@ -383,16 +383,16 @@ function loadJSON(url, callback) {
     document.addEventListener('touchstart', onMouseDown, false);
 
     {
-        const MAX_STAR_DIST = GLOBE_RADIUS * 30;
-        const MIN_DIST = GLOBE_RADIUS*10;
+        const MAX_STAR_DIST = GLOBE_RADIUS * 10;
+        const MIN_DIST = GLOBE_RADIUS*5;
         function randomStarPosition() {
             while (true) { 
-            const x = Math.random() * MAX_STAR_DIST - MAX_STAR_DIST/2.0;
-            const y = Math.random() * MAX_STAR_DIST - MAX_STAR_DIST/2.0;
-            const z = Math.random() * MAX_STAR_DIST - MAX_STAR_DIST/2.0;
-            if (x*x + y*y + z*z > MIN_DIST*MIN_DIST) {
-                return new THREE.Vector3(x, y, z);
-            }
+                const x = Math.random() * MAX_STAR_DIST - MAX_STAR_DIST/2.0;
+                const y = Math.random() * MAX_STAR_DIST - MAX_STAR_DIST/2.0;
+                const z = Math.random() * MAX_STAR_DIST - MAX_STAR_DIST/2.0;
+                if (x*x + y*y + z*z > MIN_DIST*MIN_DIST) {
+                    return new THREE.Vector3(x, y, z);
+                }
             }
         }
         const NUM_STARS = 100;
@@ -420,24 +420,23 @@ function loadJSON(url, callback) {
     globeGroup.add(pointGroup);
 
     // Create the sphere obj.
-    const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS*0.999, 64, 64);
-    const waterMaterial = new THREE.MeshPhongMaterial({ color: 0x3D6F95});
+    const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS*0.995, 64, 64);
+    const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x3D6F95});
     const globe = new THREE.Mesh(globeGeometry, waterMaterial);
     globeGroup.add(globe);
 
-    const landMaterial = new THREE.MeshPhongMaterial({
+    const landMaterial = new THREE.MeshBasicMaterial({
         color: 0xb2bf9d,
-        side: THREE.DoubleSide, shininess: 0
+        side: THREE.FrontSide, shininess: 0
     });
     const fineness = 2; // The smaller this number, the worse the performance. However, if this number is big, the ConicPolygonGeometry will have parts in the middle where it sags below the globe size.
-                                      //];
     loadJSON('/globe/countries.json', (data) => {
         const countryGroup = new THREE.Group();
         globeGroup.add(countryGroup);
         data.features.forEach(({properties, geometry}) => {
             const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
             polygons.forEach(coords => {
-                const mesh = new THREE.Mesh(new THREE.ConicPolygonGeometry(coords, GLOBE_RADIUS/2, GLOBE_RADIUS, false, true, true, fineness), landMaterial);
+                const mesh = new THREE.Mesh(new THREE.ConicPolygonGeometry(coords, GLOBE_RADIUS*0.9, GLOBE_RADIUS, false, true, false, fineness), landMaterial);
                 countryGroup.add(mesh);
             });
         });
@@ -534,6 +533,7 @@ function loadJSON(url, callback) {
         const pointObj = new THREE.Group();
         pointObj.position.copy(pos);
         pointObj.lookAt(0, 0, 0);
+        // TODO(iandioch): these should be put in userData
         pointObj.locationName = label;
         pointObj.hasCluster = !!clusterOrNull;
         pointObj.cluster = clusterOrNull;
@@ -542,16 +542,22 @@ function loadJSON(url, callback) {
         pointObj.visit = visitObj;
 
         const margin = radius*0.25;
-        const baseGeom = new THREE.CylinderGeometry((radius + margin), (radius + margin), margin, 12);
-        baseGeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
-        const baseMaterial = new THREE.MeshBasicMaterial({color: chroma(colour).brighten(2).hex()});
+        const baseGeom = new THREE.CircleGeometry(radius + margin, 8);
+        const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF, side: THREE.BackSide});
         const base = new THREE.Mesh(baseGeom, baseMaterial);
         base.origMaterial = baseMaterial;
         pointObj.add(base);
 
         const geom = new THREE.CylinderGeometry(radius, radius*0.8, height, 8, 1, true);
         geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
-        const material = new THREE.MeshPhongMaterial({color: colour});
+
+        const sphereGeom = new THREE.SphereGeometry(radius, 8, 4, Math.PI, Math.PI, 0, Math.PI);
+        const sphere = new THREE.Mesh(sphereGeom);
+        sphere.position.z -= height/2;
+        geom.mergeMesh(sphere);
+        geom.mergeVertices();
+
+        const material = new THREE.MeshBasicMaterial({color: colour});
         const point = new THREE.Mesh(geom, material);
         point.origMaterial = material;
         point.position.z = -height/2;
@@ -564,13 +570,6 @@ function loadJSON(url, callback) {
         const labelDiv = new CSS2DObject(div);
         labelDiv.position.set(0, margin, 0);
         pointObj.add(labelDiv);
-
-        const sphereGeom = new THREE.SphereGeometry(radius, 8, 4, Math.PI, Math.PI, 0, Math.PI);
-        const sphere = new THREE.Mesh(sphereGeom, material);
-        sphere.origMaterial = material;
-        sphere.position.z = -height;
-        pointObj.add(sphere);
-
         pointGroup.add(pointObj);
     }
 
@@ -599,7 +598,7 @@ function loadJSON(url, callback) {
         for (var i in data.visits) {
             const visit = data.visits[i];
             visits[visit.location.id] = visit;
-            var radius = 0.0025;
+            var radius = 0.003;
             if (visit.location.type === "CLUSTER") {
                 radius *= 1.5;
             }
@@ -611,7 +610,7 @@ function loadJSON(url, callback) {
             const colour = colourScale(Math.log10(visitHours)/Math.log10(highestVisits)).hex();
 
             const MIN_HEIGHT = GLOBE_RADIUS/100;
-            const MAX_HEIGHT = GLOBE_RADIUS/20;
+            const MAX_HEIGHT = GLOBE_RADIUS/15;
 
             // Use a log-based height, because in a normal case, the place where
             // you live will have an order of magnitude more visit time than
@@ -696,7 +695,6 @@ function loadJSON(url, callback) {
             }
             pointParent.children[0].material = baseMaterial;
             pointParent.children[1].material = pointMaterial;
-            pointParent.children[3].material = pointMaterial;
         }
     }
 
@@ -872,13 +870,9 @@ function loadJSON(url, callback) {
         for (var i in pointGroup.children) {
             const point = pointGroup.children[i];
             point.scale.set(scale, scale, scale);
-
             if (point.isCluster) {
                 point.visible = showClusters;
             }
-        }
-        for (var i in pointGroup.children) {
-            const point = pointGroup.children[i];
             if (point.hasCluster) {
                 const clusterPoint = getPointForName(point.visit.cluster);
                 if (clusterPoint.isTownCluster) {
@@ -900,6 +894,11 @@ function loadJSON(url, callback) {
         if (frameCount % 100 == 0) {
             const elapsedSeconds = (time - lastTime) * 0.001;
             console.info("Frame #", frameCount, ": ", 1/elapsedSeconds, "fps");
+            console.log("Scene polycount:", renderer.info.render.triangles)
+            console.log("Active Drawcalls:", renderer.info.render.calls)
+            console.log("Textures in Memory", renderer.info.memory.textures)
+            console.log("Geometries in Memory", renderer.info.memory.geometries)
+
         }
         lastTime = time;
         const seconds = time * 0.001;
