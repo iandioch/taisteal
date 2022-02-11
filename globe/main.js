@@ -355,7 +355,7 @@ function loadJSON(url, callback) {
     const renderer = new THREE.WebGLRenderer({canvas, antialias: false});
 
     const labelRenderer = new CSS2DRenderer();
-    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.setSize(canvas.width, canvas.height);
     labelRenderer.domElement.style.position = 'absolute';
     labelRenderer.domElement.style.top = '0px';
     canvasContainer.appendChild(labelRenderer.domElement);
@@ -377,10 +377,12 @@ function loadJSON(url, callback) {
 
     var raycaster = new THREE.Raycaster(); 
     var mouse = new THREE.Vector2();
-    document.addEventListener('mousemove', onMouseMove, false);
-    document.addEventListener('touchmove', onMouseMove, false);
-    document.addEventListener('mousedown', onMouseDown, false);
-    document.addEventListener('touchstart', onMouseDown, false);
+
+    const topLayer = labelRenderer.domElement;
+    topLayer.addEventListener('mousemove', onMouseMove, false);
+    topLayer.addEventListener('touchmove', onMouseMove, false);
+    topLayer.addEventListener('mousedown', onMouseDown, false);
+    topLayer.addEventListener('touchstart', onMouseDown, false);
 
     {
         const MAX_STAR_DIST = GLOBE_RADIUS * 10;
@@ -767,7 +769,7 @@ function loadJSON(url, callback) {
                             canvas.height !== canvas.clientHeight);
         if (needResize) {
             renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
-            labelRenderer.setSize(window.innerWidth, window.innerHeight);
+            labelRenderer.setSize(canvas.width, canvas.height);
         }
         return needResize;
     }
@@ -829,6 +831,9 @@ function loadJSON(url, callback) {
     // If we receive any touch event, set this value.
     var TOUCH_SCREEN = false; 
     function setMousePosition(x, y) {
+        const canvasRect = renderer.domElement.getBoundingClientRect();
+        x -= canvasRect.left;
+        y -= canvasRect.top;
         mouse.x = (x / renderer.domElement.clientWidth) * 2 - 1;
         mouse.y = -(y / renderer.domElement.clientHeight) * 2 + 1;
     }
