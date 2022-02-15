@@ -223,5 +223,5 @@ def get_id_for_location_lookup(query, parsed_lookup_result):
     country, code = _get_country_data(parsed_lookup_result)
     # The larger this number, the further points will be merged (but the merging
     # is based on lat & long, so it is pretty arbitrary).
-    rounding = 6
+    rounding = 5
     return '{}:{:.2f},{:.2f}'.format(country, lat/rounding, lng/rounding)
