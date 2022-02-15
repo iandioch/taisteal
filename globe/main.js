@@ -321,8 +321,8 @@ function loadJSON(url, callback) {
             loadData: function(data) {
                 console.log("Loading data in homeDashboard.");
                 console.log(data);
-				this.legs = data.legs;
-				this.visits = data.visits;
+				this.legs.push(...data.legs);
+				this.visits.push(...data.visits);
                 this.renderHome();
             },
             renderHome: function() {
@@ -524,7 +524,7 @@ function loadJSON(url, callback) {
             const curve = new THREE.QuadraticBezierCurve3(start, controlPoint, end);
             const points = curve.getPoints(smoothness);
             const geom = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({ color: colour, linewidth: width, transparent: true, opacity: 0.4});
+            const material = new THREE.LineBasicMaterial({ color: colour, linewidth: width, transparent: true, opacity: 0.35});
             const arc = new THREE.Line(geom, material);
             arc.material.visible = false;
             arc.userData.leg = leg;
@@ -577,72 +577,75 @@ function loadJSON(url, callback) {
 
     var visits = {};
     var legs = [];
-    loadJSON('/taisteal/api/travel_map', (data) => {
-        legs = data.legs;
-        var highestVisits = 0;
-        var mostVisited = undefined;
-        for (var i in data.visits) {
-            // Do not consider clusters of points when calculating the most-visited places.
-            // We want the height of clusters to be the height of the highest
-            // component part, so this 
-            if (data.visits[i].location.type === "CLUSTER") continue;
-            var numVisits = data.visits[i].hours;
-            if (numVisits > highestVisits) {
-                highestVisits = numVisits;
-                mostVisited = data.visits[i];
+    function loadTravelMap(url) {
+        loadJSON(url, (data) => {
+            legs = data.legs;
+            var highestVisits = 0;
+            var mostVisited = undefined;
+            for (var i in data.visits) {
+                // Do not consider clusters of points when calculating the most-visited places.
+                // We want the height of clusters to be the height of the highest
+                // component part, so this 
+                if (data.visits[i].location.type === "CLUSTER") continue;
+                var numVisits = data.visits[i].hours;
+                if (numVisits > highestVisits) {
+                    highestVisits = numVisits;
+                    mostVisited = data.visits[i];
+                }
             }
-        }
-        if (mostVisited) {
-            lookAt(mostVisited.location.lat, mostVisited.location.lng, 2);
-        }
-        const highestVisitsLog10 = Math.log10(highestVisits);
-        var colourScale = chroma.scale(["navy", "purple", 0xDC6F3D, 0xe9c440]).mode('lch').gamma(0.5);
-        for (var i in data.visits) {
-            const visit = data.visits[i];
-            visits[visit.location.id] = visit;
-            var radius = 0.003;
-            if (visit.location.type === "CLUSTER") {
-                radius *= 1.5;
+            if (mostVisited) {
+                lookAt(mostVisited.location.lat, mostVisited.location.lng, 2);
             }
+            const highestVisitsLog10 = Math.log10(highestVisits);
+            var colourScale = chroma.scale(["navy", "purple", 0xDC6F3D, 0xe9c440]).mode('lch').gamma(0.5);
+            for (var i in data.visits) {
+                const visit = data.visits[i];
+                visits[visit.location.id] = visit;
+                var radius = 0.003;
+                if (visit.location.type === "CLUSTER") {
+                    radius *= 1.5;
+                }
 
-            var visitHours = visit.hours;
-            if (visit.location.type === "CLUSTER") {
-                visitHours = Math.max(...data.visits.filter(subVisit => (subVisit.location.type !== "CLUSTER" && subVisit.cluster === visit.location.id)).map(v => v.hours));
-            }
-            const colour = colourScale(Math.log10(visitHours)/Math.log10(highestVisits)).hex();
+                var visitHours = visit.hours;
+                if (visit.location.type === "CLUSTER") {
+                    visitHours = Math.max(...data.visits.filter(subVisit => (subVisit.location.type !== "CLUSTER" && subVisit.cluster === visit.location.id)).map(v => v.hours));
+                }
+                const colour = colourScale(Math.log10(visitHours)/Math.log10(highestVisits)).hex();
 
-            const MIN_HEIGHT = GLOBE_RADIUS/100;
-            const MAX_HEIGHT = GLOBE_RADIUS/15;
+                const MIN_HEIGHT = GLOBE_RADIUS/100;
+                const MAX_HEIGHT = GLOBE_RADIUS/15;
 
-            // Use a log-based height, because in a normal case, the place where
-            // you live will have an order of magnitude more visit time than
-            // other places you've visited, and will be 100s of times larger in
-            // a linear scale.
-            const MAX_LOG_HEIGHT = MAX_HEIGHT/2;
-            let height = MIN_HEIGHT + (Math.log10(visitHours)/highestVisitsLog10)*MAX_LOG_HEIGHT;
-            // However, also use a linear-scaled height in addition, because
-            // we don't want somewhere you stayed for 1000 hours to be the same
-            // height at a glance as somewhere you stayed for 120.
-            height += (visitHours / highestVisits)*(MAX_HEIGHT - MAX_LOG_HEIGHT - MIN_HEIGHT);
-            const label = visit.location.human_readable_name;
-            const cluster = (visit.hasOwnProperty("cluster") ? visit.cluster : null);
-            drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, label, cluster, (visit.location.type === "CLUSTER"), (visit.location.type === "TOWN_CLUSTER"), visit);
-        }
-        for (var i in data.legs) {
-            const leg = data.legs[i];
-            if (leg.mode === "FILL") {
-                // These are auto-added to make all legs into one continuous route.
-                continue;
+                // Use a log-based height, because in a normal case, the place where
+                // you live will have an order of magnitude more visit time than
+                // other places you've visited, and will be 100s of times larger in
+                // a linear scale.
+                const MAX_LOG_HEIGHT = MAX_HEIGHT/2;
+                let height = MIN_HEIGHT + (Math.log10(visitHours)/highestVisitsLog10)*MAX_LOG_HEIGHT;
+                // However, also use a linear-scaled height in addition, because
+                // we don't want somewhere you stayed for 1000 hours to be the same
+                // height at a glance as somewhere you stayed for 120.
+                height += (visitHours / highestVisits)*(MAX_HEIGHT - MAX_LOG_HEIGHT - MIN_HEIGHT);
+                const label = visit.location.human_readable_name;
+                const cluster = (visit.hasOwnProperty("cluster") ? visit.cluster : null);
+                drawPoint(latLngToVector(visit.location.lat, visit.location.lng), radius, height, colour, label, cluster, (visit.location.type === "CLUSTER"), (visit.location.type === "TOWN_CLUSTER"), visit);
             }
-            const legDistance = latLngDistance(leg.dep.lat, leg.dep.lng, leg.arr.lat, leg.arr.lng);
-            const globeCircumference = 40000;
-            const controlPointHeight = mapToRange(0, globeCircumference, GLOBE_RADIUS, GLOBE_RADIUS * 3, legDistance);
-            const smoothness = Math.ceil(mapToRange(0, globeCircumference, 4, 64, legDistance));
-			const midpoint = latLngMidpoint(leg.dep.lat, leg.dep.lng, leg.arr.lat, leg.arr.lng);
-            drawRaisedArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], controlPointHeight), latLngToVector(leg.arr.lat, leg.arr.lng), smoothness, 3, 0xFFFFFF, leg);
-        }
-        dashboard.loadData(data);
-    });
+            for (var i in data.legs) {
+                const leg = data.legs[i];
+                if (leg.mode === "FILL") {
+                    // These are auto-added to make all legs into one continuous route.
+                    continue;
+                }
+                const legDistance = latLngDistance(leg.dep.lat, leg.dep.lng, leg.arr.lat, leg.arr.lng);
+                const globeCircumference = 40000;
+                const controlPointHeight = mapToRange(0, globeCircumference, GLOBE_RADIUS, GLOBE_RADIUS * 3, legDistance);
+                const smoothness = Math.ceil(mapToRange(0, globeCircumference, 4, 64, legDistance));
+                const midpoint = latLngMidpoint(leg.dep.lat, leg.dep.lng, leg.arr.lat, leg.arr.lng);
+                drawRaisedArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], controlPointHeight), latLngToVector(leg.arr.lat, leg.arr.lng), smoothness, 3, 0xFFFFFF, leg);
+            }
+            dashboard.loadData(data);
+        });
+    }
+    loadTravelMap('/taisteal/api/travel_map');
 
     // Make semitransparent most plcaes except the one the user just clicked on.
     function toggleRoutesForSelectedVisits(visitNames, showLegs = true, showConnectedLocations = true) {
