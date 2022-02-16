@@ -4,6 +4,8 @@ import time
 
 import location_database_utils 
 
+import pendulum
+
 DB_PATH = '.taisteal.db'
 
 def _connect():
@@ -20,6 +22,20 @@ def _create_tables():
         (
         query text PRIMARY KEY,
         result text
+        )''')
+
+    # The directly entered data, not used in prod directly, but processed into 
+    # `legs` table.
+    cursor.execute('''CREATE TABLE IF NOT EXISTS logged_legs
+        (
+        id text PRIMARY KEY,
+        departure_query text,
+        departure_datetime text,
+        arrival_query text,
+        arrival_datetime text,
+        mode text,
+        FOREIGN KEY (departure_query) REFERENCES location_lookups(query),
+        FOREIGN KEY (arrival_query) REFERENCES location_lookups(query)
         )''')
 
     # Maps location queries in the location_lookups table to IDs in the
@@ -52,6 +68,33 @@ def _create_tables():
         /* Computed region, used to group some locations together. Sometimes, this is some official designation (eg. corresponds to NUTS 2 region names), but there is no guarantee. Prefer names in in English. In Switzerland, this is cantons; in Ireland, this is counties; in the US, this is states; in Monaco, there is just one region.*/
         region text
         )''')
+
+    # Derived from logged_legs.
+    cursor.execute('''CREATE TABLE IF NOT EXISTS legs
+        (
+        id text PRIMARY KEY,
+        departure_location_id text,
+        departure_datetime integer,
+        arrival_location_id text,
+        arrival_datetime integer,
+        mode text
+        )''')
+
+    """
+    cursor.execute('''CREATE TABLE IF NOT EXISTS collections(
+        /* id is arbitrary string */
+        id text PRIMARY KEY,
+        name text
+        )''')
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS collection_parts(
+        collection_id text,
+        /* 0 is the initial element, then linearly increasing. No guarantees on the number of items. */
+        order integer
+        )''')
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS collection_legs(
+        )''')"""
     conn.close()
     print('Database tables created.')
 
@@ -65,6 +108,9 @@ def regenerate_tables():
     conn, cursor = _connect()
     cursor.execute('DELETE FROM location_query_to_id')
     cursor.execute('DELETE FROM locations')
+    # TODO: this shouldn't be deleted
+    cursor.execute('DELETE FROM logged_legs')
+    cursor.execute('DELETE FROM legs')
     conn.commit()
     cursor.execute('SELECT * FROM location_lookups')
     for lookup in cursor.fetchall():
@@ -149,3 +195,35 @@ def save_location(id_, location_data):
     cursor.execute('INSERT INTO locations(id, address, name, latitude, longitude, country_name, country_code, type, region) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)', args)
     conn.commit()
     conn.close()
+
+def save_logged_leg(id_, departure_query, departure_datetime, arrival_query, arrival_datetime, mode):
+    conn, cursor = _connect()
+    args = (id_, departure_query, departure_datetime, arrival_query, arrival_datetime, mode)
+    cursor.execute('INSERT INTO logged_legs(id, departure_query, departure_datetime, arrival_query, arrival_datetime, mode) VALUES(?, ?, ?, ?, ?, ?)', args)
+    conn.commit()
+    conn.close()
+
+def save_leg(id_, departure_id, departure_datetime, arrival_id, arrival_datetime, mode):
+    conn, cursor = _connect()
+    args = (id_, departure_id, departure_datetime, arrival_id, arrival_datetime, mode)
+    cursor.execute('INSERT INTO legs(id, departure_location_id, departure_datetime, arrival_location_id, arrival_datetime, mode) VALUES(?, ?, ?, ?, ?, ?)', args)
+    conn.commit()
+    conn.close()
+
+def get_legs():
+    conn, cursor = _connect()
+    cursor.execute('''
+    SELECT
+        mode,
+        departure_location_id,
+        departure_datetime,
+        arrival_location_id,
+        arrival_datetime
+    FROM
+        legs
+    ''')
+    for lookup in cursor.fetchall():
+        d = {n: lookup[n] for n in lookup.keys()}
+        d['departure_datetime'] = pendulum.parse(d['departure_datetime'])
+        d['arrival_datetime'] = pendulum.parse(d['arrival_datetime'])
+        yield d
