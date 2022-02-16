@@ -40,13 +40,17 @@ def serve_get_user_data():
         return {}
     return json.dumps(user.get_user_data())
 
-@app.route('/api/save_user_data', methods=['POST'])
-def save_user_data():
+@app.route('/api/save_collection', methods=['POST'])
+def save_collection():
     private_key = config['private_key']
     if request.args.get('key') != private_key:
         print('Bad key', request.args.get('key'))
         return {}
-    return user.save_user_data(json.loads(request.data))
+    print(request.get_json())
+    collection = request.get_json()
+    database.save_collection(collection)
+    return request.data
+    #return user.save_user_data(json.loads(request.data))
 
 
 def main():

@@ -80,21 +80,22 @@ def _create_tables():
         mode text
         )''')
 
-    """
-    cursor.execute('''CREATE TABLE IF NOT EXISTS collections(
+    cursor.execute('''CREATE TABLE IF NOT EXISTS collections
+        (
         /* id is arbitrary string */
         id text PRIMARY KEY,
-        name text
+        title text
         )''')
 
-    cursor.execute('''CREATE TABLE IF NOT EXISTS collection_parts(
+    cursor.execute('''CREATE TABLE IF NOT EXISTS collection_parts
+        (
         collection_id text,
-        /* 0 is the initial element, then linearly increasing. No guarantees on the number of items. */
-        order integer
-        )''')
+        position integer,
 
-    cursor.execute('''CREATE TABLE IF NOT EXISTS collection_legs(
-        )''')"""
+        /* Should have exactly one of leg_id or note set */
+        leg_id text,
+        note text
+        )''')
     conn.close()
     print('Database tables created.')
 
@@ -108,9 +109,6 @@ def regenerate_tables():
     conn, cursor = _connect()
     cursor.execute('DELETE FROM location_query_to_id')
     cursor.execute('DELETE FROM locations')
-    # TODO: this shouldn't be deleted
-    cursor.execute('DELETE FROM logged_legs')
-    cursor.execute('DELETE FROM legs')
     conn.commit()
     cursor.execute('SELECT * FROM location_lookups')
     for lookup in cursor.fetchall():
@@ -228,3 +226,50 @@ def get_legs():
         d['departure_datetime'] = pendulum.parse(d['departure_datetime'])
         d['arrival_datetime'] = pendulum.parse(d['arrival_datetime'])
         yield d
+
+def get_collections():
+    conn, cursor = _connect()
+    cursor.execute('''
+    SELECT *
+    FROM
+        collections
+    ''')
+    for lookup in cursor.fetchall():
+        yield {n: lookup[n] for n in lookup.keys()}
+
+def get_collection_parts(id_):
+    conn, cursor = _connect()
+    cursor.execute('''
+    SELECT
+        *
+    FROM
+        collection_parts
+    WHERE
+        collection_id = ?
+    ORDER BY
+        position 
+    ''', (id_,))
+    for lookup in cursor.fetchall():
+        yield {n: lookup[n] for n in lookup.keys()}
+
+def save_collection(collection):
+    print('DATABASE: Saving collection:', collection)
+    conn, cursor = _connect()
+    cursor.execute('''
+    DELETE FROM
+        collections
+    WHERE
+        id = ?''', (collection['id'],))
+    cursor.execute('''
+    DELETE FROM
+        collection_parts
+    WHERE
+        collection_id = ?''', (collection['id'],))
+    conn.commit()
+    cursor.execute('INSERT INTO collections(id, title) VALUES(?, ?)', (collection['id'], collection['title']))
+    for position, part in enumerate(collection['parts']):
+        leg_id = part['leg_id']
+        note = part['note']
+        # TODO: verify that exactly one of (leg_id, note) is set
+        cursor.execute('INSERT INTO collection_parts(collection_id, position, leg_id, note) VALUES(?, ?, ?, ?)', (collection['id'], position, leg_id, note))
+    conn.commit()

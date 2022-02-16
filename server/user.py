@@ -42,7 +42,7 @@ def create_travel_map(config):
 
     database.regenerate_tables()
     csv_loc = '../mo_thaistil/full.csv'
-    _log_legs_from_csv(csv_loc, config)
+    #_log_legs_from_csv(csv_loc, config)
 
     id_to_location = {}
     location_visits = defaultdict(lambda: {
@@ -121,6 +121,22 @@ def log_leg(departure_query, departure_datetime, arrival_query, arrival_datetime
     except Exception as e:
         print(e, id_)
 
+def get_collections():
+    collections = []
+    for collection in database.get_collections():
+        id_ = collection['id']
+        obj = {
+            'id': id_,
+            'title': collection['title'],
+            'parts': []
+        }
+        for part in database.get_collection_parts(id_):
+            obj['parts'].append(part)
+        collections.append(obj)
+    print('result of user.get_collections():')
+    print(collections)
+    return collections
+
 def get_user_data():
     locations = {}
 
@@ -142,6 +158,7 @@ def get_user_data():
     return {
         'legs': legs,
         'locations': locations,
+        'collections': get_collections(),
     }
 
 def save_user_data(data):
