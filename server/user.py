@@ -1,11 +1,11 @@
 import csv
 import json
+import uuid
 from collections import defaultdict
 
 import cluster
 import database
 import location
-from taisteal_csv import parse
 
 import pendulum
 
@@ -110,7 +110,9 @@ def create_travel_map(config):
     return s
 
 def log_leg(departure_query, departure_datetime, arrival_query, arrival_datetime, mode, config):
-    id_ = '{}:"{}"({})-"{}"({})'.format(mode, departure_query, departure_datetime, arrival_query, arrival_datetime)
+    def _create_leg_id():
+        return uuid.uuid4().hex
+    id_ = _create_leg_id()
     try:
         database.save_logged_leg(id_, departure_query, departure_datetime, arrival_query, arrival_datetime, mode)
         departure_id = location.id_for_query(departure_query, config)
@@ -118,3 +120,29 @@ def log_leg(departure_query, departure_datetime, arrival_query, arrival_datetime
         database.save_leg(id_, departure_id, departure_datetime, arrival_id, arrival_datetime, mode)
     except Exception as e:
         print(e, id_)
+
+def get_user_data():
+    locations = {}
+
+    def _maybe_add_location(id_):
+        if id_ in locations:
+            return
+        location = database.get_location(id_)
+        locations[id_] = location
+
+    legs = []
+    for leg in database.get_legs():
+        legs.append({
+            'id': leg['id'],
+            'arrival_id': leg['arrival_location_id'],
+            'departure_id': leg['departure_location_id'],
+        })
+        _maybe_add_location(leg['arrival_location_id'])
+        _maybe_add_location(leg['departure_location_id'])
+    return {
+        'legs': legs,
+        'locations': locations,
+    }
+
+def save_user_data(data):
+    return

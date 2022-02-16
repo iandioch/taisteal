@@ -214,6 +214,7 @@ def get_legs():
     conn, cursor = _connect()
     cursor.execute('''
     SELECT
+        id,
         mode,
         departure_location_id,
         departure_datetime,
