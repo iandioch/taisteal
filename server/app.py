@@ -4,7 +4,6 @@ import time
 from collections import defaultdict
 from math import radians, asin, sqrt, cos, sin
 
-from taisteal_csv import parse
 from user import create_travel_map
 import cluster
 import database
@@ -33,12 +32,6 @@ def serve_travel_map():
     end_time = time.time()
     print('Time to serve request {0:.10f} seconds.'.format(end_time - start_time))
     return TRAVEL_MAP_RESPONSE
-
-@app.route('/api/get_mapbox_token')
-def serve_get_mapbox_token():
-    return json.dumps({
-        'token': config['mapbox_token']
-    })
 
 def main():
     app.run(port=1916)
