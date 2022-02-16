@@ -2,8 +2,11 @@ import {OrbitControls} from 'https://unpkg.com/three@0.108.0/examples/jsm/contro
 import { CSS2DRenderer, CSS2DObject } from 'https://unpkg.com/three@0.108.0/examples/jsm/renderers/CSS2DRenderer.js';
 import {TWEEN} from 'https://unpkg.com/three@0.108.0/examples/jsm/libs/tween.module.min';
 import 'https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js'
-console.log("loading...");
-console.log(chroma);
+
+const urlParams = new URLSearchParams(window.location.search);
+const GLOBE_STYLE_TEXTURE = "texture";
+const GLOBE_STYLE_POLYGON = "polygon";
+const GLOBE_STYLE = (urlParams.has('style') ? urlParams.get('style') : GLOBE_STYLE_TEXTURE);
 
 function loadJSON(url, callback) {
     var request = new XMLHttpRequest;
@@ -421,27 +424,54 @@ function loadJSON(url, callback) {
     const pointGroup = new THREE.Group();
     globeGroup.add(pointGroup);
 
-    // Create the sphere obj.
-    const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS*0.995, 64, 64);
-    const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x3D6F95});
-    const globe = new THREE.Mesh(globeGeometry, waterMaterial);
-    globeGroup.add(globe);
 
-    const landMaterial = new THREE.MeshBasicMaterial({
-        color: 0xb2bf9d,
-        side: THREE.FrontSide, shininess: 0
-    });
-    const fineness = 2; // The smaller this number, the worse the performance. However, if this number is big, the ConicPolygonGeometry will have parts in the middle where it sags below the globe size.
-    loadJSON('/globe/countries.json', (data) => {
-        const countryGroup = new THREE.Group();
-        globeGroup.add(countryGroup);
-        data.features.forEach(({properties, geometry}) => {
-            const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
-            polygons.forEach(coords => {
-                const mesh = new THREE.Mesh(new THREE.ConicPolygonGeometry(coords, GLOBE_RADIUS*0.9, GLOBE_RADIUS, false, true, false, fineness), landMaterial);
-                countryGroup.add(mesh);
+    function createGlobe(cb) {
+        // Create the sphere obj.
+        const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS*0.995, 64, 64);
+
+        if (GLOBE_STYLE === GLOBE_STYLE_TEXTURE) {
+            const textureLoader = new THREE.TextureLoader();
+            textureLoader.load(GLOBE_TEXTURE_PATH, (texture) => {
+                texture.offset.set(0.25, 0.0);
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.anisotropy = renderer.getMaxAnisotropy();
+                texture.magFilter = THREE.NearestFilter;
+
+                const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 128, 128);
+                const globeMaterial = new THREE.MeshPhongMaterial({ map: texture });
+                globeMaterial.map.minFilter = THREE.LinearFilter;
+                const globe = new THREE.Mesh(globeGeometry, globeMaterial);
+                cb(globe);
             });
-        });
+        } else if (GLOBE_STYLE === GLOBE_STYLE_POLYGON) {
+            const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x3D6F95});
+            const globeObjGroup = new THREE.Group();
+            const globe = new THREE.Mesh(globeGeometry, waterMaterial);
+            globeObjGroup.add(globe);
+
+            const landMaterial = new THREE.MeshBasicMaterial({
+                color: 0xb2bf9d,
+                side: THREE.FrontSide, shininess: 0
+            });
+            const fineness = 2; // The smaller this number, the worse the performance. However, if this number is big, the ConicPolygonGeometry will have parts in the middle where it sags below the globe size.
+            loadJSON('/globe/countries.json', (data) => {
+                const countryGroup = new THREE.Group();
+                globeObjGroup.add(countryGroup);
+                data.features.forEach(({properties, geometry}) => {
+                    const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+                    polygons.forEach(coords => {
+                        const mesh = new THREE.Mesh(new THREE.ConicPolygonGeometry(coords, GLOBE_RADIUS*0.9, GLOBE_RADIUS, false, true, false, fineness), landMaterial);
+                        countryGroup.add(mesh);
+                    });
+                });
+                cb(globeObjGroup);
+            });
+        } else {
+            alert("Invalid globe style " + GLOBE_STYLE);
+        }
+    }
+    createGlobe((globe) => {
+        globeGroup.add(globe);
     });
     const arcGroup = new THREE.Group();
     globeGroup.add(arcGroup);
