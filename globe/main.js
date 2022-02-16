@@ -441,7 +441,7 @@ function loadJSON(url, callback) {
                 const globeMaterial = new THREE.MeshPhongMaterial({ map: texture });
                 globeMaterial.map.minFilter = THREE.LinearFilter;
                 const globe = new THREE.Mesh(globeGeometry, globeMaterial);
-                cb(globe);
+                cb(globeGeometry, globe);
             });
         } else if (GLOBE_STYLE === GLOBE_STYLE_POLYGON) {
             const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x3D6F95});
@@ -464,15 +464,45 @@ function loadJSON(url, callback) {
                         countryGroup.add(mesh);
                     });
                 });
-                cb(globeObjGroup);
+                cb(globeGeometry, globeObjGroup);
             });
         } else {
             alert("Invalid globe style " + GLOBE_STYLE);
         }
     }
-    createGlobe((globe) => {
-        globeGroup.add(globe);
+    createGlobe((globeGeometry, group) => {
+        const atmosphereShader = {
+            uniforms: {},
+            vertexShader: `
+                varying vec3 v_normal;
+                void main() {
+                    v_normal = normalize(normalMatrix * normal);
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                varying vec3 v_normal;
+                void main() {
+                    vec3 colour = vec3(0.6, 0.8, 1.0);
+                    float intensity = pow(0.5 - dot(v_normal, vec3(0.0, 0.0, 1.0)), 2.0);
+                    gl_FragColor = vec4(colour, 1.0) * intensity;
+                }
+            `,
+        }
+        const atmosphereMaterial = new THREE.ShaderMaterial({
+            uniforms: atmosphereShader.uniforms,
+            vertexShader: atmosphereShader.vertexShader,
+            fragmentShader: atmosphereShader.fragmentShader,
+            side: THREE.BackSide,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+        });
+        const atmosphereMesh = new THREE.Mesh(globeGeometry, atmosphereMaterial);
+        atmosphereMesh.scale.set(1.3, 1.3, 1.3);
+        globeGroup.add(atmosphereMesh);
+        globeGroup.add(group);
     });
+
     const arcGroup = new THREE.Group();
     globeGroup.add(arcGroup);
 
@@ -923,7 +953,7 @@ function loadJSON(url, callback) {
 
     }
 
-    controls.addEventListener('change', onZoomChange);
+    controls.addEventListener('end', onZoomChange);
 
     var lastTime = 0;
     var frameCount = 0;
