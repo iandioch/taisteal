@@ -764,7 +764,9 @@ function loadJSON(url, callback) {
     loadTravelMap('/taisteal/api/travel_map');
 
     // Make semitransparent most plcaes except the one the user just clicked on.
-    function toggleRoutesForSelectedVisits(locationIDs, showLegs = true, showConnectedLocations = true) {
+    // If specificLegs is set, only those legs will be rendered.
+    function toggleRoutesForSelectedVisits(locationIDs, showLegs = true, showConnectedLocations = true, specificLegs = null) {
+        showLegs = showLegs && (!specificLegs);
         const visitSet = new Set(locationIDs);
         // Build up a set of everywhere that shares a leg with these visitNames.
         const connectedVisitSet = new Set(locationIDs);
@@ -780,6 +782,13 @@ function loadJSON(url, callback) {
                 visible = true;
             }
             visible = visible && showLegs;
+            if (specificLegs) {
+                for (const specificLeg of specificLegs) {
+                    if (leg.arr.id == specificLeg.arr.id && leg.dep.id == specificLeg.dep.id) {
+                        visible = true;
+                    }
+                }
+            }
             arc.material.visible = visible;
         }
         // Also add any relevant clusters to the set, so that if we zoom in/out
@@ -795,6 +804,8 @@ function loadJSON(url, callback) {
         // Make semitransparent all of the pins not in the connectedVisitSet.
         const inactiveBaseMaterial = new THREE.MeshPhongMaterial({
             color: 0xffffff,
+            opacity: 0.5,
+            transparent: true,
             side: THREE.DoubleSide,
             shininess: 0,
         });
@@ -928,7 +939,7 @@ function loadJSON(url, callback) {
         }
         console.log("Location IDs:", locationIDs);
         dashboard.renderCollection(collection);
-        toggleRoutesForSelectedVisits([...locationIDs], true, false);
+        toggleRoutesForSelectedVisits([...locationIDs], true, false, getLegsForCollection(collection));
     }
 
     // Returns true if we needed to resize.
