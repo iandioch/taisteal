@@ -22,16 +22,13 @@ with open('config.json') as f:
 def serve_root():
     return 'Hello World!'
 
-TRAVEL_MAP_RESPONSE = None
 @app.route('/api/travel_map', methods=['GET'])
 def serve_travel_map():
     start_time = time.time()
-    global TRAVEL_MAP_RESPONSE
-    if not TRAVEL_MAP_RESPONSE:
-        TRAVEL_MAP_RESPONSE = user.create_travel_map(config)
+    resp = user.create_travel_map(config)
     end_time = time.time()
     print('Time to serve request {0:.10f} seconds.'.format(end_time - start_time))
-    return TRAVEL_MAP_RESPONSE
+    return resp
 
 @app.route('/api/get_user_data', methods=['GET'])
 def serve_get_user_data():

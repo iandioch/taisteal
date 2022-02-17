@@ -36,7 +36,7 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                 default: false,
             },
 		},
-        template: `<div class="leg" :style="'margin: 1rem 0; border: 1px solid #000000; padding: 0.5rem; background-color:' + (highlighted ? '#ffeeee' : '#ffffff')">
+        template: `<div class="leg" :style="'font-size: 0.75rem; margin: 0; border: 1px solid #000000; padding: 0.5rem; background-color:' + (highlighted ? '#ffeeee' : '#ffffff')">
             <b style="font-family: monospace">{{id}}</b><br>
             Departure: <i>{{departure_address}}</i><br>
             Arrival: <i>{{arrival_address}}</i>
@@ -61,9 +61,10 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
             }
         },
         template: `<div>
-        <div v-if="selectedLeg"><p>Leg <span style="font-family: monospace; font-weight: bold">{{leg_id}}</span></p>
-        <leg :id="selectedLeg.id" :departure_id="selectedLeg.departure_id" :arrival_id="selectedLeg.arrival_id" highlighted="true"></leg></div>
-        <button v-on:click="toggleDialog()">Select a leg</button>
+        <div style="display: inline-block; width:100%;">
+        <div v-if="selectedLeg">
+            <leg :id="selectedLeg.id" :departure_id="selectedLeg.departure_id" :arrival_id="selectedLeg.arrival_id" :highlighted="true"></leg></div>
+        </div>
         <div v-if="dialogOpened">
             <div v-for="leg in legs">
                 <leg :id="leg.id" :departure_id="leg.departure_id" :arrival_id="leg.arrival_id" :highlighted="leg.id == leg_id">
@@ -71,6 +72,7 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                 </leg>
             </div>
         </div>
+        <button style="float: left" v-on:click="toggleDialog()">Select a leg</button>
         </div>`,
         computed: {
             legs: function() {
@@ -103,6 +105,7 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
             return {
                 title: this.initialCollection.title,
                 parts: this.initialCollection.parts,
+                visible: false,
             }
         },
         computed: {
@@ -110,17 +113,22 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                 return this.initialCollection.id;
             }
         },
-        template: `<div class="leg" style="margin: 1rem 0; border: 1px solid #000000; padding: 0.5rem">
+        template: `<div class="leg" style="margin: 1rem 0; border: 1px solid #000000; padding: 0.5rem; background-color: #eee">
             <b style="font-family: monospace">{{id}}</b>
-            <br>Title: <input v-model="title"></input>
-            <div v-for="part in parts" style="border: 1px solid #aaaaaa; margin: 1rem;">
-                <span v-if="partType(part) == 'NOTE'">Note: <input v-model="part.note"></input><br></span>
-                <span v-if="partType(part) == 'LEG'"><leg-picker v-model="part.leg_id"></leg-picker><br></span>
-                <button v-on:click="deletePart(part.position)">Delete part</button>
+            <br>Title: <input style="width: 100%" v-model="title"></input>
+            <button v-on:click="visible = !visible">Show/hide</button>
+            <div v-if="visible">
+                <div v-for="part in parts" :key="part.position + part.leg_id" style="border: 1px solid #aaaaaa; margin: 0.5rem 0; display: inline-block; width: 100%; background-color: #aaa">
+                    <span v-if="partType(part) == 'NOTE'">Note:<br><textarea style="width:100%" v-model="part.note"></textarea><br></span>
+                    <span v-if="partType(part) == 'LEG'"><leg-picker v-model="part.leg_id"></leg-picker><br></span>
+                    <button style="float: right;" v-on:click="moveUp(part.position)" :disabled="part.position == 0">Move up</button>
+                    <button style="float: right;" v-on:click="moveDown(part.position)" :disabled="part.position >= parts.length - 1">Move down</button>
+                    <button style="float: right;" v-on:click="deletePart(part.position)">Delete part</button>
+                </div>
+                <button v-on:click="addNote()">Add note</button>
+                <button v-on:click="addLeg()">Add leg</button>
+                <button v-on:click="save()">Save collection</button>
             </div>
-            <button v-on:click="addNote()">Add note</button>
-            <button v-on:click="addLeg()">Add leg</button>
-            <button v-on:click="save()">Save collection</button>
         </div>`,
         methods: {
             partType: function(part) {
@@ -161,7 +169,22 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                 request.onload = function() {
                     alert(request.responseText);
                 };
-            }
+            },
+            swap: function(a, b) {
+                var c = this.parts[a];
+                this.parts[a] = this.parts[b];
+                this.parts[b] = c;
+
+                this.parts[a].position = a;
+                this.parts[b].position = b;
+                this.$forceUpdate();
+            },
+            moveUp: function(pos) {
+                this.swap(pos, pos-1);
+            },
+            moveDown: function(pos) {
+                this.swap(pos, pos+1);
+            },
         }
     });
 
