@@ -338,6 +338,7 @@ function loadJSON(url, callback) {
                 }
             },
             template: `<div>
+                <p>Total distance travelled: <span class="fact">{{collection.meta.distance}}km</span></p>
                 <div v-for="part in collection.parts">
                     <div v-if="part.note && part.note.length">
                     {{part.note}}
@@ -380,7 +381,7 @@ function loadJSON(url, callback) {
                             }
                         },
                         template: `<div class="leg-description">
-                            ${this.modeVerb(part.leg.mode)} from <poi :text="part.dep.human_readable_name" :id="part.dep.id"></poi> (${this.formatDatetime(part.leg.departure_datetime)}) to <poi :text="part.arr.human_readable_name" :id="part.arr.id"></poi> (${this.formatDatetime(part.leg.arrival_datetime)}).
+                            ${this.modeVerb(part.leg.mode)} ${part.distance}km from <poi :text="part.dep.human_readable_name" :id="part.dep.id"></poi> (${this.formatDatetime(part.leg.departure_datetime)}) to <poi :text="part.arr.human_readable_name" :id="part.arr.id"></poi> (${this.formatDatetime(part.leg.arrival_datetime)}).
                         </div>`
                     }
                 },

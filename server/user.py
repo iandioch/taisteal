@@ -108,6 +108,7 @@ def create_travel_map(config):
     def get_collections_for_travel_map():
         collections = get_collections()
         for collection in collections:
+            total_distance = 0
             for part in collection['parts']:
                 if part['note']:
                     continue
@@ -118,6 +119,16 @@ def create_travel_map(config):
                 arr_id = leg['arrival_location_id']
                 part['dep'] = id_to_location[dep_id]
                 part['arr'] = id_to_location[arr_id]
+                distance = cluster.estimated_distance_km(
+                        id_to_location[dep_id]['lat'],
+                        id_to_location[dep_id]['lng'],
+                        id_to_location[arr_id]['lat'],
+                        id_to_location[arr_id]['lng'])
+                part['distance'] = int(round(distance))
+                total_distance += distance
+            collection['meta'] = {
+                'distance': int(round(total_distance)),
+            }
         return collections
 
     data = {
