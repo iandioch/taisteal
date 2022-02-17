@@ -101,6 +101,18 @@ function loadJSON(url, callback) {
         }
     });
 
+    Vue.component('collection', {
+        props: {
+            collection: Object,
+        },
+        template: `<a class="poi" href='#' v-on:click="handleClick">{{collection.title}}</a>`,
+        methods: {
+            handleClick() {
+                renderInfoForCollection(this.collection);
+            },
+        }
+    });
+
     Vue.component('top-poi-table', {
         props: {
             pois: Array, // Expecting a list of (user-visible text, poi id/name, number)
@@ -211,6 +223,8 @@ function loadJSON(url, callback) {
             <top-poi-table v-bind:pois="longestStayedPOIs" metric="days"></top-poi-table>
             <br>
             I have logged trips passing through the following countries: <span v-for="country in countries"><country :id="country.code" :text="country.name"></country></span>
+            <br>
+            See more info about: <collection v-for="collection in collections" :collection="collection"></collection>.
         </div>`,
         computed: {
             longestStayedPOIs() {
@@ -266,6 +280,9 @@ function loadJSON(url, callback) {
                 }
                 results.sort((a, b) => {return a.name.localeCompare(b.name)});
                 return results;
+            },
+            collections: function() {
+                return collections;
             }
         }
     });
@@ -309,6 +326,36 @@ function loadJSON(url, callback) {
         }
     }
 
+    function createComponentForCollection(collection) {
+        var locations = [];
+        for (let location of getLocationsForCollection(collection)) {
+            locations.push([location.location.human_readable_name, location.location.id]);
+        }
+        return {
+            data: () => {
+                return {
+                    collection,
+                    visits: locations,
+                }
+            },
+            template: `<div>
+                <div v-for="note in notes">{{note}}</div>
+                <poi-collection-dashboard :visits="visits"></poi-collection-dashboard>
+            </div>`,
+            computed: {
+                notes: function() {
+                    const parts = [];
+                    for (const part of collection.parts) {
+                        if (part.note && part.note.length) {
+                            parts.push(part.note);
+                        }
+                    }
+                    return parts;
+                }
+            },
+        }
+    }
+
     var dashboard = new Vue({
         el: '#vue-dashboard',
         data: {
@@ -317,6 +364,7 @@ function loadJSON(url, callback) {
             },
 			legs: [],
 			visits: [],
+            collections: [],
             title: "Loading",
             hideBackButton: true,
         },
@@ -326,6 +374,7 @@ function loadJSON(url, callback) {
                 console.log(data);
 				this.legs.push(...data.legs);
 				this.visits.push(...data.visits);
+                this.collections.push(...data.collections);
                 this.renderHome();
             },
             renderHome: function() {
@@ -348,6 +397,11 @@ function loadJSON(url, callback) {
                 this.title = country;
                 this.hideBackButton = false;
             },
+            renderCollection: function(collection) {
+                this.activeDashboard = createComponentForCollection(collection);
+                this.title = collection.title;
+                this.hideBackButton = false;
+            }
         }
     });
 
@@ -637,9 +691,11 @@ function loadJSON(url, callback) {
 
     var visits = {};
     var legs = [];
+    var collections = [];
     function loadTravelMap(url) {
         loadJSON(url, (data) => {
             legs = data.legs;
+            collections = data.collections;
             var highestVisits = 0;
             var mostVisited = undefined;
             for (var i in data.visits) {
@@ -771,6 +827,39 @@ function loadJSON(url, callback) {
         return null;
     }
 
+    function getLegsForCollection(collection) {
+        const collectionLegs = [];
+        for (const part of collection.parts) {
+            if (part.leg_id) {
+                console.log("part", part, "is leg.");
+                for (const leg of legs) {
+                    console.log(leg);
+                    if (part.dep.id == leg.dep.id && part.arr.id == leg.arr.id) {
+                        collectionLegs.push(leg);
+                    }
+                }
+            }
+        }
+        console.log("Legs for collection", collection, ":", collectionLegs);
+        return collectionLegs;
+    }
+
+    function getLocationsForCollection(collection) {
+        const legs = getLegsForCollection(collection);
+        const locationIDs = new Set();
+        for (const leg of getLegsForCollection(collection)) {
+            locationIDs.add(leg.dep.id);
+            locationIDs.add(leg.arr.id);
+        }
+        const locations = [];
+        for (const id of locationIDs) {
+            locations.push(visits[id]);
+        }
+        console.log("Locations for collection", collection, ":", locations);
+        return locations;
+    }
+
+
     function getClusterMembers(poi_name) {
         const point = getPointForName(poi_name);
         var locations = [];
@@ -823,6 +912,18 @@ function loadJSON(url, callback) {
         }
         dashboard.renderCountry(regionName, regionVisits);
         toggleRoutesForSelectedVisits(regionLocationIDs, true, false);
+    }
+
+    function renderInfoForCollection(collection) {
+        console.log("Rendering info for collection", collection);
+        const locationIDs = new Set();
+        for (const leg of getLegsForCollection(collection)) {
+            locationIDs.add(leg.dep.id);
+            locationIDs.add(leg.arr.id);
+        }
+        console.log("Location IDs:", locationIDs);
+        dashboard.renderCollection(collection);
+        toggleRoutesForSelectedVisits([...locationIDs], true, false);
     }
 
     // Returns true if we needed to resize.

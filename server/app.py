@@ -50,8 +50,6 @@ def save_collection():
     collection = request.get_json()
     database.save_collection(collection)
     return request.data
-    #return user.save_user_data(json.loads(request.data))
-
 
 def main():
     app.run(port=1916)

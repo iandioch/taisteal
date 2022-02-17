@@ -31,7 +31,7 @@ def create_travel_map(config):
         return {
             'lat': loc['latitude'],
             'lng': loc['longitude'],
-            'id': loc['address'], # TODO(iandioch): Should use loc['id'] instead, once it is no longer user-visible.
+            'id': loc['id'],
             'address': loc['address'],
             'type': loc['type'], # eg. 'CLUSTER', 'STATION', 'TOWN'
             'region': loc['region'], # used to cluster close places, and to give names to those clusters.
@@ -102,9 +102,29 @@ def create_travel_map(config):
             'days': int(0.5 + location_visits[id_]['duration'].total_days()),
             'hours': max(1, int(0.5 + location_visits[id_]['duration'].total_hours())),
         })
+
+    # The travel map does not have access to individual leg_ids, so augment the
+    # legs in the collection with the dep_id and arr_id.
+    def get_collections_for_travel_map():
+        collections = get_collections()
+        leg_dict = {}
+        for leg in database.get_legs():
+            leg_dict[leg['id']] = leg
+        for collection in collections:
+            for part in collection['parts']:
+                if part['note']:
+                    continue
+                leg_id = part['leg_id']
+                dep_id = leg_dict[leg_id]['departure_location_id']
+                part['dep'] = id_to_location[dep_id]
+                arr_id = leg_dict[leg_id]['arrival_location_id']
+                part['arr'] = id_to_location[arr_id]
+        return collections
+
     data = {
         'legs': legs,
         'visits': visits + cluster.get_clusters(visits),
+        'collections': get_collections_for_travel_map(),
     }
     s = json.dumps(data, indent=4)
     return s
@@ -121,6 +141,7 @@ def log_leg(departure_query, departure_datetime, arrival_query, arrival_datetime
     except Exception as e:
         print(e, id_)
 
+# returns collections info in a vacuum. Collection legs reference leg_ids.
 def get_collections():
     collections = []
     for collection in database.get_collections():
@@ -160,6 +181,3 @@ def get_user_data():
         'locations': locations,
         'collections': get_collections(),
     }
-
-def save_user_data(data):
-    return
