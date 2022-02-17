@@ -121,12 +121,14 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                 <div v-for="part in parts" :key="part.position + part.leg_id" style="border: 1px solid #aaaaaa; margin: 0.5rem 0; display: inline-block; width: 100%; background-color: #aaa">
                     <span v-if="partType(part) == 'NOTE'">Note:<br><textarea style="width:100%" v-model="part.note"></textarea><br></span>
                     <span v-if="partType(part) == 'LEG'"><leg-picker v-model="part.leg_id"></leg-picker><br></span>
+                    <span v-if="partType(part) == 'IMAGE'"><input v-model="part.image_url" style="width: 100%"></input><img :src="part.image_url" style="width: 100%"></img><br></span>
                     <button style="float: right;" v-on:click="moveUp(part.position)" :disabled="part.position == 0">Move up</button>
                     <button style="float: right;" v-on:click="moveDown(part.position)" :disabled="part.position >= parts.length - 1">Move down</button>
                     <button style="float: right;" v-on:click="deletePart(part.position)">Delete part</button>
                 </div>
                 <button v-on:click="addNote()">Add note</button>
                 <button v-on:click="addLeg()">Add leg</button>
+                <button v-on:click="addImage()">Add image</button>
                 <button v-on:click="save()">Save collection</button>
             </div>
         </div>`,
@@ -135,12 +137,16 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                 if (part.note && part.note.length) {
                     return "NOTE";
                 }
+                if (part.image_url && part.image_url.length) {
+                    return "IMAGE";
+                }
                 return "LEG";
             },
             addNote: function() {
                 this.parts.push({
                     leg_id: null,
                     note: "note",
+                    image_url: null,
                     position: this.parts.length,
                 });
             },
@@ -148,6 +154,15 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                 this.parts.push({
                     leg_id: "",
                     note: null, 
+                    image_url: null,
+                    position: this.parts.length,
+                });
+            },
+            addImage: function() {
+                this.parts.push({
+                    leg_id: null,
+                    note: null, 
+                    image_url: "url",
                     position: this.parts.length,
                 });
             },

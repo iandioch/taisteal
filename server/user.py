@@ -110,7 +110,7 @@ def create_travel_map(config):
         for collection in collections:
             total_distance = 0
             for part in collection['parts']:
-                if part['note']:
+                if part['note'] or part['image_url']:
                     continue
                 leg_id = part['leg_id']
                 leg = database.get_leg(leg_id)

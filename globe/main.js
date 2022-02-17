@@ -339,16 +339,28 @@ function loadJSON(url, callback) {
             },
             template: `<div>
                 <p>Total distance travelled: <span class="fact">{{collection.meta.distance}}km</span></p>
-                <div v-for="part in collection.parts">
-                    <div v-if="part.note && part.note.length">
-                    {{part.note}}
+                <div v-for="part in collection.parts" stlye="margin-top: 1rem">
+                    <div v-if="partType(part) == 'NOTE'">
+                        {{part.note}}
                     </div>
-                    <div v-if="!(part.note && part.note.length)">
-                    <component :is="renderLeg(part)"></component>
+                    <div v-if="partType(part) == 'LEG'">
+                        <component :is="renderLeg(part)"></component>
+                    </div>
+                    <div v-if="partType(part) == 'IMAGE'">
+                        <img :src="part.image_url" style="max-width:100%;"></img>
                     </div>
                 </div>
             </div>`,
             methods: {
+                partType: function(part) {
+                    if (part.note && part.note.length) {
+                        return 'NOTE';
+                    }
+                    if (part.image_url && part.image_url.length) {
+                        return 'IMAGE';
+                    }
+                    return 'LEG';
+                },
                 modeVerb: function(mode) {
                     switch(mode) {
                         case 'AEROPLANE':

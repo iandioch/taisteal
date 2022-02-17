@@ -94,7 +94,8 @@ def _create_tables():
 
         /* Should have exactly one of leg_id or note set */
         leg_id text,
-        note text
+        note text,
+        image_url text
         )''')
     conn.close()
     print('Database tables created.')
@@ -280,6 +281,7 @@ def save_collection(collection):
     for position, part in enumerate(collection['parts']):
         leg_id = part['leg_id']
         note = part['note']
+        image_url = part['image_url']
         # TODO: verify that exactly one of (leg_id, note) is set
-        cursor.execute('INSERT INTO collection_parts(collection_id, position, leg_id, note) VALUES(?, ?, ?, ?)', (collection['id'], position, leg_id, note))
+        cursor.execute('INSERT INTO collection_parts(collection_id, position, leg_id, note, image_url) VALUES(?, ?, ?, ?, ?)', (collection['id'], position, leg_id, note, image_url))
     conn.commit()
