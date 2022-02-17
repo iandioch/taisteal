@@ -107,17 +107,16 @@ def create_travel_map(config):
     # legs in the collection with the dep_id and arr_id.
     def get_collections_for_travel_map():
         collections = get_collections()
-        leg_dict = {}
-        for leg in database.get_legs():
-            leg_dict[leg['id']] = leg
         for collection in collections:
             for part in collection['parts']:
                 if part['note']:
                     continue
                 leg_id = part['leg_id']
-                dep_id = leg_dict[leg_id]['departure_location_id']
+                leg = database.get_leg(leg_id)
+                part['leg'] = leg
+                dep_id = leg['departure_location_id']
+                arr_id = leg['arrival_location_id']
                 part['dep'] = id_to_location[dep_id]
-                arr_id = leg_dict[leg_id]['arrival_location_id']
                 part['arr'] = id_to_location[arr_id]
         return collections
 

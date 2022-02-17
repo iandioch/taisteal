@@ -44,7 +44,6 @@ function loadJSON(url, callback) {
             icon: function() {
                 // TODO(iandioch): It's dumb to get this point instead of just having a getVisitForID(this.id) func.
                 const visit = getPointForName(this.id).visit;
-                console.log(visit);
                 if (visit.location.type == 'TOWN' || visit.location.type == "TOWN_CLUSTER") {
                     return ['town.svg', 'Town by mapbox on svgrepo.com'];
                 } else if (visit.location.type == "STATION") {
@@ -339,19 +338,52 @@ function loadJSON(url, callback) {
                 }
             },
             template: `<div>
-                <div v-for="note in notes">{{note}}</div>
-                <poi-collection-dashboard :visits="visits"></poi-collection-dashboard>
+                <div v-for="part in collection.parts">
+                    <div v-if="part.note && part.note.length">
+                    {{part.note}}
+                    </div>
+                    <div v-if="!(part.note && part.note.length)">
+                    <component :is="renderLeg(part)"></component>
+                    </div>
+                </div>
             </div>`,
-            computed: {
-                notes: function() {
-                    const parts = [];
-                    for (const part of collection.parts) {
-                        if (part.note && part.note.length) {
-                            parts.push(part.note);
-                        }
+            methods: {
+                modeVerb: function(mode) {
+                    switch(mode) {
+                        case 'AEROPLANE':
+                            return 'Flew';
+                        case 'CAR':
+                            return 'Drove';
+                        case 'TRAIN':
+                            return 'Took a train';
+                        case 'BUS':
+                            return 'Took a bus';
+                        case 'TAXI':
+                            return 'Took a taxi';
+                        case 'BOAT':
+                            return 'Took a boat';
+                        default:
+                            console.log("No verb specified for mode", mode);
+                            return 'Travelled';
                     }
-                    return parts;
-                }
+                },
+                formatDatetime: function(datetime) {
+                    const date = new Date();
+                    date.setTime(Date.parse(datetime));
+                    return date.toLocaleString("en-IE");
+                },
+                renderLeg(part) {
+                    return {
+                        data: function() {
+                            return {
+                                part,
+                            }
+                        },
+                        template: `<div class="leg-description">
+                            ${this.modeVerb(part.leg.mode)} from <poi :text="part.dep.human_readable_name" :id="part.dep.id"></poi> (${this.formatDatetime(part.leg.departure_datetime)}) to <poi :text="part.arr.human_readable_name" :id="part.arr.id"></poi> (${this.formatDatetime(part.leg.arrival_datetime)}).
+                        </div>`
+                    }
+                },
             },
         }
     }
@@ -846,16 +878,13 @@ function loadJSON(url, callback) {
         const collectionLegs = [];
         for (const part of collection.parts) {
             if (part.leg_id) {
-                console.log("part", part, "is leg.");
                 for (const leg of legs) {
-                    console.log(leg);
                     if (part.dep.id == leg.dep.id && part.arr.id == leg.arr.id) {
                         collectionLegs.push(leg);
                     }
                 }
             }
         }
-        console.log("Legs for collection", collection, ":", collectionLegs);
         return collectionLegs;
     }
 
@@ -870,7 +899,6 @@ function loadJSON(url, callback) {
         for (const id of locationIDs) {
             locations.push(visits[id]);
         }
-        console.log("Locations for collection", collection, ":", locations);
         return locations;
     }
 

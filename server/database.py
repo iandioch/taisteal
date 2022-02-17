@@ -227,6 +227,16 @@ def get_legs():
         d['arrival_datetime'] = pendulum.parse(d['arrival_datetime'])
         yield d
 
+def get_leg(id_):
+    conn, cursor = _connect()
+    args = (id_,)
+    cursor.execute("SELECT * FROM legs WHERE id=? LIMIT 1", args)
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return {col: row[col] for col in row.keys()}
+
 def get_collections():
     conn, cursor = _connect()
     cursor.execute('''
