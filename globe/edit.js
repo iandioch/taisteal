@@ -31,11 +31,16 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
 			id: String,
 			departure_id: String,
 			arrival_id: String,
+            highlighted: {
+                type: Boolean,
+                default: false,
+            },
 		},
-        template: `<div class="leg" style="margin: 1rem 0; border: 1px solid #000000; padding: 0.5rem">
+        template: `<div class="leg" :style="'margin: 1rem 0; border: 1px solid #000000; padding: 0.5rem; background-color:' + (highlighted ? '#ffeeee' : '#ffffff')">
             <b style="font-family: monospace">{{id}}</b><br>
             Departure: <i>{{departure_address}}</i><br>
             Arrival: <i>{{arrival_address}}</i>
+            <div><slot></slot></div>
         </div>`,
         computed: {
             departure_address: function() {
@@ -46,6 +51,49 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
             },
         }
 	});
+
+    Vue.component('leg-picker', {
+        props: ['value'],
+        data: function() {
+            return {
+                leg_id: this.value,
+                dialogOpened: false,
+            }
+        },
+        template: `<div>
+        <div v-if="selectedLeg"><p>Leg <span style="font-family: monospace; font-weight: bold">{{leg_id}}</span></p>
+        <leg :id="selectedLeg.id" :departure_id="selectedLeg.departure_id" :arrival_id="selectedLeg.arrival_id" highlighted="true"></leg></div>
+        <button v-on:click="toggleDialog()">Select a leg</button>
+        <div v-if="dialogOpened">
+            <div v-for="leg in legs">
+                <leg :id="leg.id" :departure_id="leg.departure_id" :arrival_id="leg.arrival_id" :highlighted="leg.id == leg_id">
+                    <button v-on:click="select(leg.id)">Select</button>
+                </leg>
+            </div>
+        </div>
+        </div>`,
+        computed: {
+            legs: function() {
+                return data.legs;
+            },
+            selectedLeg: function() {
+                for (const leg of this.legs) {
+                    if (leg.id == this.leg_id) return leg;
+                }
+                return null;
+            }
+        },
+        methods: {
+            select: function(leg_id) {
+                this.leg_id = leg_id;
+                this.dialogOpened = false;
+                this.$emit('input', this.leg_id);
+            },
+            toggleDialog: function() {
+                this.dialogOpened = !this.dialogOpened;
+            }
+        }
+    });
 
     Vue.component('collection', {
         props: {
@@ -65,19 +113,33 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
         template: `<div class="leg" style="margin: 1rem 0; border: 1px solid #000000; padding: 0.5rem">
             <b style="font-family: monospace">{{id}}</b>
             <br>Title: <input v-model="title"></input>
-            <div v-for="part in parts" style="border: 1px solid #aaaaaa">
-                Note: <input v-model="part.note"></input><br>
-                Leg ID: <input v-model="part.leg_id"></input><br>
+            <div v-for="part in parts" style="border: 1px solid #aaaaaa; margin: 1rem;">
+                <span v-if="partType(part) == 'NOTE'">Note: <input v-model="part.note"></input><br></span>
+                <span v-if="partType(part) == 'LEG'"><leg-picker v-model="part.leg_id"></leg-picker><br></span>
                 <button v-on:click="deletePart(part.position)">Delete part</button>
             </div>
-            <button v-on:click="addPart()">Add part</button>
+            <button v-on:click="addNote()">Add note</button>
+            <button v-on:click="addLeg()">Add leg</button>
             <button v-on:click="save()">Save collection</button>
         </div>`,
         methods: {
-            addPart: function() {
+            partType: function(part) {
+                if (part.note && part.note.length) {
+                    return "NOTE";
+                }
+                return "LEG";
+            },
+            addNote: function() {
                 this.parts.push({
                     leg_id: null,
-                    note: null,
+                    note: "note",
+                    position: this.parts.length,
+                });
+            },
+            addLeg: function() {
+                this.parts.push({
+                    leg_id: "",
+                    note: null, 
                     position: this.parts.length,
                 });
             },
