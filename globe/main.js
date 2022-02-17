@@ -804,6 +804,14 @@ function loadJSON(url, callback) {
                 drawRaisedArc(latLngToVector(leg.dep.lat, leg.dep.lng), latLngToVector(midpoint[0], midpoint[1], controlPointHeight), latLngToVector(leg.arr.lat, leg.arr.lng), smoothness, 3, 0xFFFFFF, leg);
             }
             dashboard.loadData(data);
+
+            if (urlParams.has("collection")) {
+                for (const collection of collections) {
+                    if (collection.id == urlParams.get("collection")) {
+                        renderInfoForCollection(collection);
+                    }
+                }
+            }
         });
     }
     loadTravelMap('/taisteal/api/travel_map');
