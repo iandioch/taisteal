@@ -129,14 +129,14 @@ function loadJSON(url, callback) {
     // TODO(iandioch): It might be easier to have separate components for clusters vs. individual POIs, instead of wrapping everything in ifs.
     Vue.component('poi-visit-dashboard', {
         props: {
-            visits: Array, // One (or more, if poi is a cluster) names of places
+            visits: Array, // One (or more, if poi is a cluster) visit objs. 
             poi: Object, // a single visitObj
         },
         template: `<div>
             <div class="poi-list">
-                <p v-if="visits.length > 1">This cluster is composed of multiple adjacent places:<br><span v-for="poi in visits"><poi :text="poi" :id="poi"></poi> </span><br>in <span v-for="country in countries"><country :id="country.code" :text="country.name"></country></span></p>
-                <p v-if="poi.location.type != 'CLUSTER'"><poi :text="poi.location.id" :id="poi.location.id"></poi> is {{humanReadableType}} in <region :name="regions[0].name" :country="regions[0].country"></region> in <country :id="countries[0].code" :text="countries[0].name"></country></p>
-                <p v-if="poi.hasOwnProperty('cluster')">This is a part of <poi :text="poi.cluster" :id="poi.cluster"></poi></p>
+                <p v-if="visits.length > 1">This cluster is composed of multiple adjacent places:<br><span v-for="poi in visits"><poi :text="poi.location.human_readable_name" :id="poi.location.id"></poi> </span><br>in <span v-for="country in countries"><country :id="country.code" :text="country.name"></country></span></p>
+                <p v-if="poi.location.type != 'CLUSTER'"><poi :text="poi.location.human_readable_name" :id="poi.location.id"></poi> is {{humanReadableType}} in <region :name="regions[0].name" :country="regions[0].country"></region> in <country :id="countries[0].code" :text="countries[0].name"></country></p>
+                <p v-if="poi.hasOwnProperty('cluster')">This is a part of <poi text="a cluster" :id="poi.cluster"></poi></p>
                 <p><span v-for="region in regions"><region :name="region.name" :country="region.country"></region></span></p>
             </div>
             <p>Number of visits: {{poi.num_visits}}</p>
@@ -147,7 +147,7 @@ function loadJSON(url, callback) {
                 var seenCountries = new Set();
                 var results = [];
                 for (let i in this.visits) {
-                    const visit = visits[this.visits[i]];
+                    const visit = this.visits[i];
                     if (seenCountries.has(visit.location.country)) continue;
 
                     seenCountries.add(visit.location.country);
@@ -163,7 +163,7 @@ function loadJSON(url, callback) {
                 var seenRegions = new Set();
                 var results = [];
                 for (let i in this.visits) {
-                    const visit = visits[this.visits[i]]
+                    const visit = this.visits[i];
                     if (seenRegions.has(visit.location.region)) continue;
 
                     seenRegions.add(visit.location.region);
@@ -198,7 +198,7 @@ function loadJSON(url, callback) {
         template:`<div>
             <div class="poi-list">
                 <span v-for="poi in visits"><poi :text="poi[0]" :id="poi[1]"></poi></span>
-                <p>Stayed here for {{hours}} hours ({{days}} days).</p>
+                <p>Stayed in these places for {{hours}} hours ({{days}} days) total.</p>
             </div>
         </div>`,
         computed: {
@@ -764,10 +764,10 @@ function loadJSON(url, callback) {
     loadTravelMap('/taisteal/api/travel_map');
 
     // Make semitransparent most plcaes except the one the user just clicked on.
-    function toggleRoutesForSelectedVisits(visitNames, showLegs = true, showConnectedLocations = true) {
-        const visitSet = new Set(visitNames);
+    function toggleRoutesForSelectedVisits(locationIDs, showLegs = true, showConnectedLocations = true) {
+        const visitSet = new Set(locationIDs);
         // Build up a set of everywhere that shares a leg with these visitNames.
-        const connectedVisitSet = new Set(visitNames);
+        const connectedVisitSet = new Set(locationIDs);
         for (let i in arcGroup.children) {
             const arc = arcGroup.children[i];
             const leg = arc.userData.leg;
@@ -819,10 +819,14 @@ function loadJSON(url, callback) {
         }
     }
 
-    function getPointForName(poi_name) {
+    // TODO: Rename, because it has nothing to do with the name of a location
+    // anymore.
+    function getPointForName(location_id) {
+        // TODO: it'd be more useful to just return here visits[location_id].
+        // Check if anything actually needs the point obj.
         for (let i in pointGroup.children) {
             const point = pointGroup.children[i];
-            if (point.visit.location.id == poi_name) return point;
+            if (point.visit.location.id == location_id) return point;
         }
         return null;
     }
@@ -860,32 +864,33 @@ function loadJSON(url, callback) {
     }
 
 
-    function getClusterMembers(poi_name) {
-        const point = getPointForName(poi_name);
+    function getClusterMembers(location_id) {
+        const point = getPointForName(location_id);
         var locations = [];
         if (point.isCluster || point.isTownCluster) {
             const clusterName = point.visit.location.id;
             for (let i in visits) {
-                if (visits[i].hasOwnProperty("cluster") && (visits[i].cluster == clusterName)) {
+                if (visits[i].hasOwnProperty("cluster") && (visits[i].cluster == location_id)) {
                     const members = getClusterMembers(visits[i].location.id);
-                    //locations.push(visits[i].location.id);
                     locations.push(...members);
                 }
             }
         } else {
             locations.push(point.visit.location.id);
         }
-        console.log("cluster members for " + poi_name);
-        console.log(locations);
         return locations;
     }
 
-    function renderInfoForPOI(poi_name) {
-        console.log("Rendering info for clicked point: ", poi_name);
-        const point = getPointForName(poi_name);
-        const locations = getClusterMembers(poi_name);;
+    function renderInfoForPOI(location_id) {
+        console.log("Rendering info for clicked point: ", location_id);
+        const point = getPointForName(location_id);
+        const locations = getClusterMembers(location_id);
+        const locationObjs = [];
+        for (const loc of locations) {
+            locationObjs.push(visits[loc]);
+        }
         toggleRoutesForSelectedVisits(locations);
-        dashboard.renderPOI(point, locations);
+        dashboard.renderPOI(point, locationObjs);
         lookAt(point.visit.location.lat, point.visit.location.lng, getCameraDistance());
 
     }
