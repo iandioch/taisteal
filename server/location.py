@@ -40,3 +40,4 @@ def id_for_query(query, config):
 
     location_data = location_database_utils.create_locations_row_for_lookup(parsed_result)
     database.save_location(id_, location_data)
+    return id_

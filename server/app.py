@@ -6,6 +6,7 @@ from math import radians, asin, sqrt, cos, sin
 
 import cluster
 import database
+import location
 import user
 
 import pendulum
@@ -47,6 +48,16 @@ def save_collection():
     collection = request.get_json()
     database.save_collection(collection)
     return request.data
+
+@app.route('/api/get_location_id', methods=['GET'])
+def serve_get_location_query():
+    private_key = config['private_key']
+    if request.args.get('key') != private_key:
+        return {}
+    id_ = location.id_for_query(request.args.get('query'), config)
+    return json.dumps({
+        'id': id_,
+    })
 
 def main():
     app.run(port=1916)
