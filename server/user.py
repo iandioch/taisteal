@@ -9,6 +9,9 @@ import location
 
 import pendulum
 
+_CACHED_MAP_DATA = None
+_NEED_TO_REFRESH_CACHE = False
+
 def _log_legs_from_csv(csv_path, config):
     CSV_COLUMNS = ['from_loc', 'from_date', 'to_loc', 'to_date', 'mode']
     with open(csv_path) as f:
@@ -138,6 +141,13 @@ def create_travel_map(config):
     }
     s = json.dumps(data, indent=4)
     return s
+
+def serve_travel_map(config):
+    global _CACHED_MAP_DATA
+    if (not _CACHED_MAP_DATA) or _NEED_TO_REFRESH_CACHE:
+        print('No cached map, creating one.')
+        _CACHED_MAP_DATA = create_travel_map(config)
+    return _CACHED_MAP_DATA 
 
 def log_leg(departure_query, departure_datetime, arrival_query, arrival_datetime, mode, config):
     def _create_leg_id():

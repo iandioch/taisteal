@@ -26,7 +26,7 @@ def serve_root():
 @app.route('/api/travel_map', methods=['GET'])
 def serve_travel_map():
     start_time = time.time()
-    resp = user.create_travel_map(config)
+    resp = user.serve_travel_map(config)
     end_time = time.time()
     print('Time to serve request {0:.10f} seconds.'.format(end_time - start_time))
     return resp
