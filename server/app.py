@@ -73,6 +73,18 @@ def serve_get_location_query():
         'location': location_resp,
     })
 
+@app.route('/api/save_leg', methods=['POST'])
+def save_leg():
+    private_key = config['private_key']
+    if request.args.get('key') != private_key:
+        return {}
+    leg = request.get_json()
+
+    print('APP: Logging leg: {}'.format(json.dumps(leg)))
+    user.log_leg(leg['departure_query'], leg['departure_datetime'], leg['arrival_query'], leg['arrival_datetime'], leg['mode'], config)
+    return request.data
+
+
 def main():
     app.run(port=1916)
 

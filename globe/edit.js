@@ -158,7 +158,7 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
         methods: {
             submit: function() {
                 if (isNaN(Date.parse(this.datetime_str))) {
-                    console.alert('Could not parse date string.');
+                    window.alert('Could not parse date string.');
                     return;
                 }
                 this.$emit('submit', new Date(this.datetime_str));
@@ -261,6 +261,13 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                     'mode': this.mode,
                 };
                 console.log("Saving:\n" + JSON.stringify(leg_data));
+                var request = new XMLHttpRequest;
+                request.open('POST', '/taisteal/api/save_leg?key=' + privateKey);
+                request.setRequestHeader('Content-type', 'application/json');
+                request.send(JSON.stringify(leg_data));
+                request.onload = function() {
+                    alert(request.responseText);
+                }
             }
         }
     });
