@@ -189,10 +189,13 @@ def get_user_data():
 
     legs = []
     for leg in database.get_legs():
+        print(leg)
         legs.append({
             'id': leg['id'],
             'arrival_id': leg['arrival_location_id'],
             'departure_id': leg['departure_location_id'],
+            'arrival_datetime_str': leg['arrival_datetime'].isoformat(),
+            'departure_datetime_str': leg['departure_datetime'].isoformat(),
         })
         _maybe_add_location(leg['arrival_location_id'])
         _maybe_add_location(leg['departure_location_id'])
