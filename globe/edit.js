@@ -26,31 +26,76 @@ function loadJSON(url, callback) {
 
 loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
     console.log(data);
-	Vue.component('leg', {
-		props: {
-			id: String,
-			departure_id: String,
-			arrival_id: String,
+    Vue.component('leg', {
+        props: {
+            id: String,
+            departure_id: String,
+            arrival_id: String,
             highlighted: {
                 type: Boolean,
                 default: false,
             },
-		},
+        },
         template: `<div class="leg" :style="'font-size: 0.75rem; margin: 0; border: 1px solid #000000; padding: 0.5rem; background-color:' + (highlighted ? '#ffeeee' : '#ffffff')">
             <b style="font-family: monospace">{{id}}</b><br>
-            Departure: <i>{{departure_address}}</i><br>
-            Arrival: <i>{{arrival_address}}</i>
+            Departure: <location :location_id="this.departure_id"></location><br>
+            Arrival: <location :location_id="this.arrival_id"></location>
             <div><slot></slot></div>
         </div>`,
+    });
+
+    Vue.component('location', {
+        props: {
+            location_id: String,
+        },
+        data: function() {
+            return {
+                loading: false,
+            }
+        },
+        template: `<span class="location">
+            <span v-if="loading">Loading location data</span>
+            <span v-if="!loading">
+            <b>{{name}}</b> ({{coordinates}})<br>
+            <i>{{address}}</i>
+            </span>
+            </span>`,
         computed: {
-            departure_address: function() {
-                return data['locations'][this.departure_id]['address'];
+            location_data: function() {
+                if (data['locations'].hasOwnProperty(this.location_id)) {
+                    this.loading = false;
+                    return data['locations'][this.location_id];
+                }
+                this.loading = true;
+                loadJSON(`/taisteal/api/get_location?key=${privateKey}&id=${this.location_id}`, (resp) => {
+                    data['locations'][this.location_id] = resp;
+                    this.loading = false;
+                });
+                return {}
             },
-            arrival_address: function() {
-                return data['locations'][this.arrival_id]['address'];
+            name: function() {
+                return this.location_data['name'];
             },
+            address: function() {
+                return this.location_data['address'];
+            },
+            coordinates: function() {
+                return `${this.location_data['latitude']}, ${this.location_data['longitude']}`;
+            }
         }
-	});
+    });
+
+    Vue.component('location-picker', {
+        data: function() {
+
+        },
+    });
+
+    Vue.component('leg-creator', {
+        props: {},
+        template: ``,
+        computed: {}
+    });
 
     Vue.component('leg-picker', {
         props: ['value'],
