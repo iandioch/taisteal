@@ -101,7 +101,7 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                 console.log(`No data found for ID ${this.location_id}, loading.`);
                 this.loading = true;
                 loadJSON(`/taisteal/api/get_location?key=${privateKey}&id=${this.location_id}`, (resp) => {
-                    console.log(`Received data for ID {$this.location_id}: ${JSON.stringify(resp)}`);
+                    console.log(`Received data for ID ${this.location_id}: ${JSON.stringify(resp)}`);
                     data['locations'][this.location_id] = resp['location'];
                     this.loading = false;
                 });
@@ -135,6 +135,37 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
         }
     });
 
+    Vue.component('datetime-picker', {
+        data: function() {
+            return {
+                datetime_str: (new Date()).toISOString(),
+            }
+        },
+        template: `<div>
+            {{parsed_datetime_str}}<br>
+            <input size='40' v-model="datetime_str"/>
+            <button @click="submit">Submit</button>
+            </div>`,
+        computed: {
+            parsed_datetime_str: function() {
+                const parsed = new Date(this.datetime_str);
+                if (isNaN(parsed)) {
+                    return 'invalid';
+                }
+                return parsed.toLocaleString();
+            }
+        },
+        methods: {
+            submit: function() {
+                if (isNaN(Date.parse(this.datetime_str))) {
+                    console.alert('Could not parse date string.');
+                    return;
+                }
+                this.$emit('submit', new Date(this.datetime_str));
+            }
+        }
+    });
+
     Vue.component('location-creator', {
         data: function() {
             return {
@@ -142,7 +173,7 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
             }
         },
         template: `<div>
-            <input type="text" v-model="query"/>
+            <input size=80 type="text" v-model="query"/>
             <button v-on:click="performQuery(query)">Select</button>
         </div>`,
         methods: {
@@ -161,28 +192,75 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
             return {
                 departure_location_id: undefined,
                 departure_location_query: undefined,
+                departure_datetime: undefined,
                 arrival_location_id: undefined,
                 arrival_location_query: undefined,
+                arrival_datetime: undefined,
+                mode: "TRAIN",
             }
         },
-        template: `<div>
-            <div v-if="!departure_location_id">
-            Departure:
-            <p>{{departure_location_id}}</p>
-            <p>{{departure_location_query}}</p>
-            <location-creator @load="(query, id_) => {departure_location_id = id_; departure_location_query = query;}"></location-creator>
+        template: `<div class="leg" style="font-size: 0.75rem; margin: 0; border: 1px solid #000000; padding: 0.5rem; background-color:#ffeeee">
+            Departure:<br>
+            <location-creator v-if="this.stage == 0" @load="(query, id_) => {departure_location_id = id_; departure_location_query = query;}"></location-creator>
+            <location v-else :location_id="departure_location_id"></location>
+            <br>
+
+            <datetime-picker v-if="this.stage == 1" @submit="(datetime) => {departure_datetime = datetime; }"></datetime-picker>
+            <datetime v-if="this.stage > 1" :datetime="departure_datetime"></datetime>
+            <br>
+
+            <div v-if="this.stage >= 2">Arrival:<br>
+            <location-creator v-if="this.stage == 2" @load="(query, id_) => {arrival_location_id = id_; arrival_location_query = query;}"></location-creator>
+            <location v-if="this.stage > 2" :location_id="arrival_location_id"></location>
+            <br>
             </div>
-            <div v-if="departure_location_id">
-            Departure:
-            <location :location_id="departure_location_id"></location>
-            Arrival:
-            <location-creator @load="(query, id_) => {arrival_location_id = id_; arrival_location_query = query;}"></location-creator>
-            <location :location_id="arrival_location_id"></location>
+
+            <datetime-picker v-if="this.stage == 3" @submit="(datetime) => {arrival_datetime = datetime; }"></datetime-picker>
+            <datetime v-if="this.stage > 3" :datetime="arrival_datetime"></datetime>
+            <br>
+            <select v-if="this.stage >= 4" required name="mode" v-model="mode">
+                <option value="AEROPLANE">Aeroplane</option>
+                <option value="TRAIN">Train</option>
+                <option value="BUS">Bus</option>
+                <option value="CAR">Car</option>
+                <option value="BICYCLE">Bicycle</option>
+                <option value="TAXI">Taxi</option>
+                <option value="MINIBUS">Minibus</option>
+                <option value="BOAT">Boat</option>
+                <option value="WALK">Walking</option>
+                <option value="GONDOLA">Gondola</option>
+            </select>
+
+            <button v-if="this.stage >= 4" @click="save">Log leg</button>
             </div>
         </div>`,
+        computed: {
+            stage: function() {
+                if (!this.departure_location_id) {
+                    return 0;
+                }
+                if (!this.departure_datetime) {
+                    return 1;
+                }
+                if (!this.arrival_location_id) {
+                    return 2;
+                }
+                if (!this.arrival_datetime) {
+                    return 3;
+                }
+                return 4;
+            }
+        },
         methods: {
             save: function() {
-                console.log("Saving");
+                const leg_data = {
+                    'departure_query': this.departure_location_query,
+                    'departure_datetime': this.departure_datetime.toISOString(),
+                    'arrival_query': this.arrival_location_query,
+                    'arrival_datetime': this.arrival_datetime.toISOString(),
+                    'mode': this.mode,
+                };
+                console.log("Saving:\n" + JSON.stringify(leg_data));
             }
         }
     });
