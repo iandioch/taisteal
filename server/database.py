@@ -110,6 +110,7 @@ def regenerate_tables():
     conn, cursor = _connect()
     cursor.execute('DELETE FROM location_query_to_id')
     cursor.execute('DELETE FROM locations')
+    cursor.execute('DELETE FROM legs')
     conn.commit()
     cursor.execute('SELECT * FROM location_lookups')
     for lookup in cursor.fetchall():
@@ -119,6 +120,7 @@ def regenerate_tables():
         cursor.execute('INSERT INTO location_query_to_id(query, id) VALUES(?, ?)', args)
     conn.commit()
 
+    # Regenerate "locations" table ID->data from (query->lookup data) and (query->ID)
     cursor.execute('''
     SELECT
         location_query_to_id.id,
@@ -138,6 +140,31 @@ def regenerate_tables():
         location_data = location_database_utils.create_locations_row_for_lookup(parsed_lookup_result)
         args = (id_, location_data['address'], location_data['name'], location_data['latitude'], location_data['longitude'], location_data['country_name'], location_data['country_code'], location_data['type'], location_data['region'])
         cursor.execute('INSERT INTO locations(id, address, name, latitude, longitude, country_name, country_code, type, region) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)', args)
+    conn.commit()
+
+    # Regenerate "legs" table from "logged_legs" with new location IDs.
+    cursor.execute('''
+    SELECT
+        logged_legs.id,
+        logged_legs.departure_datetime,
+        logged_legs.arrival_datetime,
+        logged_legs.mode,
+        departure_location.id as departure_location_id,
+        arrival_location.id as arrival_location_id
+    FROM logged_legs
+    LEFT OUTER JOIN
+        location_query_to_id AS departure_location
+    ON
+        departure_location.query = logged_legs.departure_query
+    LEFT OUTER JOIN
+        location_query_to_id AS arrival_location
+    ON
+        arrival_location.query = logged_legs.arrival_query
+    ''')
+    for lookup in cursor.fetchall():
+        args = (lookup['id'], lookup['departure_location_id'], lookup['departure_datetime'], lookup['arrival_location_id'], lookup['arrival_datetime'], lookup['mode'])
+        cursor.execute('INSERT INTO legs(id, departure_location_id, departure_datetime, arrival_location_id, arrival_datetime, mode) VALUES(?, ?, ?, ?, ?, ?)', args)
+
     conn.commit()
     conn.close()
     end_time = time.time()
