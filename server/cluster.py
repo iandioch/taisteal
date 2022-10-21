@@ -42,7 +42,7 @@ def add_location_to_cluster(cluster, v):
 def get_local_clusters(visits, cluster_threshold_km=15):
     # TODO(iandioch): Disabled for now, should later create unique CLUSTER
     # points instead of changing TOWNs to TOWN_CLUSTER.
-    return 
+    return
     town_pos_set = set()
     for i, v in enumerate(visits):
         if v['location']['type'] == 'TOWN':

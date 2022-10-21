@@ -174,8 +174,6 @@ def get_collections():
         for part in database.get_collection_parts(id_):
             obj['parts'].append(part)
         collections.append(obj)
-    print('result of user.get_collections():')
-    print(collections)
     return collections
 
 def get_user_data():
