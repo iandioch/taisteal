@@ -50,13 +50,27 @@ def save_collection():
     return request.data
 
 @app.route('/api/get_location_id', methods=['GET'])
+def serve_get_location_id_query():
+    private_key = config['private_key']
+    if request.args.get('key') != private_key:
+        return {}
+
+    print('Getting ID for query {}'.format(request.args.get('query')))
+    id_ = location.id_for_query(request.args.get('query'), config)
+    return json.dumps({
+        'id': id_,
+    })
+
+@app.route('/api/get_location', methods=['GET'])
 def serve_get_location_query():
     private_key = config['private_key']
     if request.args.get('key') != private_key:
         return {}
-    id_ = location.id_for_query(request.args.get('query'), config)
+    id_ = request.args.get('id')
+    print('Getting location data for ID {}'.format(id_))
+    location_resp = database.get_location(id_)
     return json.dumps({
-        'id': id_,
+        'location': location_resp,
     })
 
 def main():

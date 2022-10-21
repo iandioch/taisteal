@@ -31,6 +31,8 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
             id: String,
             departure_id: String,
             arrival_id: String,
+            departure_datetime_str: String,
+            arrival_datetime_str: String,
             highlighted: {
                 type: Boolean,
                 default: false,
@@ -38,10 +40,26 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
         },
         template: `<div class="leg" :style="'font-size: 0.75rem; margin: 0; border: 1px solid #000000; padding: 0.5rem; background-color:' + (highlighted ? '#ffeeee' : '#ffffff')">
             <b style="font-family: monospace">{{id}}</b><br>
-            Departure: <location :location_id="this.departure_id"></location><br>
-            Arrival: <location :location_id="this.arrival_id"></location>
+            Departure:<br>
+            <location :location_id="this.departure_id"></location><br>
+            <datetime :datetime="departure_datetime"></datetime><br>
+            Arrival:<br>
+            <location :location_id="this.arrival_id"></location><br>
+            <datetime :datetime="arrival_datetime"></datetime><br>
+            Leg duration: {{duration_hours}} hours.<br>
             <div><slot></slot></div>
         </div>`,
+        computed: {
+            departure_datetime: function() {
+                return new Date(this.departure_datetime_str);
+            },
+            arrival_datetime: function() {
+                return new Date(this.arrival_datetime_str);
+            },
+            duration_hours: function() {
+                return (this.arrival_datetime - this.departure_datetime) / (60*60*1000);
+            }
+        }
     });
 
     Vue.component('location', {
@@ -51,6 +69,12 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
         data: function() {
             return {
                 loading: false,
+                default_location_data: {
+                    'name': 'Loading...',
+                    'address': 'Loading....',
+                    'latitude': 0.001,
+                    'longitude': 0.002,
+                }
             }
         },
         template: `<span class="location">
@@ -62,16 +86,27 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
             </span>`,
         computed: {
             location_data: function() {
+                // This usage of this.loading forces this property to recompute on the variable's change.
+                this.loading;
+
+                // If for whatever reason this component is initialised with bad data, don't try to look it up.
+                if (!this.location_id) {
+                    this.loading = true;
+                    return this.default_location_data;
+                }
                 if (data['locations'].hasOwnProperty(this.location_id)) {
                     this.loading = false;
                     return data['locations'][this.location_id];
                 }
+                console.log(`No data found for ID ${this.location_id}, loading.`);
                 this.loading = true;
                 loadJSON(`/taisteal/api/get_location?key=${privateKey}&id=${this.location_id}`, (resp) => {
-                    data['locations'][this.location_id] = resp;
+                    console.log(`Received data for ID {$this.location_id}: ${JSON.stringify(resp)}`);
+                    data['locations'][this.location_id] = resp['location'];
                     this.loading = false;
                 });
-                return {}
+                // This data won't be user-visible.
+                return this.default_location_data;
             },
             name: function() {
                 return this.location_data['name'];
@@ -81,20 +116,75 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
             },
             coordinates: function() {
                 return `${this.location_data['latitude']}, ${this.location_data['longitude']}`;
+            },
+        }
+    });
+
+    Vue.component('datetime', {
+        props: {
+            datetime: Date,
+        },
+        template: `<span>{{datetime_str}}</span>`,
+        computed: {
+            datetime_str: function() {
+                var locale = window.navigator.userLanguage||window.navigator.language;
+                // Chrome gives US-style dates for "ga" locale...
+                if (locale == "ga") locale = "en-IE";
+                return this.datetime.toLocaleString(locale);
             }
         }
     });
 
-    Vue.component('location-picker', {
+    Vue.component('location-creator', {
         data: function() {
-
+            return {
+                query: 'Krakow',
+            }
         },
+        template: `<div>
+            <input type="text" v-model="query"/>
+            <button v-on:click="performQuery(query)">Select</button>
+        </div>`,
+        methods: {
+            performQuery: function(queryString) {
+                loadJSON('/taisteal/api/get_location_id?key=' + privateKey + '&query=' + encodeURIComponent(queryString), (resp) => {
+                    console.log(resp);
+                    const id_ = resp['id'];
+                    this.$emit('load', this.query, id_);
+                });
+            }
+        }
     });
 
     Vue.component('leg-creator', {
-        props: {},
-        template: ``,
-        computed: {}
+        data: function () {
+            return {
+                departure_location_id: undefined,
+                departure_location_query: undefined,
+                arrival_location_id: undefined,
+                arrival_location_query: undefined,
+            }
+        },
+        template: `<div>
+            <div v-if="!departure_location_id">
+            Departure:
+            <p>{{departure_location_id}}</p>
+            <p>{{departure_location_query}}</p>
+            <location-creator @load="(query, id_) => {departure_location_id = id_; departure_location_query = query;}"></location-creator>
+            </div>
+            <div v-if="departure_location_id">
+            Departure:
+            <location :location_id="departure_location_id"></location>
+            Arrival:
+            <location-creator @load="(query, id_) => {arrival_location_id = id_; arrival_location_query = query;}"></location-creator>
+            <location :location_id="arrival_location_id"></location>
+            </div>
+        </div>`,
+        methods: {
+            save: function() {
+                console.log("Saving");
+            }
+        }
     });
 
     Vue.component('leg-picker', {
@@ -108,11 +198,11 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
         template: `<div>
         <div style="display: inline-block; width:100%;">
         <div v-if="selectedLeg">
-            <leg :id="selectedLeg.id" :departure_id="selectedLeg.departure_id" :arrival_id="selectedLeg.arrival_id" :highlighted="true"></leg></div>
+            <leg :id="selectedLeg.id" :departure_id="selectedLeg.departure_id" :arrival_id="selectedLeg.arrival_id" :departure_datetime_str="selectedLeg.departure_datetime_str" :arrival_datetime_str="selectedLeg.arrival_datetime_str" :highlighted="true"></leg></div>
         </div>
         <div v-if="dialogOpened">
             <div v-for="leg in legs">
-                <leg :id="leg.id" :departure_id="leg.departure_id" :arrival_id="leg.arrival_id" :highlighted="leg.id == leg_id">
+                <leg :id="leg.id" :departure_id="leg.departure_id" :arrival_id="leg.arrival_id" :departure_datetime_str="selectedLeg.departure_datetime_str" :arrival_datetime_str="selectedLeg.arrival_datetime_str" :highlighted="leg.id == leg_id">
                     <button v-on:click="select(leg.id)">Select</button>
                 </leg>
             </div>
@@ -257,7 +347,8 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
         template: `<div style="max-width: 1000px">
             <button v-on:click="toggleLegListVisibility()">Show/hide legs</button>
             <div id="leg-list" style="display: none">
-                <leg v-for="leg in legs" :id="leg.id" :departure_id="leg.departure_id" :arrival_id="leg.arrival_id"></leg>
+                <leg-creator></leg-creator>
+                <leg v-for="leg in legs" :id="leg.id" :departure_id="leg.departure_id" :arrival_id="leg.arrival_id" :departure_datetime_str="leg.departure_datetime_str" :arrival_datetime_str="leg.arrival_datetime_str"></leg>
             </div>
             <br>
             <button v-on:click="createCollection()">Create new collection</button>
