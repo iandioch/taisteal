@@ -135,11 +135,11 @@ function loadJSON(url, callback) {
             <div class="poi-list">
                 <p v-if="visits.length > 1">This cluster is composed of multiple adjacent places:<br><span v-for="poi in visits"><poi :text="poi.location.human_readable_name" :id="poi.location.id"></poi> </span><br>in <span v-for="country in countries"><country :id="country.code" :text="country.name"></country></span></p>
                 <p v-if="poi.location.type != 'CLUSTER'"><poi :text="poi.location.human_readable_name" :id="poi.location.id"></poi> is {{humanReadableType}} in <region :name="regions[0].name" :country="regions[0].country"></region> in <country :id="countries[0].code" :text="countries[0].name"></country></p>
-                <p v-if="poi.hasOwnProperty('cluster')">This is a part of <poi text="a cluster" :id="poi.cluster"></poi></p>
-                <p><span v-for="region in regions"><region :name="region.name" :country="region.country"></region></span></p>
+                <!--p v-if="poi.hasOwnProperty('cluster')">This is a part of <poi text="a cluster" :id="poi.cluster"></poi></p-->
+                <p v-if="poi.location.type == 'CLUSTER'">Contains visits to region(s): <span v-for="region in regions"><region :name="region.name" :country="region.country"></region></span></p>
             </div>
             <p>Number of visits: {{poi.num_visits}}</p>
-            <p>Total time visited: {{poi.days > 0 ? poi.days + " days": poi.hours + " hours"}}.</p>
+            <p>Estimated total time visited: {{poi.days > 0 ? poi.days + " days": poi.hours + " hours"}}.</p>
         </div>`,
         computed: {
             countries: function() {
@@ -198,6 +198,7 @@ function loadJSON(url, callback) {
             <div class="poi-list">
                 <span v-for="poi in visits"><poi :text="poi[0]" :id="poi[1]"></poi></span>
                 <p>Stayed in these places for {{hours}} hours ({{days}} days) total.</p>
+                <!-- TODO(iandioch): Also render list of regions, as this is what is shown for a country view. -->
             </div>
         </div>`,
         computed: {
