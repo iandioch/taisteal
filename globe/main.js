@@ -750,7 +750,8 @@ function loadJSON(url, callback) {
             const curve = new THREE.QuadraticBezierCurve3(start, controlPoint, end);
             const points = curve.getPoints(smoothness);
             const geom = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({ color: colour, linewidth: width, transparent: true, opacity: 0.35});
+
+            const material = new THREE.LineBasicMaterial({ color: colour, linewidth: width, transparent: true, opacity: 0.25});
             const arc = new THREE.Line(geom, material);
             arc.material.visible = false;
             arc.userData.leg = leg;
@@ -883,7 +884,7 @@ function loadJSON(url, callback) {
     }
     loadTravelMap('/taisteal/api/travel_map');
 
-    // Make semitransparent most plcaes except the one the user just clicked on.
+    // Make semitransparent most places except the one the user just clicked on.
     // If specificLegs is set, only those legs will be rendered.
     function toggleRoutesForSelectedVisits(locationIDs, showLegs = true, showConnectedLocations = true, specificLegs = null) {
         showLegs = showLegs && (!specificLegs);
@@ -924,14 +925,14 @@ function loadJSON(url, callback) {
         // Make semitransparent all of the pins not in the connectedVisitSet.
         const inactiveBaseMaterial = new THREE.MeshPhongMaterial({
             color: 0xffffff,
-            opacity: 0.5,
+            opacity: 0.3,
             transparent: true,
             side: THREE.DoubleSide,
             shininess: 0,
         });
         const inactivePointMaterial = new THREE.MeshPhongMaterial({
             color: 0xdddddd,
-            opacity: 0.5,
+            opacity: 0.3,
             transparent: true,
             side: THREE.DoubleSide,
             shininess: 0
