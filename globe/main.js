@@ -177,14 +177,34 @@ function loadJSON(url, callback) {
         }
     });
     Vue.component('poi-collection-dashboard', {
+        // This component is eg. used to render info about a country or region.
         props: {
             visits: Array // A list of [human_readable_name, id] pairs of places
         },
         template:`<div>
             <div class="poi-list">
+                <!-- if there is only one region, we are probably just rendering
+                info about that region, so list component POIs instead of list
+                of component regions -->
+                <div v-if="regions.length == 1">
+                <p>Contains the following places:</p>
                 <span v-for="poi in visits"><poi :text="poi[0]" :id="poi[1]"></poi></span>
-                <p>Stayed in these places for {{hours}} hours ({{days}} days) total.</p>
-                <!-- TODO(iandioch): Also render list of regions, as this is what is shown for a country view. -->
+                </div>
+                <div v-else>
+                <!-- If there is more than one region, we are probably rendering
+                info about a country, so list all of the component regions and
+                not the individual POIs. However, if there is only one visited
+                region within a country, then this will not be what is
+                rendered. That is good. But:
+                TODO(iandioch): If there is not only just one visited region in
+                                a country, but actually just one visited POI,
+                                (eg. "Almaty"), just render info about that POI
+                                and skip this collection view.
+                -->
+                <p>Regions visited:</p>
+                <top-region-table v-bind:regions="regions"></top-region-table>
+                </div>
+                <p>Stayed in these places for {{durationString}} total.</p>
             </div>
         </div>`,
         computed: {
@@ -196,8 +216,16 @@ function loadJSON(url, callback) {
                 }
                 return hours;
             },
-            days: function() {
-                return Math.ceil(this.hours / 24.0);
+            regions: function() {
+                const visitObjs = [];
+                for (let i in this.visits) {
+                    visitObjs.push(visits[this.visits[i][1]]);
+                }
+                console.log(visitObjs);
+                return getRegionsForVisits(visitObjs);
+            },
+            durationString: function() {
+                return stringForHours(this.hours);
             }
         }
     });
@@ -326,7 +354,7 @@ function loadJSON(url, callback) {
     }
 
     function stringForHours(hours) {
-        if (hours < 24) {
+        if (hours < 18) {
             return `${hours} hours`;
         }
         const days = Math.ceil(hours / 24.0);
