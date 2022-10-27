@@ -138,7 +138,7 @@ function loadJSON(url, callback) {
                 <p v-if="poi.location.type == 'CLUSTER'">Contains visits to region(s): <span v-for="region in regions"><region :name="region.name" :country="region.country"></region></span></p>
             </div>
             <p>Number of visits: {{poi.num_visits}}</p>
-            <p>Estimated total time visited: {{poi.days > 0 ? poi.days + " days": poi.hours + " hours"}}.</p>
+            <p>Estimated total time visited: {{durationString}}.</p>
         </div>`,
         computed: {
             countries: function() {
@@ -173,6 +173,9 @@ function loadJSON(url, callback) {
                     default:
                         return "a place";
                 }
+            },
+            durationString: function() {
+                return stringForHours(this.poi.hours);
             }
         }
     });
