@@ -112,15 +112,14 @@ function loadJSON(url, callback) {
         }
     });
 
-    Vue.component('top-poi-table', {
+    Vue.component('top-region-table', {
         props: {
-            pois: Array, // Expecting a list of (user-visible text, poi id/name, number)
-            metric: String
+            regions: Array, // Array of {country, name, hours}
         },
         template: `
-            <ul class="top-poi-table">
-                <li v-for="poi in pois">
-                    <poi :text="poi[0]" :id="poi[1]"></poi> <span class="fact">{{poi[2]}}</span> {{metric}}
+            <ul class="top-region-table">
+                <li v-for="region in regions">
+                    <region :country="region.country" :name="region.name"></region> <span class="fact">{{region.visit_duration}}</span>
                 </li>
             </ul>`
     });
@@ -158,20 +157,7 @@ function loadJSON(url, callback) {
                 return results;
             },
             regions: function() {
-                // seenRegions will conflict if two regions have the same name but are in different countries.
-                var seenRegions = new Set();
-                var results = [];
-                for (let i in this.visits) {
-                    const visit = this.visits[i];
-                    if (seenRegions.has(visit.location.region)) continue;
-
-                    seenRegions.add(visit.location.region);
-                    results.push({
-                        name: visit.location.region, 
-                        country: visit.location.country,
-                    });
-                }
-                return results;
+                return getRegionsForVisits(this.visits);
             },
             humanReadableType: function() {
                 switch(this.poi.location.type) {
@@ -220,22 +206,16 @@ function loadJSON(url, callback) {
         template: `<div>
             Logged <span class="fact">{{statistics.num_legs}}</span> trips to <span class="fact">{{statistics.num_unique_pois}}</span> different places in <span class="fact">{{statistics.num_countries}}</span> countries.<br>
             Places I have spent the most time in since I started logging:
-            <top-poi-table v-bind:pois="longestStayedPOIs" metric="days"></top-poi-table>
+            <top-region-table v-bind:regions="longestStayedRegions"></top-region-table>
             <br>
             I have logged trips passing through the following countries: <span v-for="country in countries"><country :id="country.code" :text="country.name"></country></span>
             <br>
             See more info about: <collection v-for="collection in collections" :collection="collection"></collection>.
         </div>`,
         computed: {
-            longestStayedPOIs() {
-                const allPOIs = [];
-                for (let i in visits) {
-                    if (visits[i].location.type == "CLUSTER") continue;
-                    allPOIs.push([visits[i].location.human_readable_name, visits[i].location.id, visits[i].days]);
-                }
-                allPOIs.sort(function(a, b) { return b[2]-a[2]; });
-                console.log(allPOIs.slice(0, 10));
-                return allPOIs.slice(0, 10);
+            longestStayedRegions() {
+                const regions = getRegionsForVisits(visits);
+                return regions.slice(0, 8);
             },
             statistics() {
                 const POINames = new Set();
@@ -309,6 +289,61 @@ function loadJSON(url, callback) {
         }
         locations.sort((a, b) => { return b.days - a.days });
         return locations;
+    }
+
+    function getRegionsForVisits(visits) {
+        function regionKey(visit) {
+            return visit.location.country + ':' + visit.location.region;
+        }
+        var regions = new Map();
+        for (let i in visits) {
+            const visit = visits[i];
+            if (visit.location.type == 'CLUSTER') {
+                console.log("Skipping visit type", visit);
+                continue;
+            }
+            const rkey = regionKey(visit);
+            if (!regions.has(rkey)) {
+                regions.set(rkey, {
+                    name: visit.location.region, 
+                    country: visit.location.country,
+                    country_code: visit.location.country_code,
+                    hours: 0,
+                });
+            }
+
+            var region = regions.get(rkey);
+            region.hours += visit.hours;
+            regions.set(rkey, region);
+        }
+        var results = [];
+        for (const [k, v] of regions) {
+            v.visit_duration = stringForHours(v.hours);
+            results.push(v);
+        }
+        results.sort(function(a, b) { return b.hours-a.hours; });
+        return results;
+    }
+
+    function stringForHours(hours) {
+        if (hours < 24) {
+            return `${hours} hours`;
+        }
+        const days = Math.ceil(hours / 24.0);
+        if (days < 50) {
+            return `${days} days`;
+        }
+        const weeks = Math.ceil(hours / (24.0 * 7));
+        if (weeks < 100) {
+            return `${weeks} weeks`;
+        }
+        //const years = (hours / (24.0 * 365)).toFixed(1);
+        const years = Math.floor(hours / (24.0 * 365));
+        const remainingHours = hours - (years * 24 * 365);
+        if (remainingHours > 100) {
+            return `${years} years ${stringForHours(remainingHours)}`;
+        }
+        return `${years} years`;
     }
 
     function createComponentForVisits(visits) {
