@@ -248,6 +248,8 @@ def get_legs():
         arrival_datetime
     FROM
         legs
+    ORDER BY
+        arrival_datetime DESC
     ''')
     for lookup in cursor.fetchall():
         d = {n: lookup[n] for n in lookup.keys()}
