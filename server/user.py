@@ -61,6 +61,8 @@ def create_travel_map(config):
     for leg in database.get_legs():
         dep_id = leg['departure_location_id']
         arr_id = leg['arrival_location_id']
+        if (dep_id == arr_id):
+            continue
         dep = _get_location_dict(database.get_location(dep_id))
         arr = _get_location_dict(database.get_location(arr_id))
         id_to_location[dep['id']] = dep
@@ -73,14 +75,15 @@ def create_travel_map(config):
             print('Warning: travel leg does not have positive duration: {} ({}) to {} ({})'.format(dep['human_readable_name'], leg['departure_datetime'], arr['human_readable_name'], leg['arrival_datetime']))
 
         if prev_loc_id is not None:
+            duration = (leg['departure_datetime'] - prev_loc_date)
             # Try to account for places which never appear as an arrival, and only as a departure location.
             if prev_loc_id == dep['id']:
-                location_visits[prev_loc_id]['duration'] += (leg['departure_datetime'] - prev_loc_date)
+                location_visits[prev_loc_id]['duration'] += duration
                 location_visits[prev_loc_id]['num_visits'] += 1
             else:
-                location_visits[dep['id']]['duration'] += (leg['departure_datetime'] - prev_loc_date)/2
+                location_visits[dep['id']]['duration'] += duration/2
                 location_visits[dep['id']]['num_visits'] += 1
-                location_visits[prev_loc_id]['duration'] += (leg['departure_datetime'] - prev_loc_date)/2
+                location_visits[prev_loc_id]['duration'] += duration/2
                 location_visits[prev_loc_id]['num_visits'] += 1
 
         prev_loc_id = arr['id']
@@ -197,6 +200,7 @@ def get_user_data():
         })
         _maybe_add_location(leg['arrival_location_id'])
         _maybe_add_location(leg['departure_location_id'])
+    legs.sort(key = lambda x:x['arrival_datetime_str'], reverse=True)
     return {
         'legs': legs,
         'locations': locations,
