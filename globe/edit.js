@@ -57,7 +57,7 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                 return new Date(this.arrival_datetime_str);
             },
             duration_hours: function() {
-                return (this.arrival_datetime - this.departure_datetime) / (60*60*1000);
+                return Math.round((this.arrival_datetime - this.departure_datetime) / (60*60*1000.0));
             }
         }
     });
@@ -136,24 +136,28 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
     });
 
     Vue.component('datetime-picker', {
+        props: {
+            default_datetime: Date,
+        },
         data: function() {
             return {
-                datetime_str: (new Date()).toISOString(),
+                datetime_str: this.getDefaultStr(),
             }
         },
         template: `<div>
-            {{parsed_datetime_str}}<br>
             <input size='40' v-model="datetime_str"/>
-            <button @click="submit">Submit</button>
+            <button @click="submit">Submit</button><br>
+            In your timezone: <datetime :datetime="parsed_datetime"></datetime>
+            <br>
             </div>`,
         computed: {
-            parsed_datetime_str: function() {
+            parsed_datetime: function() {
                 const parsed = new Date(this.datetime_str);
                 if (isNaN(parsed)) {
-                    return 'invalid';
+                    return new Date();
                 }
-                return parsed.toLocaleString();
-            }
+                return parsed;
+            },
         },
         methods: {
             submit: function() {
@@ -162,6 +166,12 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                     return;
                 }
                 this.$emit('submit', new Date(this.datetime_str));
+            },
+            getDefaultStr: function() {
+                if (this.default_datetime) {
+                    return this.default_datetime.toISOString();
+                }
+                return new Date().toISOString();
             }
         }
     });
@@ -215,7 +225,7 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
             <br>
             </div>
 
-            <datetime-picker v-if="this.stage == 3" @submit="(datetime) => {arrival_datetime = datetime; }"></datetime-picker>
+            <datetime-picker :default_datetime="departure_datetime" v-if="this.stage == 3" @submit="(datetime) => {arrival_datetime = datetime; }"></datetime-picker>
             <datetime v-if="this.stage > 3" :datetime="arrival_datetime"></datetime>
             <br>
             <select v-if="this.stage >= 4" required name="mode" v-model="mode">
