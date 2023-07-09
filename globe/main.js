@@ -830,7 +830,7 @@ function loadJSON(url, callback) {
             for (var i in data.visits) {
                 const visit = data.visits[i];
                 visits[visit.location.id] = visit;
-                var radius = 0.003;
+                var radius = 0.002;
                 if (visit.location.type === "CLUSTER") {
                     radius *= 1.5;
                 }
@@ -841,7 +841,7 @@ function loadJSON(url, callback) {
                 }
                 const colour = colourScale(Math.log10(visitHours)/Math.log10(highestVisits)).hex();
 
-                const MIN_HEIGHT = GLOBE_RADIUS/100;
+                const MIN_HEIGHT = GLOBE_RADIUS/200;
                 const MAX_HEIGHT = GLOBE_RADIUS/15;
 
                 // Use a log-based height, because in a normal case, the place where
@@ -882,7 +882,7 @@ function loadJSON(url, callback) {
             }
         });
     }
-    loadTravelMap('/taisteal/api/travel_map');
+    loadTravelMap('http://localhost:1916/api/travel_map');
 
     // Make semitransparent most places except the one the user just clicked on.
     // If specificLegs is set, only those legs will be rendered.
