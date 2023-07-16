@@ -12,6 +12,12 @@ const GLOBE_STYLE_POLYGON = "polygon";
 const GLOBE_STYLE_MINIMAL = "minimal";
 const GLOBE_STYLE = (urlParams.has('style') ? urlParams.get('style') : GLOBE_STYLE_TEXTURE);
 
+const PATH_COUNTRIES_JSON = 'static/countries.json'
+const PATH_TOWN_SVG = 'static/town.svg'
+const PATH_REGION_SVG = 'static/region.svg'
+const PATH_AIRPORT_SVG = 'static/airport.svg'
+const PATH_STATION_SVG = 'static/station.svg'
+
 function loadJSON(url, callback) {
     var request = new XMLHttpRequest;
     request.open('GET', url, true);
@@ -49,13 +55,13 @@ function loadJSON(url, callback) {
                 // TODO(iandioch): It's dumb to get this point instead of just having a getVisitForID(this.id) func.
                 const visit = getPointForName(this.id).visit;
                 if (visit.location.type == 'TOWN' || visit.location.type == "TOWN_CLUSTER") {
-                    return ['town.svg', 'Town by mapbox on svgrepo.com'];
+                    return [PATH_TOWN_SVG, 'Town by mapbox on svgrepo.com'];
                 } else if (visit.location.type == "STATION") {
-                    return ['station.svg', 'Railway Station 14 by gmgeo on svgrepo.com'];
+                    return [PATH_STATION_SVG, 'Railway Station 14 by gmgeo on svgrepo.com'];
                 } else if (visit.location.type == "AIRPORT") {
-                    return ['airport.svg', 'Airplane Plane by SVG Repo on svgrepo.com'];
+                    return [PATH_AIRPORT_SVG, 'Airplane Plane by SVG Repo on svgrepo.com'];
                 }
-                return ['town.svg', 'TODO'];
+                return [PATH_TOWN_SVG, 'TODO'];
             }
         }
     });
@@ -96,7 +102,7 @@ function loadJSON(url, callback) {
             country: String, // name of country
             name: String, // name of region
         },
-        template: `<a class="poi" href='#' v-on:click="handleClick"><img src="region.svg" title="Location by SVG Repo on svgrepo.com" style="width: 1em; display: inline; margin-right: 2px; position: relative; vertical-align: middle"></img>{{name}}</a>`,
+        template: `<a class="poi" href='#' v-on:click="handleClick"><img src="` + PATH_REGION_SVG + `" title="Location by SVG Repo on svgrepo.com" style="width: 1em; display: inline; margin-right: 2px; position: relative; vertical-align: middle"></img>{{name}}</a>`,
         methods: {
             handleClick() {
                 renderInfoForRegion(this.country, this.name);
@@ -522,7 +528,7 @@ function loadJSON(url, callback) {
     });
 
     const GLOBE_RADIUS = 1;
-    const GLOBE_TEXTURE_PATH = 'scaled_globe_10800.jpg'
+    const GLOBE_TEXTURE_PATH = 'static/scaled_globe_10800.jpg'
     const canvas = document.querySelector('#globe-canvas');
     const canvasContainer = document.querySelector('#globe-container');
     const renderer = new THREE.WebGLRenderer({canvas, antialias: false});
@@ -624,7 +630,7 @@ function loadJSON(url, callback) {
                 side: THREE.FrontSide, shininess: 0
             });
             const fineness = 2; // The smaller this number, the worse the performance. However, if this number is big, the ConicPolygonGeometry will have parts in the middle where it sags below the globe size.
-            loadJSON('/globe/countries.json', (data) => {
+            loadJSON(PATH_COUNTRIES_JSON, (data) => {
                 const countryGroup = new THREE.Group();
                 globeObjGroup.add(countryGroup);
                 data.features.forEach(({properties, geometry}) => {
@@ -647,7 +653,7 @@ function loadJSON(url, callback) {
                 side: THREE.FrontSide, shininess: 0
             });
             const fineness = 2; // The smaller this number, the worse the performance. However, if this number is big, the ConicPolygonGeometry will have parts in the middle where it sags below the globe size.
-            loadJSON('/globe/countries.json', (data) => {
+            loadJSON(PATH_COUNTRIES_JSON, (data) => {
                 const countryGroup = new THREE.Group();
                 globeObjGroup.add(countryGroup);
                 data.features.forEach(({properties, geometry}) => {
