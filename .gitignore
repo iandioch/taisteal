@@ -2,3 +2,6 @@
 **/config.json
 .taisteal/
 **/node_modules/*
+**/built/*
+**/dist/*
+**.taisteal.db
