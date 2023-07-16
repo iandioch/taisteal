@@ -86,7 +86,7 @@ def save_leg():
 
 
 def main():
-    app.run(port=1916)
+    app.run(host='0.0.0.0', port=1916)
 
 if __name__ == '__main__':
     main()
