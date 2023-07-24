@@ -539,7 +539,7 @@ function loadJSON(url, callback) {
     labelRenderer.domElement.style.top = '0px';
     canvasContainer.appendChild(labelRenderer.domElement);
 
-    const camera = new THREE.PerspectiveCamera(45, 2, 0.025, 12);
+    const camera = new THREE.PerspectiveCamera(30, 2, 0.025, 12);
     camera.position.z = 2;
     const controls = new OrbitControls(camera, labelRenderer.domElement);
     const MIN_CAMERA_DISTANCE = GLOBE_RADIUS * 1.05;
