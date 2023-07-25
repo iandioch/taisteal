@@ -12,7 +12,7 @@ declare module '@react-three/fiber' {
 }
 
 const GLOBE_RADIUS = 1;
-const PATH_COUNTRIES_JSON = 'static/countries.json';
+const PATH_COUNTRIES_JSON = process.env.PUBLIC_URL + '/countries.json';
 
 function loadJSON(url: string, callback: (data: any) => void) {
     var request = new XMLHttpRequest();
@@ -73,6 +73,21 @@ function Globe() {
     const meshBasicMaterial = useRef<THREE.MeshBasicMaterial>(null!);
     const sphereGeometry = useRef<THREE.SphereGeometry>(null!);*/
 
+
+    return (
+        <group>{/* group containing globe and attachments */}
+            <group>{/* group containing globe obj itself */}
+                <mesh>
+                    <sphereGeometry args={[GLOBE_RADIUS*0.995, 64, 64]} />
+                    <meshBasicMaterial color={0xAAAAAA} />
+                </mesh>
+                <GlobeCountries />
+            </group>
+        </group>
+    )
+}
+
+function GlobeCountries() {
     const landMaterial = <meshBasicMaterial color={0xDDDDDD} side={THREE.FrontSide}  />
 
     const [countryData, setCountryData] = useState([]);
@@ -80,40 +95,29 @@ function Globe() {
 
     useEffect(() => {
         loadJSON(PATH_COUNTRIES_JSON, (data) => {
-            console.log(data);
             setCountryData(data.features);
         });
 
         return () => {
             // Do any cleanup here.
         };
-    },[countryData]);
+    }, []);
 
     return (
-        <group> {/* group containing globe and attachments */}
-            <group> {/* group containing globe obj itself */}
-                <mesh>
-                    <sphereGeometry args={[GLOBE_RADIUS*0.995, 64, 64]} /> 
-                    <meshBasicMaterial color={0xAAAAAA} />
-                </mesh>
-                <group> {/* group containing country geoms */}
-                    {countryData.map((obj, i) => {
-                        const geometry = obj['geometry'];
-                        const polygons = geometry['type'] === 'Polygon' ? [geometry['coordinates']] : geometry['coordinates'];
-                        return (<group> {/* single country */}
-                            {polygons.map((obj, i) => {
-                                return (<mesh>
-                                    <typedConicPolygonGeometry args={[obj['coords'], GLOBE_RADIUS*0.9, GLOBE_RADIUS, false, true, false, fineness]} />
-                                    {landMaterial}
-                                </mesh>)
-                            })}
-                        </group>)
+        <group>{/* group containing country geoms */}
+            {countryData?.map((obj, i) => {
+                const geometry = obj['geometry'];
+                const polygons = geometry['type'] === 'Polygon' ? [geometry['coordinates']] : geometry['coordinates'];
+                return (<group key={"country" + i}>{/* single country */}
+                    {polygons?.map((obj, i) => {
+                        return (<mesh key={'countryGeomMesh' + i}>
+                            <typedConicPolygonGeometry key={'countryGeom' + i} args={[obj, GLOBE_RADIUS*0.9, GLOBE_RADIUS, false, true, false, fineness]} />
+                            {landMaterial}
+                        </mesh>)
                     })}
-                </group>
-            </group>
-            <group> {/* group containing points */}
-
-            </group>
+                    </group>
+                )
+            })}
         </group>
     )
 }
