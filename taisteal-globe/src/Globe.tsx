@@ -2,8 +2,10 @@ import * as THREE from 'three'
 import React, { useEffect, useRef, useState } from 'react'
 import { Canvas, extend, Object3DNode, useFrame, ThreeElements } from '@react-three/fiber'
 import { ConicPolygonGeometry } from 'three-conic-polygon-geometry';
+import './Globe.css'
 class TypedConicPolygonGeometry extends ConicPolygonGeometry {}
 extend({TypedConicPolygonGeometry});
+
 
 declare module '@react-three/fiber' {
     interface ThreeElements {
