@@ -16,11 +16,6 @@
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
     "moduleResolution": "node",
-    "paths": {
-        "*": [
-            "*"
-        ]
-    },
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
