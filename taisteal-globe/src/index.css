@@ -16,5 +16,17 @@ code {
 #root {
     width: 100%;
     height: 100%;
-    background: #FF0000;
+    background-image: linear-gradient(
+  65deg,
+  hsl(202deg 100% 36%) 0%,
+  hsl(201deg 100% 38%) 5%,
+  hsl(200deg 100% 40%) 12%,
+  hsl(199deg 100% 41%) 19%,
+  hsl(197deg 100% 43%) 28%,
+  hsl(196deg 100% 44%) 37%,
+  hsl(195deg 100% 46%) 47%,
+  hsl(194deg 100% 47%) 58%,
+  hsl(193deg 100% 49%) 72%,
+  hsl(192deg 100% 50%) 100%
+);
 }
