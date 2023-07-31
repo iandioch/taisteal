@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import React, { useEffect, useRef, useState } from 'react'
 import { Canvas, extend, Object3DNode, useFrame, ThreeElements } from '@react-three/fiber'
+import { OrbitControls } from '@react-three/drei'
 import { ConicPolygonGeometry } from 'three-conic-polygon-geometry';
 import './Globe.css'
 class TypedConicPolygonGeometry extends ConicPolygonGeometry {}
@@ -44,6 +45,7 @@ function GlobeCanvas() {
             <ambientLight />
             <pointLight position={[10, 10, 10]} />
             <Globe></Globe>
+            <OrbitControls />
         </Canvas>
     </div>
   )
