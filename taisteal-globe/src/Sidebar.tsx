@@ -1,6 +1,7 @@
 import './Sidebar.css'
 
 import { PropsWithChildren, useState } from 'react'
+import {GoSidebarCollapse, GoSidebarExpand} from 'react-icons/go';
 
 type SidebarHideToggleProps = {
     handleClick: () => void;
@@ -10,7 +11,7 @@ type SidebarHideToggleProps = {
 function SidebarHideToggle(props: SidebarHideToggleProps) {
     return (
         <div className="taisteal-sidebar-panel" id="sidebar-hide-toggle" onClick={props.handleClick}>
-            <p>{props.sidebarVisible ? "Hide" : "Show"}</p>
+            {props.sidebarVisible ? <GoSidebarCollapse /> : <GoSidebarExpand />}
         </div>
     );
 }
@@ -25,8 +26,8 @@ function Sidebar(props: PropsWithChildren<SidebarProps>) {
     }
     return (
         <div id="taisteal-sidebar">
-            {visible && props.children}
             <SidebarHideToggle sidebarVisible={visible} handleClick={handleHideClick}/>
+            {visible && props.children}
         </div>
     )
 }
