@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { PropsWithChildren, useEffect, useRef, useState } from 'react'
 import { Canvas, extend, Object3DNode, useFrame, ThreeElements } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { ConicPolygonGeometry } from 'three-conic-polygon-geometry';
@@ -38,14 +38,15 @@ function loadJSON(url: string, callback: (data: any) => void) {
     request.send();
 }
 
-function GlobeCanvas() {
+type GlobeCanvasProps = {}
+function GlobeCanvas(props: PropsWithChildren<GlobeCanvasProps>) {
   return (
     <div id="globe-container">
         <div id="globe-canvas">
             <Canvas>
                 <ambientLight />
                 <pointLight position={[10, 10, 10]} />
-                <Globe></Globe>
+                <Globe>{props.children}</Globe>
                 <OrbitControls />
             </Canvas>
         </div>
@@ -53,7 +54,9 @@ function GlobeCanvas() {
   )
 }
 
-function Globe() {
+type GlobeProps = {}
+
+function Globe(props: PropsWithChildren<GlobeProps>) {
     /*const group = useRef<THREE.Group>(null!);
     const meshBasicMaterial = useRef<THREE.MeshBasicMaterial>(null!);
     const sphereGeometry = useRef<THREE.SphereGeometry>(null!);*/
@@ -67,6 +70,7 @@ function Globe() {
                     <meshBasicMaterial color={0xAAAAAA} />
                 </mesh>
                 <GlobeCountries />
+                {props.children}
             </group>
         </group>
     )
