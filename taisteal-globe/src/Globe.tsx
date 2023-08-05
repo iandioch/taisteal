@@ -41,12 +41,14 @@ function loadJSON(url: string, callback: (data: any) => void) {
 function GlobeCanvas() {
   return (
     <div id="globe-container">
-        <Canvas id="globe-canvas">
-            <ambientLight />
-            <pointLight position={[10, 10, 10]} />
-            <Globe></Globe>
-            <OrbitControls />
-        </Canvas>
+        <div id="globe-canvas">
+            <Canvas>
+                <ambientLight />
+                <pointLight position={[10, 10, 10]} />
+                <Globe></Globe>
+                <OrbitControls />
+            </Canvas>
+        </div>
     </div>
   )
 }
