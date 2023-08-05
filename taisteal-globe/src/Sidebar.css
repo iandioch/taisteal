@@ -1,0 +1,21 @@
+#taisteal-sidebar {
+    box-sizing: border-box;
+    border-top-width: 2px;
+    border-top-style: solid;
+    border-color: #aaaaaa;
+    background-color: #222222;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1rem;
+    color: #ffffff;
+    padding: 20px;
+    overflow-x: hidden;
+    min-height: 20%;
+    position: relative;
+}
+
+.taisteal-sidebar-panel {
+    background-color: #FFFFFF;
+    border-radius: 5px;
+    padding: 5px 10px;
+    color: #000000;
+}
