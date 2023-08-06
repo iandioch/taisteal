@@ -1,5 +1,9 @@
-import {configureStore, createSlice, PayloadAction} from '@reduxjs/toolkit'
+import {configureStore, createSlice, createAsyncThunk, PayloadAction} from '@reduxjs/toolkit'
 import {Leg} from 'types'
+
+const addLegs = createAsyncThunk('legs/addLegs', (legs: Leg[]) => {
+    return legs;
+});
 
 interface LegState {
     legs: Leg[]
@@ -14,11 +18,16 @@ const legSlice = createSlice({
     initialState: initialLegState,
     reducers: {
         addLeg: (state, action: PayloadAction<Leg>) => {
-            state.legs = [...state.legs, action.payload];
+            state.legs.push(action.payload);
         },
         addLegs: (state, action: PayloadAction<Leg[]>) => {
             state.legs = [...state.legs, ...action.payload];
         }
+    },
+    extraReducers: (builder) => {
+        builder.addCase(addLegs.fulfilled, (state, action: PayloadAction<Leg[]>) => {
+            state.legs = [...state.legs, ...action.payload];
+        });
     }
 });
 
@@ -33,4 +42,5 @@ export type RootState = ReturnType<typeof store.getState>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch
 
+export {addLegs}
 export default store;

@@ -1,7 +1,10 @@
 import GlobeCanvas from 'Globe'
 import { Sidebar, SidebarPanel } from 'Sidebar'
+import { loadMapData } from 'data'
+import { useEffect} from 'react'
 
 export default function Root() {
+  useEffect(() => { loadMapData(); });
   return (
     <>
         <GlobeCanvas>

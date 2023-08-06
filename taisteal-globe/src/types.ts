@@ -1,25 +1,27 @@
-export type Location = {
+type Location = {
     id: string,
     address: string,
     name: string,
     latitude: number,
     longitude: number,
-    country_name: string,
-    country_code: string,
+    countryName: string,
+    countryCode: string,
     type: string, // TODO: make this an enum
     region: string,
 }
 
-export type Visit = {
+type Visit = {
     location: Location,
-    num_visits: number,
+    numVisits: number,
     days: number,
     hours: number,
 }
 
-export type Leg = {
-    departure_location: Location,
-    arrival_location: Location,
+type Leg = {
+    departureLocation: Location,
+    arrivalLocation: Location,
     mode: string,
     count: number,
 }
+
+export type { Location, Visit, Leg };
