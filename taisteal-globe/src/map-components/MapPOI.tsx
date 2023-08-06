@@ -2,16 +2,21 @@ import * as THREE from 'three';
 import { Visit } from 'types';
 import { MIN_POI_HEIGHT, MAX_POI_HEIGHT } from '../constants';
 import { latLngToVector } from 'maths';
-import { useRef, useLayoutEffect } from 'react';
-import { Circle, Cylinder, Sphere } from '@react-three/drei';
+import { useRef, useLayoutEffect, useState } from 'react';
+import { Circle, Cylinder, Html, Sphere } from '@react-three/drei';
+import { useNavigate } from 'react-router-dom';
+import { getRouteForPOI } from 'routes'
 import { RootState } from 'store';
 import { useSelector } from 'react-redux';
+import './MapPOI.css'
 
 type MapPOIProps = {
     visit: Visit,
 };
 
 const MapPOI = (props: MapPOIProps) : JSX.Element => {
+    const [hovered, setHover] = useState(false);
+    const navigate = useNavigate();
     const longestVisit = useSelector((state: RootState) => state.visits.longestVisit);
     console.log(longestVisit);
     const highestVisits = longestVisit ? longestVisit.hours : 1000;
@@ -38,12 +43,20 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     const margin = radius * 0.25;
 
     return (
-        <group position={pos} onUpdate = {(self) => self.lookAt(0, 0, 0)}>
+        <group
+            position={pos}
+            onUpdate={(self) => self.lookAt(0, 0, 0)}
+            onPointerOver={e => {setHover(true); e.stopPropagation();}}
+            onPointerOut={e => setHover(false)}
+            onClick={e => {e.stopPropagation(); navigate(getRouteForPOI(props.visit.location.id));}}>
             <mesh material={baseMaterial}>
                 <Circle args={[radius + margin, 8]} material={baseMaterial} />
             </mesh>
             <Cylinder args={[radius, radius*0.8, height, 8, 1, false]} material={bodyMaterial} position={[0, 0, -height/2]} rotation={[-Math.PI/2, 0, 0]}/>
-                {/*<Sphere args={[radius, 8, 4, Math.PI, Math.PI, 0, Math.PI]} material={bodyMaterial} position={[0, 0, height]}/>*/}
+            {hovered && 
+            <Html center> 
+                <p className="poi-label">{props.visit.location.name}</p>
+            </Html>}
         </group>
     );
 };
