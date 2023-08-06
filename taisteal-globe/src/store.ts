@@ -1,10 +1,6 @@
 import { configureStore, createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { Leg, Visit } from 'types'
 
-const addLegs = createAsyncThunk('legs/addLegs', (legs: Leg[]) => {
-    return legs;
-});
-
 interface LegState {
     legs: Leg[]
 };
@@ -24,23 +20,44 @@ const legSlice = createSlice({
             state.legs = [...state.legs, ...action.payload];
         }
     },
-    extraReducers: (builder) => {
-        builder.addCase(addLegs.fulfilled, (state, action: PayloadAction<Leg[]>) => {
-            state.legs = [...state.legs, ...action.payload];
-        });
-    }
-});
-
-const addVisits = createAsyncThunk('visits/addVisits', (visits: Visit[]) => {
-    return visits;
 });
 
 interface VisitState {
-    visits: Visit[]
+    visits: Visit[],
+    longestVisit: Visit|null,
+    stats: {
+        numCountries: number,
+    }
 }
 
 const initialVisitState: VisitState = {
     visits: [],
+    longestVisit: null,
+    stats: {
+        numCountries: 0,
+    }
+}
+
+function getLongestVisit(visits: Visit[]): Visit|null { 
+    let v = null;
+    let vh = 0;
+    for (let visit of visits) {
+        if (visit.hours >= vh) {
+            v = visit;
+            vh = visit.hours;
+        }
+    }
+    return v;
+}
+
+function computeStats(visits: Visit[]): VisitState['stats'] {
+    let countries = new Set<string>();
+    for (const visit of visits) {
+        countries.add(visit.location.countryCode);
+    }
+    return {
+        numCountries: countries.size,
+    }
 }
 
 const visitSlice = createSlice({
@@ -49,16 +66,19 @@ const visitSlice = createSlice({
     reducers: {
         addVisit: (state, action: PayloadAction<Visit>) => {
             state.visits.push(action.payload);
+            if ((!state.longestVisit) || 
+                (action.payload.hours > state.longestVisit.hours)) {
+                state.longestVisit = action.payload;
+            }
+
+            state.stats = computeStats(state.visits);
         },
         addVisits: (state, action: PayloadAction<Visit[]>) => {
             state.visits = [...state.visits, ...action.payload];
-        }
+            state.longestVisit = getLongestVisit(state.visits);
+            state.stats = computeStats(state.visits);
+        },
     },
-    extraReducers: (builder) => {
-        builder.addCase(addVisits.fulfilled, (state, action: PayloadAction<Visit[]>) => {
-            state.visits = [...state.visits, ...action.payload];
-        });
-    }
 });
 
 const store = configureStore({
@@ -73,5 +93,5 @@ export type RootState = ReturnType<typeof store.getState>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch
 
-export { addLegs, legSlice, addVisits, visitSlice }
+export { legSlice, visitSlice }
 export default store;

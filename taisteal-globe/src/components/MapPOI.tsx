@@ -12,7 +12,9 @@ type MapPOIProps = {
 };
 
 const MapPOI = (props: MapPOIProps) : JSX.Element => {
-    const highestVisits = 10000; // TODO: need to actually populate this. It's in hours, not # visits.
+    const longestVisit = useSelector((state: RootState) => state.visits.longestVisit);
+    console.log(longestVisit);
+    const highestVisits = longestVisit ? longestVisit.hours : 1000;
     const highestVisitsLog10 = Math.log10(highestVisits);
     const MAX_LOG_HEIGHT = MAX_POI_HEIGHT/2;
     // TODO: need to handle clusters.

@@ -1,5 +1,5 @@
 import { Location, Leg, Visit } from './types'
-import { addLegs, legSlice, addVisits, visitSlice } from 'store'
+import { legSlice, visitSlice } from 'store'
 import store from 'store'
 
 const MAP_DATA_URL = 'http://localhost:1916/api/travel_map'
