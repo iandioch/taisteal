@@ -1,6 +1,6 @@
 import GlobeCanvas from 'Globe';
 import { Sidebar, SidebarPanel } from 'Sidebar';
-import { AllAirRoutes } from 'components/AllRoutes';
+import { AirRoute } from 'components/RaisedArc';
 import { MapPOI } from 'components/MapPOI';
 import { loadMapData } from 'data';
 import { useEffect} from 'react';
@@ -18,10 +18,38 @@ export default function POI() {
 
   const visit = matchingVisits.length > 0 ? matchingVisits[0] : null;
 
+  const matchingLegs = useSelector((state: RootState) => state.legs.legs.filter((leg) => leg.departureLocation.id == id || leg.arrivalLocation.id == id));
+
+  const locationIds = new Set();
+  for (const leg of matchingLegs) {
+    locationIds.add(leg.departureLocation.id);
+    locationIds.add(leg.arrivalLocation.id);
+  }
+  locationIds.delete(id);
+
+  const connectedVisits = useSelector((state: RootState) => state.visits.visits.filter((visit) => locationIds.has(visit.location.id)));
+
+  function renderLegs() {
+    return <>
+        {[...matchingLegs].map((leg, i) => {
+            const legId = leg.departureLocation.id + "-" + leg.arrivalLocation.id + "-" + leg.mode;
+            return <AirRoute key={legId} leg={leg} />
+        })}
+    </>
+  }
+
+  function renderConnectedPOIs() {
+    return <>
+        {[...connectedVisits].map((visit, i) => {
+            return <MapPOI key={visit.location.id} visit={visit} />
+        })}
+    </>
+  }
+
   return (
     <>
         <GlobeCanvas>
-            {visit && <MapPOI visit={visit} />}
+            {visit && <><MapPOI visit={visit} />{renderLegs()}{renderConnectedPOIs()}</>}
         </GlobeCanvas>
         <Sidebar>
             {!visit && (<SidebarPanel>

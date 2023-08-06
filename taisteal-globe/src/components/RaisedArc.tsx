@@ -1,9 +1,21 @@
-import React, { useLayoutEffect, useRef, useEffect } from 'react'
-import { Canvas, useFrame, extend, ReactThreeFiber } from '@react-three/fiber'
+import React, { useRef, useEffect } from 'react'
+import { extend, ReactThreeFiber } from '@react-three/fiber'
 import * as THREE from 'three'
 import { Leg } from 'types'
 import { GLOBE_CIRCUMFERENCE, GLOBE_RADIUS } from '../constants'
 import { latLngDistance, latLngMidpoint, latLngToVector, mapToRange } from 'maths'
+
+// Fix conflict between SVG line and Three line
+// https://github.com/pmndrs/react-three-fiber/issues/34
+extend({ Line_ : THREE.Line});
+// declare `line_` as a JSX element so that typescript doesn't complain
+declare global {
+    namespace JSX {
+        interface IntrinsicElements {
+            'line_': ReactThreeFiber.Object3DNode<THREE.Line, typeof THREE.Line>,
+        }
+    }
+}
 
 type RaisedArcProps = {
     start: THREE.Vector3,
