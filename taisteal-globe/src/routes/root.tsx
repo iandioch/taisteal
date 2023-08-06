@@ -9,11 +9,11 @@ export default function Root() {
   useEffect(() => { loadMapData(); });
   return (
     <>
-        <GlobeCanvas>
+        <GlobeCanvas key="globe">
             <AllAirRoutes />
             <AllMapPOIs />
         </GlobeCanvas>
-        <Sidebar>
+        <Sidebar renderHomeButton={false}>
             <SidebarPanel>
                 <p>I'm a sidebar on the root path.</p>
             </SidebarPanel>

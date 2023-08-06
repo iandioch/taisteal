@@ -1,7 +1,9 @@
 import './Sidebar.css'
 
 import { PropsWithChildren, useState } from 'react'
-import {GoSidebarCollapse, GoSidebarExpand} from 'react-icons/go';
+import { GoSidebarCollapse, GoSidebarExpand, GoHome } from 'react-icons/go';
+import { Link } from 'react-router-dom';
+import { getRouteForIndex } from 'routes';
 
 type SidebarHideToggleProps = {
     handleClick: () => void;
@@ -10,15 +12,25 @@ type SidebarHideToggleProps = {
 
 function SidebarHideToggle(props: SidebarHideToggleProps) {
     return (
-        <div className="taisteal-sidebar-panel" id="sidebar-hide-toggle" onClick={props.handleClick}>
+        <div className="taisteal-sidebar-panel taisteal-sidebar-button" id="sidebar-hide-toggle" onClick={props.handleClick}>
             {props.sidebarVisible ? <GoSidebarCollapse /> : <GoSidebarExpand />}
         </div>
     );
 }
 
-type SidebarProps = {}
+function SidebarHomeButton() {
+    return (
+        <Link className="taisteal-sidebar-panel taisteal-sidebar-button" id="sidebar-home-button" to={getRouteForIndex()}>
+            <GoHome />
+        </Link>
+    );
+}
 
-function Sidebar(props: PropsWithChildren<SidebarProps>) {
+type SidebarProps = {
+    renderHomeButton?: boolean,
+}
+
+function Sidebar({renderHomeButton = true, children}: PropsWithChildren<SidebarProps>) {
     const [visible, setVisible] = useState(true);
 
     const handleHideClick = () => {
@@ -26,8 +38,9 @@ function Sidebar(props: PropsWithChildren<SidebarProps>) {
     }
     return (
         <div id="taisteal-sidebar">
+            {renderHomeButton && <SidebarHomeButton />}
             <SidebarHideToggle sidebarVisible={visible} handleClick={handleHideClick}/>
-            {visible && props.children}
+            {visible && children}
         </div>
     )
 }

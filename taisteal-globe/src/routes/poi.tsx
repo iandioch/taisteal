@@ -49,7 +49,7 @@ export default function POI() {
 
   return (
     <>
-        <GlobeCanvas>
+        <GlobeCanvas key="globe">
             {visit && <><MapPOI visit={visit} />{renderLegs()}{renderConnectedPOIs()}</>}
         </GlobeCanvas>
         <Sidebar>
