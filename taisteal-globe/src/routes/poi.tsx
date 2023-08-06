@@ -8,6 +8,7 @@ import { useEffect} from 'react';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { RootState} from 'store';
+import { SidebarTunnel } from 'routes'
 
 export default function POI() {
   useEffect(() => { loadMapData(); });
@@ -49,10 +50,8 @@ export default function POI() {
 
   return (
     <>
-        <GlobeCanvas key="globe">
-            {visit && <><MapPOI visit={visit} />{renderLegs()}{renderConnectedPOIs()}</>}
-        </GlobeCanvas>
-        <Sidebar>
+         {visit && <><MapPOI visit={visit} />{renderLegs()}{renderConnectedPOIs()}</>}
+        <SidebarTunnel.In>
             {!visit && (<SidebarPanel>
                 <p>Error: could not find location with given ID.</p>
             </SidebarPanel>)}
@@ -67,7 +66,7 @@ export default function POI() {
                 { connectedVisits.map((visit, i) => <POILink key={visit.location.id} location={visit.location} />) }
             </SidebarPanel>
             </>)}
-        </Sidebar>
+        </SidebarTunnel.In>
     </>
   );
 }

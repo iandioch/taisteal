@@ -19,10 +19,12 @@ declare module '@react-three/fiber' {
 
 type GlobeCanvasProps = {}
 function GlobeCanvas(props: PropsWithChildren<GlobeCanvasProps>) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const cameraRef = useRef<typeof PerspectiveCamera>(null);
   return (
     <div id="globe-container">
         <div id="globe-canvas">
-            <Canvas>
+            <Canvas ref={ref}>
                 <ambientLight />
                 <pointLight position={[10, 10, 10]} />
                 <Globe>{props.children}</Globe>
@@ -36,6 +38,7 @@ function GlobeCanvas(props: PropsWithChildren<GlobeCanvasProps>) {
                     zoomSpeed={CONTROLS_ZOOM_SPEED}
                     />
                 <PerspectiveCamera
+                    ref={cameraRef}
                     makeDefault
                     fov={30}
                     aspect={2}
@@ -52,13 +55,9 @@ function GlobeCanvas(props: PropsWithChildren<GlobeCanvasProps>) {
 type GlobeProps = {}
 
 function Globe(props: PropsWithChildren<GlobeProps>) {
-    /*const group = useRef<THREE.Group>(null!);
-    const meshBasicMaterial = useRef<THREE.MeshBasicMaterial>(null!);
-    const sphereGeometry = useRef<THREE.SphereGeometry>(null!);*/
-
-
+    const ref = useRef<THREE.Group>(null);
     return (
-        <group>{/* group containing globe and attachments */}
+        <group ref={ref}>{/* group containing globe and attachments */}
             <group>{/* group containing globe obj itself */}
                 <mesh>
                     <sphereGeometry args={[GLOBE_RADIUS*0.995, 64, 64]} />

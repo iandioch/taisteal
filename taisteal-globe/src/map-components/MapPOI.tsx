@@ -3,7 +3,7 @@ import { Visit } from 'types';
 import { MIN_POI_HEIGHT, MAX_POI_HEIGHT } from '../constants';
 import { latLngToVector } from 'maths';
 import { useRef, useLayoutEffect, useState } from 'react';
-import { Circle, Cylinder, Html, Sphere } from '@react-three/drei';
+import { Circle, Cylinder, Hud, Html, Sphere } from '@react-three/drei';
 import { useNavigate } from 'react-router-dom';
 import { getRouteForPOI } from 'routes'
 import { RootState } from 'store';
@@ -54,9 +54,11 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
             </mesh>
             <Cylinder args={[radius, radius*0.8, height, 8, 1, false]} material={bodyMaterial} position={[0, 0, -height/2]} rotation={[-Math.PI/2, 0, 0]}/>
             {hovered && 
-            <Html center> 
-                <p className="poi-label">{props.visit.location.name}</p>
-            </Html>}
+            <Hud>
+                <Html center position={[0, 1, 0]}> 
+                    <p className="poi-label">{props.visit.location.name}</p>
+                </Html>
+            </Hud>}
         </group>
     );
 };

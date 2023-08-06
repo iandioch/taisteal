@@ -64,6 +64,7 @@
     "terser-webpack-plugin": "^5.2.5",
     "three": "^0.154.0",
     "three-conic-polygon-geometry": "^1.6.1",
+    "tunnel-rat": "^0.1.2",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4",
     "webpack": "^5.64.4",

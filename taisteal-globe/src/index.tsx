@@ -7,6 +7,7 @@ import {
 import './index.css';
 import Root from './routes/root';
 import POI from './routes/poi';
+import Index from './routes/index';
 import reportWebVitals from './reportWebVitals';
 import store from 'store';
 import { Provider  } from 'react-redux';
@@ -15,11 +16,17 @@ const router = createBrowserRouter([
     {
         path: '/',
         element: <Root />,
-    },
-    {
-        path: "poi/:id",
-        element: <POI />
-    },
+        children: [
+            {
+                path: "/",
+                element: <Index />
+            },
+            {
+                path: "poi/:id",
+                element: <POI />
+            },
+        ]
+    }
 ]);
 
 const root = ReactDOM.createRoot(

@@ -3,21 +3,25 @@ import { Sidebar, SidebarPanel } from 'Sidebar'
 import { AllAirRoutes } from 'map-components/AllRoutes'
 import { AllMapPOIs } from 'map-components/MapPOI'
 import { loadMapData } from 'data'
-import { useEffect} from 'react'
+import { useEffect, useRef } from 'react'
+import { Hud, Html } from '@react-three/drei'
+import { Outlet } from 'react-router-dom'
+import { SidebarTunnel } from 'routes'
+
 
 export default function Root() {
   useEffect(() => { loadMapData(); });
+
+  const outerRef = useRef<HTMLDivElement>(null);
+
   return (
-    <>
+    <div ref={outerRef} style={{height: "100%"}}>
         <GlobeCanvas key="globe">
-            <AllAirRoutes />
-            <AllMapPOIs />
+            <Outlet />
         </GlobeCanvas>
         <Sidebar renderHomeButton={false}>
-            <SidebarPanel>
-                <p>I'm a sidebar on the root path.</p>
-            </SidebarPanel>
+            <SidebarTunnel.Out />
         </Sidebar>
-    </>
+    </div>
   );
 }
