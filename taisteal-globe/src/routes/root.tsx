@@ -19,7 +19,7 @@ export default function Root() {
         <GlobeCanvas key="globe">
             <Outlet />
         </GlobeCanvas>
-        <Sidebar renderHomeButton={false}>
+        <Sidebar>
             <SidebarTunnel.Out />
         </Sidebar>
     </div>
