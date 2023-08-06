@@ -41,6 +41,7 @@ function GlobeCanvas(props: PropsWithChildren<GlobeCanvasProps>) {
                     aspect={2}
                     near={0.025}
                     far={12}
+                    position={[0, 0, 2]}
                     />
             </Canvas>
         </div>

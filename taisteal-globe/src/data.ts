@@ -1,5 +1,5 @@
-import { Location, Leg } from './types'
-import { addLegs, legSlice } from 'store'
+import { Location, Leg, Visit } from './types'
+import { addLegs, legSlice, addVisits, visitSlice } from 'store'
 import store from 'store'
 
 const MAP_DATA_URL = 'http://localhost:1916/api/travel_map'
@@ -17,6 +17,27 @@ function parseLocation(data: any): Location {
         countryCode: data.country_code,
     };
     return loc;
+}
+
+function parseVisit(data: any): Visit {
+    const visit: Visit = {
+        location: parseLocation(data.location),
+        numVisits: data.num_visits,
+        days: data.days,
+        hours: data.hours,
+    };
+    return visit;
+}
+
+function parseVisits(data: any): Visit[] {
+    const visits: Visit[] = [];
+    for (const jsonVisit of data.visits) {
+        const visit = parseVisit(jsonVisit);
+        if (visit.location.type !== "CLUSTER") {
+            visits.push(visit);
+        }
+    }
+    return visits;
 }
 
 function parseLeg(data: any): Leg {
@@ -68,6 +89,8 @@ async function loadMapData() {
     loadJSON(MAP_DATA_URL, (data) => {
         const legs = parseLegs(data);
         store.dispatch(legSlice.actions.addLegs(legs));
+        const visits = parseVisits(data);
+        store.dispatch(visitSlice.actions.addVisits(visits));
     });
 }
 

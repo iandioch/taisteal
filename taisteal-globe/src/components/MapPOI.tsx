@@ -3,15 +3,16 @@ import { Visit } from 'types';
 import { MIN_POI_HEIGHT, MAX_POI_HEIGHT } from '../constants';
 import { latLngToVector } from 'maths';
 import { useRef, useLayoutEffect } from 'react';
-import { Circle } from '@react-three/drei';
+import { Circle, Cylinder, Sphere } from '@react-three/drei';
+import { RootState } from 'store';
+import { useSelector } from 'react-redux';
 
 type MapPOIProps = {
     visit: Visit,
 };
 
 const MapPOI = (props: MapPOIProps) : JSX.Element => {
-    const ref = useRef<THREE.Group>();
-    const highestVisits = 200; // TODO: need to actually populate this.
+    const highestVisits = 10000; // TODO: need to actually populate this. It's in hours, not # visits.
     const highestVisitsLog10 = Math.log10(highestVisits);
     const MAX_LOG_HEIGHT = MAX_POI_HEIGHT/2;
     // TODO: need to handle clusters.
@@ -30,21 +31,31 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
 
     const pos = latLngToVector(props.visit.location.latitude, props.visit.location.longitude);
 
-    useLayoutEffect(() => {
-        if (ref.current) {
-            ref.current!.lookAt(0, 0, 0);
-        }
-    });
-
     const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF, side: THREE.BackSide});
     const bodyMaterial = new THREE.MeshBasicMaterial({color: 0xFF0000});
     const margin = radius * 0.25;
 
     return (
-        <group position={pos} >
-            <Circle args={[radius + margin, 8]} />
+        <group position={pos} onUpdate = {(self) => self.lookAt(0, 0, 0)}>
+            <mesh material={baseMaterial}>
+                <Circle args={[radius + margin, 8]} material={baseMaterial} />
+            </mesh>
+            <Cylinder args={[radius, radius*0.8, height, 8, 1, false]} material={bodyMaterial} position={[0, 0, -height/2]} rotation={[-Math.PI/2, 0, 0]}/>
+                {/*<Sphere args={[radius, 8, 4, Math.PI, Math.PI, 0, Math.PI]} material={bodyMaterial} position={[0, 0, height]}/>*/}
         </group>
     );
 };
 
-export { MapPOI }
+const AllMapPOIs = ():JSX.Element => {
+    const visits = useSelector((state: RootState) => state.visits);
+    console.log("All visits:", visits.visits.length);
+    return (
+        <>
+            {[...visits.visits].map((visit, i) => {
+                return <MapPOI key={visit.location.id} visit={visit} />
+            })}
+        </>
+    );
+}
+
+export { MapPOI, AllMapPOIs }

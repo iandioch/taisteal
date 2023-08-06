@@ -15,6 +15,7 @@ type Visit = {
     numVisits: number,
     days: number,
     hours: number,
+    // TODO: Might need to handle clusters.
 }
 
 type Leg = {
