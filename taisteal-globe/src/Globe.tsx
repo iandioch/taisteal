@@ -3,6 +3,8 @@ import React, { PropsWithChildren, useEffect, useRef, useState } from 'react'
 import { Canvas, extend, Object3DNode, useFrame, ThreeElements } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { ConicPolygonGeometry } from 'three-conic-polygon-geometry';
+import { loadJSON} from 'data'
+import { GLOBE_RADIUS, PATH_COUNTRIES_JSON } from './constants'
 import './Globe.css'
 class TypedConicPolygonGeometry extends ConicPolygonGeometry {}
 extend({TypedConicPolygonGeometry});
@@ -14,29 +16,6 @@ declare module '@react-three/fiber' {
     }
 }
 
-const GLOBE_RADIUS = 1;
-const PATH_COUNTRIES_JSON = process.env.PUBLIC_URL + '/countries.json';
-
-function loadJSON(url: string, callback: (data: any) => void) {
-    var request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.onload = function() {
-      if (request.status >= 200 && request.status < 400){
-        // Success!
-        console.log(`loadJSON(${url}) returned:\n${request.responseText}`);
-        var data = JSON.parse(request.responseText);
-        callback(data);
-      } else {
-        console.log("Status code error: " + request.status);
-      }
-    };
-
-    request.onerror = function() {
-      console.log("Error connecting.");
-    };
-
-    request.send();
-}
 
 type GlobeCanvasProps = {}
 function GlobeCanvas(props: PropsWithChildren<GlobeCanvasProps>) {
