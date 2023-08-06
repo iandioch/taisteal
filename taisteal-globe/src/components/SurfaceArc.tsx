@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from 'react'
+import React, { useLayoutEffect, useRef, useEffect } from 'react'
 import { Canvas, useFrame, extend, ReactThreeFiber } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -19,8 +19,10 @@ type SurfaceArcProps = {
     end: THREE.Vector3,
     smoothness: number,
     width: number,
-    colour: THREE.Color
+    colour: THREE.Color,
 };
+
+const MATERIAL = new THREE.LineBasicMaterial({color: new THREE.Color(0xffffff), linewidth: 3});
 
 const SurfaceArc = (props: SurfaceArcProps) : JSX.Element => {
     const ref = useRef<THREE.Line>(null);
@@ -39,17 +41,17 @@ const SurfaceArc = (props: SurfaceArcProps) : JSX.Element => {
     for (var i = 0; i < smoothness; i++) {
         points.push(start.clone().applyAxisAngle(normal, angleDelta*i));
     }
-    const material = new THREE.LineBasicMaterial({color: colour, linewidth: width});
 
-    useFrame(() => {
+    useEffect(() => {
         if (ref.current) {
             ref.current!.geometry.setFromPoints(points);
         }
     });
     return (
-        <line_ ref={ref} >
-            <bufferGeometry />
-            <lineBasicMaterial attach="material" color={colour} linewidth={width} />
+        <line_ ref={ref} material={MATERIAL}>
+            {/*<lineBasicMaterial attach="material" color={colour} linewidth={width} />*/}
         </line_>
 );
 }
+
+export {SurfaceArc};

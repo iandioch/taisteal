@@ -1,5 +1,6 @@
 import GlobeCanvas from 'Globe'
 import { Sidebar, SidebarPanel } from 'Sidebar'
+import { AllRoutes } from 'components/AllRoutes'
 import { loadMapData } from 'data'
 import { useEffect} from 'react'
 
@@ -8,6 +9,7 @@ export default function Root() {
   return (
     <>
         <GlobeCanvas>
+            <AllRoutes />
         </GlobeCanvas>
         <Sidebar>
             <SidebarPanel>

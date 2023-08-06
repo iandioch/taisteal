@@ -1,5 +1,6 @@
 import { Location, Leg } from './types'
-import { addLegs } from 'store'
+import { addLegs, legSlice } from 'store'
+import store from 'store'
 
 const MAP_DATA_URL = 'http://localhost:1916/api/travel_map'
 
@@ -61,11 +62,12 @@ var loadingMapData = false;
 async function loadMapData() {
     if (loadingMapData) {
         console.log("Requested to load map data, but it is already loading.");
+        return;
     }
     loadingMapData = true;
     loadJSON(MAP_DATA_URL, (data) => {
         const legs = parseLegs(data);
-        addLegs(legs);
+        store.dispatch(legSlice.actions.addLegs(legs));
     });
 }
 
