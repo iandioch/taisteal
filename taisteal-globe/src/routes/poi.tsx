@@ -2,6 +2,7 @@ import GlobeCanvas from 'Globe';
 import { Sidebar, SidebarPanel } from 'Sidebar';
 import { AirRoute } from 'map-components/RaisedArc';
 import { MapPOI } from 'map-components/MapPOI';
+import { POILink } from 'sidebar-components/POILink';
 import { loadMapData } from 'data';
 import { useEffect} from 'react';
 import { useSelector } from 'react-redux';
@@ -60,7 +61,12 @@ export default function POI() {
                 <p>{visit.location.type} in {visit.location.region} in {visit.location.countryName}.</p>
                 </SidebarPanel><SidebarPanel>
                 <p>Visited {visit.numVisits} times, for a total of {visit.hours < 40 ? visit.hours + " hours." : visit.days + " days."}</p>
-            </SidebarPanel></>)}
+            </SidebarPanel>
+            <SidebarPanel>
+                <p>Connected places:</p>
+                { connectedVisits.map((visit, i) => <POILink key={visit.location.id} location={visit.location} />) }
+            </SidebarPanel>
+            </>)}
         </Sidebar>
     </>
   );
