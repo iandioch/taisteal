@@ -1,7 +1,7 @@
 import GlobeCanvas from 'Globe';
 import { Sidebar, SidebarPanel } from 'Sidebar';
-import { AirRoute } from 'components/RaisedArc';
-import { MapPOI } from 'components/MapPOI';
+import { AirRoute } from 'map-components/RaisedArc';
+import { MapPOI } from 'map-components/MapPOI';
 import { loadMapData } from 'data';
 import { useEffect} from 'react';
 import { useSelector } from 'react-redux';

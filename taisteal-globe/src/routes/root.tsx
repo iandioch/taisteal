@@ -1,7 +1,7 @@
 import GlobeCanvas from 'Globe'
 import { Sidebar, SidebarPanel } from 'Sidebar'
-import { AllAirRoutes } from 'components/AllRoutes'
-import { AllMapPOIs } from 'components/MapPOI'
+import { AllAirRoutes } from 'map-components/AllRoutes'
+import { AllMapPOIs } from 'map-components/MapPOI'
 import { loadMapData } from 'data'
 import { useEffect} from 'react'
 

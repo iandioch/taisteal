@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import { RootState } from 'store';
 import { useSelector } from 'react-redux';
-import { SurfaceArc } from 'components/SurfaceArc';
-import {  AirRoute } from 'components/RaisedArc';
+import { SurfaceArc } from './SurfaceArc';
+import {  AirRoute } from './RaisedArc';
 import { latLngToVector, latLngDistance, mapToRange } from 'maths';
 import { GLOBE_CIRCUMFERENCE } from '../constants'
 
