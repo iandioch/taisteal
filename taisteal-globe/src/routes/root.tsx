@@ -10,7 +10,7 @@ export default function Root() {
   return (
     <>
         <GlobeCanvas>
-            {/*<AllAirRoutes />*/}
+            <AllAirRoutes />
             <AllMapPOIs />
         </GlobeCanvas>
         <Sidebar>
