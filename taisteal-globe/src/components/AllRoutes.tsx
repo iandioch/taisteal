@@ -17,7 +17,7 @@ export function AllRoutes() {
                 start = latLngToVector(leg.departureLocation.latitude, leg.departureLocation.longitude);
                 end = latLngToVector(leg.arrivalLocation.latitude, leg.arrivalLocation.longitude);
                 const legDistance = latLngDistance(leg.departureLocation.latitude, leg.departureLocation.longitude, leg.arrivalLocation.latitude, leg.arrivalLocation.longitude);
-                const smoothness = Math.ceil(mapToRange(0, globeCircumference, 4, 64, legDistance));
+                const smoothness = Math.ceil(mapToRange(0, globeCircumference, 16, 256, legDistance));
                 const legId = leg.departureLocation.id + "-" + leg.arrivalLocation.id + "-" + leg.mode;
                 return <SurfaceArc key={legId} start={start} end={end} smoothness={smoothness} width={3} colour={colour}/>
             })}
