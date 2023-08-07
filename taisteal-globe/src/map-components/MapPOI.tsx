@@ -18,7 +18,6 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     const [hovered, setHover] = useState(false);
     const navigate = useNavigate();
     const longestVisit = useSelector((state: RootState) => state.visits.longestVisit);
-    console.log(longestVisit);
     const highestVisits = longestVisit ? longestVisit.hours : 1000;
     const highestVisitsLog10 = Math.log10(highestVisits);
     const MAX_LOG_HEIGHT = MAX_POI_HEIGHT/2;
@@ -54,7 +53,7 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
             </mesh>
             <Cylinder args={[radius, radius*0.8, height, 8, 1, false]} material={bodyMaterial} position={[0, 0, -height/2]} rotation={[-Math.PI/2, 0, 0]}/>
             {hovered && 
-                <Html prepend center > 
+                <Html prepend center style={{pointerEvents: 'none'}}> 
                     <p className="poi-label">{props.visit.location.name}</p>
                 </Html>
             }
