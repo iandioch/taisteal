@@ -11,5 +11,6 @@ export const CONTROLS_DAMPING_FACTOR = 0.075;
 export const CONTROLS_ROTATE_SPEED = 0.85;
 export const CONTROLS_ZOOM_SPEED = 0.7;
 
-export const MIN_POI_HEIGHT = GLOBE_RADIUS / 200;
-export const MAX_POI_HEIGHT = GLOBE_RADIUS / 15;
+export const POI_RADIUS = 0.005;
+export const MIN_POI_HEIGHT = GLOBE_RADIUS / 50;
+export const MAX_POI_HEIGHT = GLOBE_RADIUS / 5;

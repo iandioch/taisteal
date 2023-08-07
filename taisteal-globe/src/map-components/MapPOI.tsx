@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Visit } from 'types';
-import { MIN_POI_HEIGHT, MAX_POI_HEIGHT } from '../constants';
+import { POI_RADIUS, MIN_POI_HEIGHT, MAX_POI_HEIGHT } from '../constants';
 import { latLngToVector } from 'maths';
 import { useRef, useLayoutEffect, useState } from 'react';
 import { Circle, Cylinder, Hud, Html, Sphere } from '@react-three/drei';
@@ -23,7 +23,7 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     const MAX_LOG_HEIGHT = MAX_POI_HEIGHT/2;
     // TODO: need to handle clusters.
     const visitHours = props.visit.hours;
-    const radius = 0.002;
+    const radius = POI_RADIUS;
 
     // Use a log-based height, because in a normal case, the place where
     // you live will have an order of magnitude more visit time than
@@ -38,7 +38,7 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     const pos = latLngToVector(props.visit.location.latitude, props.visit.location.longitude);
 
     const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF, side: THREE.BackSide});
-    const bodyMaterial = new THREE.MeshBasicMaterial({color: 0xFF0000});
+    const bodyMaterial = new THREE.MeshBasicMaterial({color: 0xED5610});
     const margin = radius * 0.25;
 
     return (
