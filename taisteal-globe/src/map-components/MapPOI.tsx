@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Visit } from 'types';
-import { POI_RADIUS, MIN_POI_HEIGHT, MAX_POI_HEIGHT } from '../constants';
+import { POI_COLOUR_SCALE, POI_RADIUS, MIN_POI_HEIGHT, MAX_POI_HEIGHT } from '../constants';
 import { latLngToVector } from 'maths';
 import { useRef, useLayoutEffect, useState } from 'react';
 import { Circle, Cylinder, Hud, Html, Sphere } from '@react-three/drei';
@@ -38,7 +38,7 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     const pos = latLngToVector(props.visit.location.latitude, props.visit.location.longitude);
 
     const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF, side: THREE.BackSide});
-    const bodyMaterial = new THREE.MeshBasicMaterial({color: 0xED5610});
+    const bodyMaterial = new THREE.MeshBasicMaterial({color: POI_COLOUR_SCALE(Math.log10(visitHours)/Math.log10(highestVisits)).hex()});
     const margin = radius * 0.25;
 
     return (
