@@ -1,6 +1,7 @@
-import { Leg, modeToString } from 'types'
+import { modeToString } from 'types'
+import type { Leg } from 'types'
 import { POILink } from 'sidebar-components/POILink'
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useReactTable, createColumnHelper, flexRender, getCoreRowModel, getPaginationRowModel, SortingState, getSortedRowModel, PaginationState } from '@tanstack/react-table'
 import { useSelector } from 'react-redux'
 import { RootState } from 'store'
@@ -9,7 +10,43 @@ type RouteTableProps = {
     legs: Leg[]
 };
 
+const mergeLegs = (givenLegs: Leg[]):Leg[] => {
+    const legs = new Map<string, Leg>(); 
+    for (const leg of givenLegs) {
+        var id = leg.departureLocation.id + "-" + leg.arrivalLocation.id + "-" + leg.mode;
+        const swap = (leg.departureLocation.id > leg.arrivalLocation.id);
+        if (swap) {
+            id = leg.arrivalLocation.id + "-" + leg.departureLocation.id + "-" + leg.mode;
+        }
+        if (legs.has(id)) {
+            legs.get(id)!.count += leg.count;
+        } else {
+            legs.set(id, ({
+                departureLocation: (swap? leg.arrivalLocation : leg.departureLocation),
+                arrivalLocation: (swap? leg.departureLocation : leg.arrivalLocation),
+                mode: leg.mode,
+                count: leg.count,
+                distance: leg.distance,
+            }));
+        }
+    }
+    return Array.from(legs.values());
+}
+
 export const RouteTable = (props: RouteTableProps) => {
+    const [merged, setMerged] = useState<boolean>(false);
+
+    var [renderedLegs, setRenderedLegs] = useState<Leg[]>(props.legs);
+    const mergedLegs = useMemo(() => mergeLegs(props.legs), [props.legs]);
+
+    useEffect(() => {
+        if(merged) {
+            setRenderedLegs(mergedLegs);
+            return;
+        }
+        setRenderedLegs(props.legs);
+    }, [merged, mergedLegs, setRenderedLegs]);
+
     // TODO: When sidebar is hidden and re-shown, table resets pagination.
     const [sorting, setSorting] = useState<SortingState>([
         {
@@ -65,7 +102,7 @@ export const RouteTable = (props: RouteTableProps) => {
     ];
 
     const table = useReactTable({
-        data: props.legs,
+        data: renderedLegs,
         columns,
         getCoreRowModel: getCoreRowModel(),
         state: {
@@ -76,7 +113,7 @@ export const RouteTable = (props: RouteTableProps) => {
         getPaginationRowModel: getPaginationRowModel(),
     });
     return (<>
-        <table className="table-auto w-full border-collapse border border-zinc-500">
+        <table className="table-auto w-full border-collapse border border-zinc-500 mt-2 mb-1">
             <thead>
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>
@@ -122,43 +159,43 @@ export const RouteTable = (props: RouteTableProps) => {
               ))}
             </tbody>
         </table>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2 h-10 pt-1">
         <button
-          className="border rounded p-1"
+          className="border rounded p-1 text-sm"
           onClick={() => table.setPageIndex(0)}
           disabled={!table.getCanPreviousPage()}
         >
           {'<<'}
         </button>
         <button
-          className="border rounded p-1"
+          className="border rounded p-1 text-sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
           {'<'}
         </button>
         <button
-          className="border rounded p-1"
+          className="border rounded p-1 text-sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
           {'>'}
         </button>
         <button
-          className="border rounded p-1"
+          className="border rounded p-1 text-sm"
           onClick={() => table.setPageIndex(table.getPageCount() - 1)}
           disabled={!table.getCanNextPage()}
         >
           {'>>'}
         </button>
-        <span className="flex items-center gap-1">
+        <span className="flex items-center gap-1 text-sm">
           <div>Page</div>
           <strong>
             {table.getState().pagination.pageIndex + 1} of{' '}
             {table.getPageCount()}
           </strong>
         </span>
-        <span className="flex items-center gap-1">
+        <span className="flex items-center gap-1 text-sm">
           | Go to page:
           <input
             type="number"
@@ -167,7 +204,7 @@ export const RouteTable = (props: RouteTableProps) => {
               const page = e.target.value ? Number(e.target.value) - 1 : 0
               table.setPageIndex(page)
             }}
-            className="border p-1 rounded w-16"
+            className="border p-1 rounded w-12 text-sm"
           />
         </span>
         <select
@@ -175,13 +212,20 @@ export const RouteTable = (props: RouteTableProps) => {
           onChange={e => {
             table.setPageSize(Number(e.target.value))
           }}
+          className="text-sm"
         >
-          {[10, 20, 30, 40, 50].map(pageSize => (
+          {[5, 10, 25, 50].map(pageSize => (
             <option key={pageSize} value={pageSize}>
               Show {pageSize}
             </option>
           ))}
         </select>
+        <button
+          className="border rounded p-1 text-sm"
+          onClick={() => setMerged(!merged)}
+        >
+          {merged? "Unmerge" : "Merge"}
+        </button>
       </div>
     </>);
 }
