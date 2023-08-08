@@ -1,4 +1,4 @@
-import { Location, Leg, Visit } from './types'
+import { Mode, modeFromString, Location, Leg, Visit } from './types'
 import { legSlice, visitSlice } from 'store'
 import store from 'store'
 import { latLngDistance } from 'maths'
@@ -47,7 +47,7 @@ function parseLeg(data: any): Leg {
     const leg: Leg = {
         departureLocation,
         arrivalLocation,
-        mode: data.mode,
+        mode: modeFromString(data.mode),
         count: data.count,
         // TODO: this should probably happen on the server
         distance: latLngDistance(departureLocation.latitude, departureLocation.longitude, arrivalLocation.latitude, arrivalLocation.longitude),

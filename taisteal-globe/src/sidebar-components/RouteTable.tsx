@@ -1,4 +1,4 @@
-import { Leg } from 'types'
+import { Leg, modeToString } from 'types'
 import { POILink } from 'sidebar-components/POILink'
 import { useState } from 'react'
 import { useReactTable, createColumnHelper, flexRender, getCoreRowModel, getPaginationRowModel, SortingState, getSortedRowModel, PaginationState } from '@tanstack/react-table'
@@ -44,7 +44,7 @@ export const RouteTable = (props: RouteTableProps) => {
         columnHelper.accessor(leg => leg.mode, {
             header: 'Mode',
             id: 'mode',
-            cell: mode => <p>{mode.getValue()}</p>,
+            cell: mode => <p>{modeToString(mode.getValue())}</p>,
             enableColumnFilter: true,
         }),
         columnHelper.accessor(leg => leg.count, {

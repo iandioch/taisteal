@@ -1,4 +1,4 @@
-type Location = {
+export type Location = {
     id: string,
     address: string,
     name: string,
@@ -10,7 +10,7 @@ type Location = {
     region: string,
 }
 
-type Visit = {
+export type Visit = {
     location: Location,
     numVisits: number,
     days: number,
@@ -18,12 +18,57 @@ type Visit = {
     // TODO: Might need to handle clusters.
 }
 
-type Leg = {
+export enum Mode {
+    UNKNOWN = 0,
+    AEROPLANE,
+    BUS,
+    TRAIN,
+    TAXI,
+    BOAT,
+    WALK,
+    CAR,
+    GONDOLA,
+    MINIBUS,
+}
+
+// This would be good, but it isn't easy to check if something is inside
+type ModeStrings = keyof typeof Mode;
+
+export const modeFromString = (s: ModeStrings): Mode => {
+    switch(s) {
+        case 'AEROPLANE': return Mode.AEROPLANE;
+        case 'BUS': return Mode.BUS;
+        case 'TRAIN': return Mode.TRAIN;
+        case 'TAXI': return Mode.TAXI;
+        case 'BOAT': return Mode.BOAT;
+        case 'WALK': return Mode.WALK;
+        case 'CAR': return Mode.CAR;
+        case 'GONDOLA': return Mode.GONDOLA;
+        case 'MINIBUS': return Mode.MINIBUS;
+    }
+    return Mode.UNKNOWN;
+}
+
+export const modeToString = (m: Mode): string => {
+    const mapping: { [mode in Mode]: string } = {
+        [Mode.UNKNOWN]: '_Unknown',
+        [Mode.AEROPLANE]: 'Aeroplane',
+        [Mode.BUS]: 'Bus',
+        [Mode.TRAIN]: 'Train',
+        [Mode.TAXI]: 'Taxi',
+        [Mode.BOAT]: 'Boat',
+        [Mode.WALK]: 'Walk',
+        [Mode.CAR]: 'Car',
+        [Mode.GONDOLA]: 'Gondola',
+        [Mode.MINIBUS]: 'Minibus',
+    };
+    return mapping[m];
+}
+
+export type Leg = {
     departureLocation: Location,
     arrivalLocation: Location,
-    mode: string,
+    mode: Mode,
     count: number,
     distance: number,
 }
-
-export type { Location, Visit, Leg };
