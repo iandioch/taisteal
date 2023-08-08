@@ -23,6 +23,7 @@ type Leg = {
     arrivalLocation: Location,
     mode: string,
     count: number,
+    distance: number,
 }
 
 export type { Location, Visit, Leg };

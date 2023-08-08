@@ -54,6 +54,14 @@ export const RouteTable = (props: RouteTableProps) => {
             sortDescFirst: true,
             enableSorting: true,
         }),
+        columnHelper.accessor(leg => leg.distance, {
+            header: 'Distance',
+            id: 'distance',
+            cell: count=> <p>{count.getValue().toFixed(1)}km</p>,
+            sortDescFirst: true,
+            enableSorting: true,
+            sortingFn: (legA, legB) => legA.original.distance - legB.original.distance,
+        }),
     ];
 
     const table = useReactTable({
@@ -68,7 +76,7 @@ export const RouteTable = (props: RouteTableProps) => {
         getPaginationRowModel: getPaginationRowModel(),
     });
     return (<>
-        <table className="table-auto border-collapse border border-zinc-500">
+        <table className="table-auto w-full border-collapse border border-zinc-500">
             <thead>
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>

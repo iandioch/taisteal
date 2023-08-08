@@ -1,6 +1,7 @@
 import { Location, Leg, Visit } from './types'
 import { legSlice, visitSlice } from 'store'
 import store from 'store'
+import { latLngDistance } from 'maths'
 
 const MAP_DATA_URL = window.location.protocol + '//' + window.location.hostname + ':1916/api/travel_map'
 
@@ -41,11 +42,16 @@ function parseVisits(data: any): Visit[] {
 }
 
 function parseLeg(data: any): Leg {
+    const departureLocation = parseLocation(data.dep);
+    const arrivalLocation = parseLocation(data.arr);
     const leg: Leg = {
-        departureLocation: parseLocation(data.dep),
-        arrivalLocation: parseLocation(data.arr),
+        departureLocation,
+        arrivalLocation,
         mode: data.mode,
-        count: data.count
+        count: data.count,
+        // TODO: this should probably happen on the server
+        distance: latLngDistance(departureLocation.latitude, departureLocation.longitude, arrivalLocation.latitude, arrivalLocation.longitude),
+        // TODO: it'd be good to get some time for an aggregated leg (maybe mean would be most normal, but max most interesting on a chart?)
     };
     return leg;
 }
