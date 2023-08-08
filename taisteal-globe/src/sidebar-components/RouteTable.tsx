@@ -33,11 +33,13 @@ export const RouteTable = (props: RouteTableProps) => {
             header: 'Origin',
             id: 'departureLocation',
             cell: location => <POILink location={location.getValue()} />,
+            sortingFn: (legA, legB, columnId) => legA.original.departureLocation.name.localeCompare(legB.original.departureLocation.name),
         }),
         columnHelper.accessor(leg => leg.arrivalLocation, {
             header: 'Destination',
             id: 'arrivalLocation',
             cell: location => <POILink location={location.getValue()} />,
+            sortingFn: (legA, legB, columnId) => legA.original.arrivalLocation.name.localeCompare(legB.original.arrivalLocation.name),
         }),
         columnHelper.accessor(leg => leg.mode, {
             header: 'Mode',
