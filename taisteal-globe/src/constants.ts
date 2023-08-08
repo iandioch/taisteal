@@ -1,5 +1,4 @@
 // TODO: It's annoying to lose types here, and the DefinitelyTyped package isn't working for me. But regardless, chroma is a pretty big dep to pull in just for the colour scale function.
-// @ts-ignore
 import chroma from 'chroma-js'
 
 export const GLOBE_RADIUS: number = 1; // in 3D space units
@@ -19,4 +18,4 @@ export const POI_RADIUS = 0.005;
 export const MIN_POI_HEIGHT = GLOBE_RADIUS / 50;
 export const MAX_POI_HEIGHT = GLOBE_RADIUS / 5;
 
-export const POI_COLOUR_SCALE = chroma.scale(["navy", "purple", 0xDC6F3D, 0xe9c440]).mode('lch').gamma(0.5);
+export const POI_COLOUR_SCALE = chroma.scale(["navy", "purple", "#DC6F3D", "#e9c440"]).mode('lch').gamma(0.5);
