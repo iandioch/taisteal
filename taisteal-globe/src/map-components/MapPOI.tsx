@@ -54,7 +54,7 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
             <Cylinder args={[radius, radius*0.8, height, 8, 1, false]} material={bodyMaterial} position={[0, 0, -height/2]} rotation={[-Math.PI/2, 0, 0]}/>
             {hovered && 
                 <Html prepend center style={{pointerEvents: 'none'}}> 
-                    <p className="poi-label">{props.visit.location.name}</p>
+                    <p className="poi-label text-center text-lg p-1 bg-slate-100 rounded">{props.visit.location.name}</p>
                 </Html>
             }
         </group>

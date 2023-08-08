@@ -102,7 +102,7 @@ export const RouteTable = (props: RouteTableProps) => {
             <tbody>
                 {table.getRowModel().rows.map((row, rowIndex) => (
                 <tr key={row.id}>
-                  <td>{table.getState().pagination.pageIndex*table.getState().pagination.pageSize + rowIndex + 1}</td>
+                  <td><p className="text-3xl">{table.getState().pagination.pageIndex*table.getState().pagination.pageSize + rowIndex + 1}</p></td>
                   {row.getVisibleCells().map(cell => (
                     <td key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
