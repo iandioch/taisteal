@@ -34,8 +34,7 @@ export default function POI() {
   function renderLegs() {
     return <>
         {[...matchingLegs].map((leg, i) => {
-            const legId = leg.departureLocation.id + "-" + leg.arrivalLocation.id + "-" + leg.mode;
-            return <AirRoute key={legId} leg={leg} />
+            return <AirRoute key={leg.id} leg={leg} />
         })}
     </>
   }

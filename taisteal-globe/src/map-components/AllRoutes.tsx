@@ -19,8 +19,7 @@ export function AllSurfaceRoutes() {
                 end = latLngToVector(leg.arrivalLocation.latitude, leg.arrivalLocation.longitude);
                 const legDistance = latLngDistance(leg.departureLocation.latitude, leg.departureLocation.longitude, leg.arrivalLocation.latitude, leg.arrivalLocation.longitude);
                 const smoothness = Math.ceil(mapToRange(0, GLOBE_CIRCUMFERENCE, 16, 256, legDistance));
-                const legId = leg.departureLocation.id + "-" + leg.arrivalLocation.id + "-" + leg.mode;
-                return <SurfaceArc key={legId} start={start} end={end} smoothness={smoothness} width={3} colour={colour}/>
+                return <SurfaceArc key={leg.id} start={start} end={end} smoothness={smoothness} width={3} colour={colour}/>
             })}
         </>
     );
@@ -32,8 +31,7 @@ export function AllAirRoutes() {
     return (
         <>
             {[...legs.legs].map((leg, i) => {
-                const legId = leg.departureLocation.id + "-" + leg.arrivalLocation.id + "-" + leg.mode;
-                return <AirRoute key={legId} leg={leg} />
+                return <AirRoute key={leg.id} leg={leg} />
             })}
         </>
     );

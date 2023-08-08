@@ -1,5 +1,5 @@
-import { modeToString } from 'types'
-import type { Leg } from 'types'
+import { modeToString, makeLegID } from 'types'
+import type { Leg, } from 'types'
 import { POILink } from 'sidebar-components/POILink'
 import { useState, useEffect, useMemo } from 'react'
 import { useReactTable, createColumnHelper, flexRender, getCoreRowModel, getPaginationRowModel, SortingState, getSortedRowModel, PaginationState } from '@tanstack/react-table'
@@ -13,10 +13,10 @@ type RouteTableProps = {
 const mergeLegs = (givenLegs: Leg[]):Leg[] => {
     const legs = new Map<string, Leg>(); 
     for (const leg of givenLegs) {
-        var id = leg.departureLocation.id + "-" + leg.arrivalLocation.id + "-" + leg.mode;
+        var id = leg.id;
         const swap = (leg.departureLocation.id > leg.arrivalLocation.id);
         if (swap) {
-            id = leg.arrivalLocation.id + "-" + leg.departureLocation.id + "-" + leg.mode;
+            id = makeLegID(leg.arrivalLocation, leg.departureLocation, leg.mode);
         }
         if (legs.has(id)) {
             legs.get(id)!.count += leg.count;
@@ -27,6 +27,7 @@ const mergeLegs = (givenLegs: Leg[]):Leg[] => {
                 mode: leg.mode,
                 count: leg.count,
                 distance: leg.distance,
+                id: id,
             }));
         }
     }

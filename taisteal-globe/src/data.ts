@@ -1,4 +1,4 @@
-import { Mode, modeFromString, Location, Leg, Visit } from './types'
+import { Mode, modeFromString, Location, Leg, makeLegID, Visit } from './types'
 import { legSlice, visitSlice } from 'store'
 import store from 'store'
 import { latLngDistance } from 'maths'
@@ -44,14 +44,16 @@ function parseVisits(data: any): Visit[] {
 function parseLeg(data: any): Leg {
     const departureLocation = parseLocation(data.dep);
     const arrivalLocation = parseLocation(data.arr);
+    const mode = modeFromString(data.mode);
     const leg: Leg = {
         departureLocation,
         arrivalLocation,
-        mode: modeFromString(data.mode),
+        mode,
         count: data.count,
         // TODO: this should probably happen on the server
         distance: latLngDistance(departureLocation.latitude, departureLocation.longitude, arrivalLocation.latitude, arrivalLocation.longitude),
         // TODO: it'd be good to get some time for an aggregated leg (maybe mean would be most normal, but max most interesting on a chart?)
+        id: makeLegID(departureLocation, arrivalLocation, mode),
     };
     return leg;
 }

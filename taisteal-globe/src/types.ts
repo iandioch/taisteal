@@ -71,4 +71,10 @@ export type Leg = {
     mode: Mode,
     count: number,
     distance: number,
+    id: string,
+}
+
+export const makeLegID = (departureLocation: Location, arrivalLocation: Location, mode: Mode): string => {
+    // TODO: This should probably come from server.
+    return `${departureLocation.id}-${arrivalLocation.id}-${mode}`
 }
