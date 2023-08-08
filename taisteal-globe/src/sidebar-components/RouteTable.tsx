@@ -61,19 +61,19 @@ export const RouteTable = (props: RouteTableProps) => {
         state: {
             sorting,
         },
-        getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
     });
     return (<>
-        <table>
+        <table className="table-auto border-collapse border border-zinc-500">
             <thead>
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>
-                  <th colSpan={1}>#</th>
+                  <th className="border border-zinc-600 bg-zinc-500" colSpan={1}>#</th>
                   {headerGroup.headers.map(header => {
                     return (
-                      <th key={header.id} colSpan={header.colSpan}>
+                      <th key={header.id} className="border border-zinc-600 bg-zinc-500" colSpan={header.colSpan}>
                         {header.isPlaceholder ? null : (
                           <div
                             {...{
@@ -102,16 +102,17 @@ export const RouteTable = (props: RouteTableProps) => {
             <tbody>
                 {table.getRowModel().rows.map((row, rowIndex) => (
                 <tr key={row.id}>
-                  <td><p className="text-3xl">{table.getState().pagination.pageIndex*table.getState().pagination.pageSize + rowIndex + 1}</p></td>
+                  <td className="border border-zinc-500 bg-zinc-200 text-center"><p className="">{table.getState().pagination.pageIndex*table.getState().pagination.pageSize + rowIndex + 1}</p></td>
                   {row.getVisibleCells().map(cell => (
-                    <td key={cell.id}>
+                    <td key={cell.id} className={"border border-zinc-500 text-center " + (rowIndex % 2 ? 'bg-zinc-200' : 'bg-zinc-50')}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
                 </tr>
               ))}
             </tbody>
-            <div className="flex items-center gap-2">
+        </table>
+        <div className="flex items-center gap-2">
         <button
           className="border rounded p-1"
           onClick={() => table.setPageIndex(0)}
@@ -172,7 +173,6 @@ export const RouteTable = (props: RouteTableProps) => {
           ))}
         </select>
       </div>
-        </table>
     </>);
 }
 

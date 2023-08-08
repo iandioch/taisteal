@@ -10,7 +10,7 @@ type POILinkProps = {
 export function POILink(props: POILinkProps) {
     return (<>
         <Link to={getRouteForPOI(props.location.id)}>
-            <p>{props.location.name}</p>
+            <p className="underline rounded hover:ring hover:ring-slate-200 hover:bg-slate-100" >{props.location.name}</p>
         </Link>
     </>);
 }
