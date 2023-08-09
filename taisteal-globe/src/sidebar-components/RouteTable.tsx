@@ -149,10 +149,10 @@ export const RouteTable = (props: RouteTableProps) => {
             </thead>
             <tbody>
                 {table.getRowModel().rows.map((row, rowIndex) => (
-                <tr key={row.id}>
-                  <td className="border border-zinc-500 bg-zinc-200 text-center"><p className="">{table.getState().pagination.pageIndex*table.getState().pagination.pageSize + rowIndex + 1}</p></td>
+                <tr key={row.id} className={"text-center " + (rowIndex % 2 ? 'bg-zinc-200' : 'bg-zinc-50')}>
+                  <td className=""><p>{table.getState().pagination.pageIndex*table.getState().pagination.pageSize + rowIndex + 1}</p></td>
                   {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className={"border border-zinc-500 text-center " + (rowIndex % 2 ? 'bg-zinc-200' : 'bg-zinc-50')}>
+                    <td key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
