@@ -1,5 +1,5 @@
 import type { Visit } from 'types'
-import { POILink } from 'sidebar-components/POILink'
+import { CountryLink, POILink } from 'sidebar-components/POILink'
 import { useState, useEffect, useMemo } from 'react'
 import { useReactTable, createColumnHelper, flexRender, getCoreRowModel, getPaginationRowModel, SortingState, getSortedRowModel, PaginationState } from '@tanstack/react-table'
 import { useSelector } from 'react-redux'
@@ -60,7 +60,7 @@ export const VisitTable = (props: VisitTableProps) => {
         columnHelper.accessor(visit => visit.location, {
             header: 'Country',
             id: 'locationCountry',
-            cell: location => <p>{location.getValue().countryName}</p>,
+            cell: location => <CountryLink countryCode={location.getValue().countryCode} countryName={location.getValue().countryName} />,
         }),
         columnHelper.accessor(visit => visit.location.type, {
             header: 'Type',
