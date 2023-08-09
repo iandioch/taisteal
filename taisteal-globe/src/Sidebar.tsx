@@ -1,6 +1,6 @@
 import './Sidebar.css'
 
-import { PropsWithChildren, useState, useEffect } from 'react'
+import { PropsWithChildren, useState, useEffect, useRef } from 'react'
 import { GoSidebarCollapse, GoSidebarExpand, GoHome } from 'react-icons/go';
 import { Link, useLocation } from 'react-router-dom';
 import { getRouteForIndex } from 'routes';
@@ -26,7 +26,9 @@ function SidebarHomeButton() {
         console.log("checking sidebar home button", location.pathname);
         setVisible(location.pathname !== '/');
     }, [location]);
-    if (!visible) return null;
+    if (!visible) {
+        return null;
+    }
     return (
         <Link className="taisteal-sidebar-panel taisteal-sidebar-button" id="sidebar-home-button" to={getRouteForIndex()}>
             <GoHome />
@@ -37,14 +39,40 @@ function SidebarHomeButton() {
 type SidebarProps = {
 }
 
+const setGlobePosition = (sidebarDiv: HTMLDivElement, visible: boolean) => {
+    // Important to note here that the globe is by default horizontally centered.
+    const elem = document.getElementById('globe-container');
+    const windowWidth = window.innerWidth;
+    const sidebarWidth = sidebarDiv.offsetWidth;
+    if (!elem) return;
+
+    // TODO: Making this movement animated would be pretty slick.
+    if ((windowWidth / 2 < sidebarWidth) || !visible) {
+        elem.style.transform = "";
+        return;
+    }
+    // We want to move the globe to be horizontally centered between the edge of
+    // the sidebar and the left border of the window, so d is the distance it
+    // must move.
+    // TODO: is d just sidebarWidth/2 ?
+    const d = (windowWidth/2) - (windowWidth-sidebarWidth)/2;
+    elem.style.transform = `translate(-${d}px, 0)`;
+}
+
 function Sidebar(props: PropsWithChildren<SidebarProps>) {
     const [visible, setVisible] = useState(true);
+    const ref = useRef(null);
 
     const handleHideClick = () => {
         setVisible(!visible);
     }
+    useEffect(() => {
+        if (ref.current) {
+            setGlobePosition(ref.current, visible);
+        }
+    }, [visible, ref]);
     return (
-        <div id="taisteal-sidebar">
+        <div ref={ref} id="taisteal-sidebar">
             <SidebarHomeButton />
             <SidebarHideToggle sidebarVisible={visible} handleClick={handleHideClick}/>
             {visible && props.children}
