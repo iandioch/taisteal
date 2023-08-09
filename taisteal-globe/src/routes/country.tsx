@@ -4,6 +4,7 @@ import { AirRoute } from 'map-components/RaisedArc';
 import { MapPOI } from 'map-components/MapPOI';
 import { POILink } from 'sidebar-components/POILink';
 import { RouteTable } from 'sidebar-components/RouteTable';
+import { VisitTable } from 'sidebar-components/VisitTable';
 import { loadMapData } from 'data';
 import { useEffect} from 'react';
 import { useSelector } from 'react-redux';
@@ -62,13 +63,15 @@ export default function Country() {
             {countryName && (<><SidebarPanel>
                 <p>{countryName}</p>
                 </SidebarPanel><SidebarPanel>
+                <p className="text-xl text-center">Places visited</p>
+                <VisitTable visits={matchingVisits} />
             </SidebarPanel>
             <SidebarPanel>
-                <p>Connected places:</p>
-                { connectedVisits.map((visit, i) => <POILink key={visit.location.id} location={visit.location} />) }
+                <p className="text-xl text-center">Connected places</p>
+                <VisitTable visits={connectedVisits} />
             </SidebarPanel>
             <SidebarPanel>
-                <p>Connected routes</p>
+                <p className="text-xl text-center">Connected routes</p>
                 <RouteTable legs={matchingLegs} />
             </SidebarPanel>
             </>)}
