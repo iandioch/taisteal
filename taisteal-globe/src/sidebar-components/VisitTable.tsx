@@ -93,6 +93,8 @@ export const VisitTable = (props: VisitTableProps) => {
         getSortedRowModel: getSortedRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
     });
+    // TODO: this and the RouteTable should both use the same rendering (modulo
+    // the merge button difference).
     return (<>
         <table className="table-auto w-full border-collapse border border-zinc-500 mt-2 mb-1">
             <thead>

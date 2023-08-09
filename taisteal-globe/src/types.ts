@@ -3,6 +3,8 @@
 // TODO: in the same vein, should extract visit info (numVisits is problematic,
 // but at least days & hours) to a separate type, so there can be a
 // LocationVisit and also eg. a CountryVisit
+// TODO: A location should be able to have more than one country associated with
+// it, eg. Jerusalem.
 export type Location = {
     id: string,
     address: string,
