@@ -1,3 +1,8 @@
+// TODO: Should extract country code + name into its own type, so it's easier to
+// make components around it.
+// TODO: in the same vein, should extract visit info (numVisits is problematic,
+// but at least days & hours) to a separate type, so there can be a
+// LocationVisit and also eg. a CountryVisit
 export type Location = {
     id: string,
     address: string,
