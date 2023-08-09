@@ -7,6 +7,7 @@ import {
 import './index.css';
 import Root from './routes/root';
 import POI from './routes/poi';
+import Country from './routes/country';
 import Index from './routes/index';
 import reportWebVitals from './reportWebVitals';
 import store from 'store';
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
             {
                 path: "poi/:id",
                 element: <POI />
+            },
+            {
+                path: "country/:id",
+                element: <Country />
             },
         ]
     }

@@ -235,7 +235,7 @@ export const AllRouteTable = () => {
     const legs = useSelector((state: RootState) => state.legs);
 
     return (<>
-        <p>Most-repeated routes:</p>
+        <p className="text-xl text-center">Routes travelled</p>
         <RouteTable legs={legs.legs} />
     </>);
 }
