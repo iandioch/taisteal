@@ -46,9 +46,9 @@ const setGlobePosition = (sidebarDiv: HTMLDivElement, visible: boolean) => {
     const sidebarWidth = sidebarDiv.offsetWidth;
     if (!elem) return;
 
-    // TODO: Making this movement animated would be pretty slick.
     if ((windowWidth / 2 < sidebarWidth) || !visible) {
         elem.style.transform = "";
+        elem.style.transition = "0.5s";
         return;
     }
     // We want to move the globe to be horizontally centered between the edge of
