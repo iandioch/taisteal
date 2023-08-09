@@ -3,6 +3,7 @@ import { Sidebar, SidebarPanel } from 'Sidebar';
 import { AirRoute } from 'map-components/RaisedArc';
 import { MapPOI } from 'map-components/MapPOI';
 import { POILink } from 'sidebar-components/POILink';
+import { RouteTable } from 'sidebar-components/RouteTable';
 import { loadMapData } from 'data';
 import { useEffect} from 'react';
 import { useSelector } from 'react-redux';
@@ -63,6 +64,10 @@ export default function POI() {
             <SidebarPanel>
                 <p>Connected places:</p>
                 { connectedVisits.map((visit, i) => <POILink key={visit.location.id} location={visit.location} />) }
+            </SidebarPanel>
+            <SidebarPanel>
+                <p>Routes to and from {visit.location.name}:</p>
+                <RouteTable legs={matchingLegs} />
             </SidebarPanel>
             </>)}
         </SidebarTunnel.In>
