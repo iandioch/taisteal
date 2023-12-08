@@ -47,7 +47,7 @@ const setGlobePosition = (sidebarDiv: HTMLDivElement, visible: boolean) => {
     const sidebarWidth = sidebarDiv.offsetWidth;
     if (!elem) return;
 
-    if ((windowWidth / 2 < sidebarWidth) || !visible) {
+    if ((sidebarWidth > windowWidth / 2) || !visible) {
         elem.style.transform = "";
         elem.style.transition = "0.5s";
         return;
@@ -61,7 +61,7 @@ const setGlobePosition = (sidebarDiv: HTMLDivElement, visible: boolean) => {
 }
 
 function Sidebar(props: PropsWithChildren<SidebarProps>) {
-    const [visible, setVisible] = useState(true);
+    const [visible, setVisible] = useState(false);
     const ref = useRef(null);
 
     const handleHideClick = () => {
