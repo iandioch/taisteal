@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react'
-import { extend, ReactThreeFiber } from '@react-three/fiber'
+import { extend, ReactThreeFiber, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { Leg } from 'types'
 import { GLOBE_CIRCUMFERENCE, GLOBE_RADIUS } from '../constants'
@@ -26,6 +26,40 @@ type RaisedArcProps = {
     material: THREE.Material,
 };
 
+const RaisedArcTraveller = (props: RaisedArcProps): JSX.Element => {
+    // TODO: This should be an InstancedMesh
+    const ref = React.useRef<THREE.Mesh>(null);
+    const curve = new THREE.QuadraticBezierCurve3(props.start, props.controlPoint, props.end);
+    // TODO: this should be derived from GLOBE_RADIUS or something, so that
+    // if the globe size is changed then this is changed in proportion.
+    const radius = 0.005; 
+    // TODO: These should be set from the actual speed the leg was travelled at!
+    const durationSeconds = 2.5;
+    const interimSeconds = 1.0;
+    let animState = Math.random();
+
+    useFrame((state, delta) => {
+        if (!ref.current) return;
+
+        animState += delta;
+        animState %= (durationSeconds+interimSeconds);
+        if (animState > durationSeconds) {
+            ref.current!.position.set(-100, -100, -100);
+            return;
+        }
+
+        const point = curve.getPointAt(animState/durationSeconds);
+        ref.current!.position.set(point.x, point.y, point.z);
+        //ref.current!.position.needsUpdate = true;
+    });
+    return (
+        <mesh ref={ref}>
+            <sphereGeometry args={[radius, 4, 4]} />
+            <meshBasicMaterial color={0x000000} />
+        </mesh>
+    )
+}
+
 const RaisedArc = (props: RaisedArcProps): JSX.Element => {
     const ref = useRef<THREE.Line>(null);
     const curve = new THREE.QuadraticBezierCurve3(props.start, props.controlPoint, props.end);
@@ -34,9 +68,10 @@ const RaisedArc = (props: RaisedArcProps): JSX.Element => {
             ref.current!.geometry.setFromPoints(curve.getPoints(props.smoothness));
         }
     });
-    return (<line_ ref={ref} material={props.material}>
+    return (<group><line_ ref={ref} material={props.material}>
         <bufferGeometry />
-    </line_>);
+        <RaisedArcTraveller {...props} />
+    </line_></group>);
 };
 
 const AIR_ROUTE_MATERIAL = new THREE.LineBasicMaterial({
