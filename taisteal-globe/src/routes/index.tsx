@@ -4,14 +4,21 @@ import { AllMapPOIs } from 'map-components/MapPOI'
 import { AllRouteTable } from 'sidebar-components/RouteTable'
 import { AllVisitTable } from 'sidebar-components/VisitTable'
 import { SidebarTunnel, SidebarHighlightTunnel } from 'routes'
+import { useSelector } from 'react-redux'
+import { RootState } from 'store'
 
 export default function Index() {
+  const visitStats = useSelector((state: RootState) => state.visits.stats);
+  const numVisits = useSelector((state: RootState) => state.visits.visits.length);
   return (
     <>
         <AllAirRoutes />
         <AllMapPOIs />
         <SidebarHighlightTunnel.In>
-            <SidebarPanel>Noah's travel globe</SidebarPanel>
+            <SidebarPanel>
+                <p className="text-center font-bold">Noah's life of travel</p>
+                <p>Visited <span className="font-bold">{numVisits}</span> places in <span className="font-bold">{visitStats.numCountries}</span> countries & territories</p>
+            </SidebarPanel>
         </SidebarHighlightTunnel.In>
         <SidebarTunnel.In>
             <SidebarPanel><AllRouteTable /></SidebarPanel>
