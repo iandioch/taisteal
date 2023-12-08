@@ -32,11 +32,13 @@ const RaisedArcTraveller = (props: RaisedArcProps): JSX.Element => {
     const curve = new THREE.QuadraticBezierCurve3(props.start, props.controlPoint, props.end);
     // TODO: this should be derived from GLOBE_RADIUS or something, so that
     // if the globe size is changed then this is changed in proportion.
-    const radius = 0.005; 
+    const radius = 0.003; 
+    const detail = 8;
     // TODO: These should be set from the actual speed the leg was travelled at!
-    const durationSeconds = 2.5;
-    const interimSeconds = 1.0;
-    let animState = Math.random();
+    const durationSeconds = 1.5;
+    // The interim should be increased if this is not a regular route.
+    const interimSeconds = 2.0;
+    let animState = Math.random()*(durationSeconds + interimSeconds);
 
     useFrame((state, delta) => {
         if (!ref.current) return;
@@ -44,6 +46,7 @@ const RaisedArcTraveller = (props: RaisedArcProps): JSX.Element => {
         animState += delta;
         animState %= (durationSeconds+interimSeconds);
         if (animState > durationSeconds) {
+            // TODO: this is a hack
             ref.current!.position.set(-100, -100, -100);
             return;
         }
@@ -54,7 +57,7 @@ const RaisedArcTraveller = (props: RaisedArcProps): JSX.Element => {
     });
     return (
         <mesh ref={ref}>
-            <sphereGeometry args={[radius, 4, 4]} />
+            <sphereGeometry args={[radius, detail, detail]} />
             <meshBasicMaterial color={0x000000} />
         </mesh>
     )
@@ -69,14 +72,14 @@ const RaisedArc = (props: RaisedArcProps): JSX.Element => {
         }
     });
     return (<group><line_ ref={ref} material={props.material}>
-        <bufferGeometry />
+        <bufferGeometry /></line_>
         <RaisedArcTraveller {...props} />
-    </line_></group>);
+    </group>);
 };
 
 const AIR_ROUTE_MATERIAL = new THREE.LineBasicMaterial({
     color: new THREE.Color(0xFFFFFF),
-    linewidth: 3,
+    linewidth: 1,
     transparent: false,
 });
 
