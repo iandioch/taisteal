@@ -3,10 +3,18 @@ import { Leg, Visit } from 'types'
 
 interface LegState {
     legs: Leg[]
+    stats: {
+        totalCount: number,
+        totalDistance: number, /* km */
+    }
 };
 
 const initialLegState: LegState = {
     legs: [],
+    stats: {
+        totalCount: 0,
+        totalDistance: 0,
+    }
 }
 
 const legSlice = createSlice({
@@ -15,9 +23,17 @@ const legSlice = createSlice({
     reducers: {
         addLeg: (state, action: PayloadAction<Leg>) => {
             state.legs.push(action.payload);
+            const leg = action.payload;
+            state.stats.totalCount += leg.count;
+            state.stats.totalDistance += leg.count * leg.distance;
         },
         addLegs: (state, action: PayloadAction<Leg[]>) => {
             state.legs = [...state.legs, ...action.payload];
+
+            for (const leg of action.payload) {
+                state.stats.totalCount += leg.count;
+                state.stats.totalDistance += leg.count * leg.distance;
+            }
         }
     },
 });
