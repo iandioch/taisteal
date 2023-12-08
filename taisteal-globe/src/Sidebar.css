@@ -1,12 +1,12 @@
 #taisteal-sidebar {
-    max-width: 600px;
+    max-width: min(90%, 500px);
     min-width: 200px;
     max-height: 100%;
     box-sizing: content-box;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 1rem;
     color: #ffffff;
-    padding: 20px;
+    padding: 5%;
     overflow-x: hidden;
     min-height: 20%;
     position: fixed;
@@ -16,17 +16,19 @@
     flex-wrap: wrap;
     align-content: flex-start;
     justify-content: flex-end; 
-    overflow: scroll;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .taisteal-sidebar-panel {
     background-color: #FFFFFF;
-    border-radius: 15px;
+    border-radius: 8px;
     padding: 10px 15px;
     color: #000000;
     margin: 10px;
     width: 100%;
     box-shadow: 0 0 5px 5px rgb(0 0 0 / 0.15);
+    overflow-x: auto;
 }
 
 .taisteal-sidebar-button {

@@ -11,7 +11,7 @@ export default function Index() {
         <AllAirRoutes />
         <AllMapPOIs />
         <SidebarTunnel.In>
-            <SidebarPanel>Index sidebar</SidebarPanel>
+            <SidebarPanel>Noah's travel globe</SidebarPanel>
             <SidebarPanel><AllRouteTable /></SidebarPanel>
             <SidebarPanel><AllVisitTable /></SidebarPanel>
         </SidebarTunnel.In>
