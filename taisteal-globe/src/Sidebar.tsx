@@ -13,7 +13,7 @@ type SidebarHideToggleProps = {
 function SidebarHideToggle(props: SidebarHideToggleProps) {
     return (
         <div className="taisteal-sidebar-panel taisteal-sidebar-button" id="sidebar-hide-toggle" onClick={props.handleClick}>
-            {props.sidebarVisible ? <GoSidebarCollapse /> : <GoSidebarExpand />}
+            {props.sidebarVisible ? (<>Collapse <GoSidebarCollapse className="taisteal-sidebar-icon"/></>) : (<>Details <GoSidebarExpand className="taisteal-sidebar-icon"/></>)}
         </div>
     );
 }
@@ -31,7 +31,7 @@ function SidebarHomeButton() {
     }
     return (
         <Link className="taisteal-sidebar-panel taisteal-sidebar-button" id="sidebar-home-button" to={getRouteForIndex()}>
-            <GoHome />
+            Home <GoHome className="taisteal-sidebar-icon" />
         </Link>
     );
 }

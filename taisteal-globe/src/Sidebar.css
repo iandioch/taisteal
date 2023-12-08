@@ -36,12 +36,21 @@
 }
 
 .taisteal-sidebar-button {
-    height: 40px;
-    width: 40px;
+    /*height: 40px;*/
+    width: fit-content;
     padding: 5px;
     box-sizing: border-box;
     text-align: center;
-    font-size: 30px;
-    color: black;
+    font-size: 1em;
+    color: #000;
     text-decoration: none;
+    vertical-align: middle;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.taisteal-sidebar-icon {
+    display: inline;
+    font-size: 1.2em;
+    stroke-width: 0.1;
 }
