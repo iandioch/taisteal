@@ -3,7 +3,7 @@ import { legSlice, visitSlice } from 'store'
 import store from 'store'
 import { latLngDistance } from 'maths'
 
-const MAP_DATA_URL = window.location.protocol + '//' + window.location.hostname + ':1916/api/travel_map'
+const MAP_DATA_URL = window.location.protocol + '//' + window.location.hostname + '/api/travel_map'
 
 function parseLocation(data: any): Location {
     const loc: Location = {
