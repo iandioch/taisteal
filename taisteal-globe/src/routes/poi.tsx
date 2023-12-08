@@ -10,7 +10,7 @@ import { useEffect} from 'react';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { RootState} from 'store';
-import { SidebarTunnel } from 'routes'
+import { SidebarTunnel, SidebarHighlightTunnel } from 'routes'
 
 export default function POI() {
   useEffect(() => { loadMapData(); });
@@ -52,14 +52,17 @@ export default function POI() {
   return (
     <>
          {visit && <><MapPOI visit={visit} />{renderLegs()}{renderConnectedPOIs()}</>}
-        <SidebarTunnel.In>
+        <SidebarHighlightTunnel.In>
             {!visit && (<SidebarPanel>
                 <p>Error: could not find location with given ID.</p>
             </SidebarPanel>)}
-            {visit && (<><SidebarPanel>
+            {visit && (<SidebarPanel>
                 <p>{visit.location.name}</p>
                 <p>{visit.location.type} in {visit.location.region} in <CountryLink countryCode={visit.location.countryCode} countryName={visit.location.countryName} /></p>
-                </SidebarPanel><SidebarPanel>
+            </SidebarPanel>)}
+        </SidebarHighlightTunnel.In>
+        <SidebarTunnel.In>
+            {visit && (<><SidebarPanel>
                 <p>Visited {visit.numVisits} times, for a total of {visit.hours < 40 ? visit.hours + " hours." : visit.days + " days."}</p>
             </SidebarPanel>
             <SidebarPanel>

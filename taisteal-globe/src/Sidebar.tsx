@@ -1,6 +1,6 @@
 import './Sidebar.css'
 
-import { PropsWithChildren, useState, useEffect, useRef } from 'react'
+import { ReactElement, PropsWithChildren, useState, useEffect, useRef } from 'react'
 import { GoSidebarCollapse, GoSidebarExpand, GoHome } from 'react-icons/go';
 import { Link, useLocation } from 'react-router-dom';
 import { getRouteForIndex } from 'routes';
@@ -37,6 +37,7 @@ function SidebarHomeButton() {
 }
 
 type SidebarProps = {
+    highlight: ReactElement;
 }
 
 const setGlobePosition = (sidebarDiv: HTMLDivElement, visible: boolean) => {
@@ -73,6 +74,7 @@ function Sidebar(props: PropsWithChildren<SidebarProps>) {
     }, [visible, ref]);
     return (
         <div ref={ref} id="taisteal-sidebar">
+            {props.highlight}
             <SidebarHomeButton />
             <SidebarHideToggle sidebarVisible={visible} handleClick={handleHideClick}/>
             {visible && props.children}

@@ -10,7 +10,7 @@ import { useEffect} from 'react';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { RootState} from 'store';
-import { SidebarTunnel } from 'routes'
+import { SidebarTunnel, SidebarHighlightTunnel  } from 'routes'
 
 export default function Country() {
   useEffect(() => { loadMapData(); });
@@ -56,13 +56,16 @@ export default function Country() {
   return (
     <>
          {countryName && <>{renderLegs()}{renderMatchingVisits()}</>}
-        <SidebarTunnel.In>
+        <SidebarHighlightTunnel.In>
             {!countryName && (<SidebarPanel>
                 <p>Error: could not find given country code.</p>
             </SidebarPanel>)}
-            {countryName && (<><SidebarPanel>
+            {countryName && (<SidebarPanel>
                 <p>{countryName}</p>
-                </SidebarPanel><SidebarPanel>
+                </SidebarPanel>)}
+        </SidebarHighlightTunnel.In>
+        <SidebarTunnel.In>
+            {countryName && (<><SidebarPanel>
                 <p className="text-xl text-center">Places visited</p>
                 <VisitTable visits={matchingVisits} />
             </SidebarPanel>

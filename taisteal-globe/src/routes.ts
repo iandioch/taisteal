@@ -12,5 +12,9 @@ export function getRouteForIndex() {
     return '/';
 }
 
+// A title of the pagae - this will be always open.
+export const SidebarHighlightTunnel = tunnel();
+
+// This is below the fold, more details.
 export const SidebarTunnel = tunnel();
 

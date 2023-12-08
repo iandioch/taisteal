@@ -6,7 +6,7 @@ import { loadMapData } from 'data'
 import { useEffect, useRef } from 'react'
 import { Hud, Html } from '@react-three/drei'
 import { Outlet } from 'react-router-dom'
-import { SidebarTunnel } from 'routes'
+import { SidebarTunnel, SidebarHighlightTunnel } from 'routes'
 
 
 export default function Root() {
@@ -19,7 +19,7 @@ export default function Root() {
         <GlobeCanvas key="globe">
             <Outlet />
         </GlobeCanvas>
-        <Sidebar>
+        <Sidebar highlight={<SidebarHighlightTunnel.Out />}>
             <SidebarTunnel.Out />
         </Sidebar>
     </div>
