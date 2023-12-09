@@ -149,7 +149,7 @@ export const RouteTable = (props: RouteTableProps) => {
             </thead>
             <tbody>
                 {table.getRowModel().rows.map((row, rowIndex) => (
-                <tr key={row.id} className={"text-center " + (rowIndex % 2 ? 'bg-zinc-200' : 'bg-zinc-50')}>
+                <tr key={row.id} className={"text-center text-xs " + (rowIndex % 2 ? 'bg-zinc-200' : 'bg-zinc-50')}>
                   <td className=""><p>{table.getState().pagination.pageIndex*table.getState().pagination.pageSize + rowIndex + 1}</p></td>
                   {row.getVisibleCells().map(cell => (
                     <td key={cell.id}>
@@ -162,41 +162,41 @@ export const RouteTable = (props: RouteTableProps) => {
         </table>
         <div className="flex items-center justify-center gap-2 h-10 pt-1">
         <button
-          className="border rounded p-1 text-sm"
+          className="border rounded p-1 text-xs"
           onClick={() => table.setPageIndex(0)}
           disabled={!table.getCanPreviousPage()}
         >
           {'<<'}
         </button>
         <button
-          className="border rounded p-1 text-sm"
+          className="border rounded p-1 text-xs"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
           {'<'}
         </button>
         <button
-          className="border rounded p-1 text-sm"
+          className="border rounded p-1 text-xs"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
           {'>'}
         </button>
         <button
-          className="border rounded p-1 text-sm"
+          className="border rounded p-1 text-xs"
           onClick={() => table.setPageIndex(table.getPageCount() - 1)}
           disabled={!table.getCanNextPage()}
         >
           {'>>'}
         </button>
-        <span className="flex items-center gap-1 text-sm">
+        <span className="flex items-center gap-1 text-xs">
           <div>Page</div>
           <strong>
             {table.getState().pagination.pageIndex + 1} of{' '}
             {table.getPageCount()}
           </strong>
         </span>
-        <span className="flex items-center gap-1 text-sm">
+        <span className="flex items-center gap-1 text-xs">
           | Go to page:
           <input
             type="number"
@@ -205,7 +205,7 @@ export const RouteTable = (props: RouteTableProps) => {
               const page = e.target.value ? Number(e.target.value) - 1 : 0
               table.setPageIndex(page)
             }}
-            className="border p-1 rounded w-12 text-sm"
+            className="border p-1 rounded w-12 text-xs"
           />
         </span>
         <select
@@ -213,7 +213,7 @@ export const RouteTable = (props: RouteTableProps) => {
           onChange={e => {
             table.setPageSize(Number(e.target.value))
           }}
-          className="text-sm"
+          className="text-xs"
         >
           {[5, 10, 25, 50].map(pageSize => (
             <option key={pageSize} value={pageSize}>
@@ -222,7 +222,7 @@ export const RouteTable = (props: RouteTableProps) => {
           ))}
         </select>
         <button
-          className="border rounded p-1 text-sm"
+          className="border rounded p-1 text-xs"
           onClick={() => setMerged(!merged)}
         >
           {merged? "Unmerge" : "Merge"}

@@ -10,6 +10,7 @@ type VisitTableProps = {
 };
 
 const stringForHours = (hours:number):string => {
+    // TODO: this, and number-to-km-string calc, should be moved to a common lib.
     if (hours === 1) {
         return "1 hour";
     }
@@ -134,7 +135,7 @@ export const VisitTable = (props: VisitTableProps) => {
                 <tr key={row.id}>
                   <td className="border border-zinc-500 bg-zinc-200 text-center"><p className="">{table.getState().pagination.pageIndex*table.getState().pagination.pageSize + rowIndex + 1}</p></td>
                   {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className={"border border-zinc-500 text-center " + (rowIndex % 2 ? 'bg-zinc-200' : 'bg-zinc-50')}>
+                    <td key={cell.id} className={"border border-zinc-500 text-center text-xs " + (rowIndex % 2 ? 'bg-zinc-200' : 'bg-zinc-50')}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
@@ -144,41 +145,41 @@ export const VisitTable = (props: VisitTableProps) => {
         </table>
         <div className="flex items-center justify-center gap-2 h-10 pt-1">
         <button
-          className="border rounded p-1 text-sm"
+          className="border rounded p-1 text-xs"
           onClick={() => table.setPageIndex(0)}
           disabled={!table.getCanPreviousPage()}
         >
           {'<<'}
         </button>
         <button
-          className="border rounded p-1 text-sm"
+          className="border rounded p-1 text-xs"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
           {'<'}
         </button>
         <button
-          className="border rounded p-1 text-sm"
+          className="border rounded p-1 text-xs"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
           {'>'}
         </button>
         <button
-          className="border rounded p-1 text-sm"
+          className="border rounded p-1 text-xs"
           onClick={() => table.setPageIndex(table.getPageCount() - 1)}
           disabled={!table.getCanNextPage()}
         >
           {'>>'}
         </button>
-        <span className="flex items-center gap-1 text-sm">
+        <span className="flex items-center gap-1 text-xs">
           <div>Page</div>
           <strong>
             {table.getState().pagination.pageIndex + 1} of{' '}
             {table.getPageCount()}
           </strong>
         </span>
-        <span className="flex items-center gap-1 text-sm">
+        <span className="flex items-center gap-1 text-xs">
           | Go to page:
           <input
             type="number"
@@ -187,7 +188,7 @@ export const VisitTable = (props: VisitTableProps) => {
               const page = e.target.value ? Number(e.target.value) - 1 : 0
               table.setPageIndex(page)
             }}
-            className="border p-1 rounded w-12 text-sm"
+            className="border p-1 rounded w-12 text-xs"
           />
         </span>
         <select
@@ -195,7 +196,7 @@ export const VisitTable = (props: VisitTableProps) => {
           onChange={e => {
             table.setPageSize(Number(e.target.value))
           }}
-          className="text-sm"
+          className="text-xs"
         >
           {[5, 10, 25, 50].map(pageSize => (
             <option key={pageSize} value={pageSize}>
