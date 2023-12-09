@@ -12,8 +12,8 @@ type SidebarHideToggleProps = {
 
 function SidebarHideToggle(props: SidebarHideToggleProps) {
     return (
-        <div className="taisteal-sidebar-panel taisteal-sidebar-button" id="sidebar-hide-toggle" onClick={props.handleClick}>
-            {props.sidebarVisible ? (<>Collapse <GoSidebarCollapse className="taisteal-sidebar-icon"/></>) : (<>Details <GoSidebarExpand className="taisteal-sidebar-icon"/></>)}
+        <div className="taisteal-sidebar-panel taisteal-sidebar-button bg-slate-50 text-slate-600 text-xs" id="sidebar-hide-toggle" onClick={props.handleClick}>
+            {props.sidebarVisible ? (<>See less <GoSidebarCollapse className="taisteal-sidebar-icon"/></>) : (<>See more <GoSidebarExpand className="taisteal-sidebar-icon"/></>)}
         </div>
     );
 }
@@ -30,7 +30,7 @@ function SidebarHomeButton() {
         return null;
     }
     return (
-        <Link className="taisteal-sidebar-panel taisteal-sidebar-button" id="sidebar-home-button" to={getRouteForIndex()}>
+        <Link className="taisteal-sidebar-panel taisteal-sidebar-button bg-slate-50 text-slate-600 text-xs" id="sidebar-home-button" to={getRouteForIndex()}>
             Home <GoHome className="taisteal-sidebar-icon" />
         </Link>
     );
@@ -86,7 +86,7 @@ type SidebarPanelProps = {};
 
 function SidebarPanel(props: PropsWithChildren<SidebarPanelProps>) {
     return (
-        <div className="taisteal-sidebar-panel">{props.children}</div>
+        <div className="taisteal-sidebar-panel bg-slate-50 text-gray-800 text-sm">{props.children}</div>
     )
 }
 

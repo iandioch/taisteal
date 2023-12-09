@@ -1,5 +1,13 @@
 import tunnel from 'tunnel-rat'
 
+export function getRouteForRouteOverview() {
+    return '/routes';
+}
+
+export function getRouteForVisitOverview() {
+    return '/visits';
+}
+
 export function getRouteForPOI(id: string) {
     return `/poi/${id}`;
 }

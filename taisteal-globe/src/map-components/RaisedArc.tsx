@@ -37,7 +37,7 @@ const RaisedArcTraveller = (props: RaisedArcProps): JSX.Element => {
     // TODO: These should be set from the actual speed the leg was travelled at!
     const durationSeconds = 1.5;
     // The interim should be increased if this is not a regular route.
-    const interimSeconds = 2.0;
+    const interimSeconds = 5.0;
     let animState = Math.random()*(durationSeconds + interimSeconds);
 
     useFrame((state, delta) => {
