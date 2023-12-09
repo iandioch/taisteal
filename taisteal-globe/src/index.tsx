@@ -9,6 +9,8 @@ import Root from './routes/root';
 import POI from './routes/poi';
 import Country from './routes/country';
 import Index from './routes/index';
+import VisitsOverview from './routes/visits';
+import RoutesOverview from './routes/routes';
 import reportWebVitals from './reportWebVitals';
 import store from 'store';
 import { Provider  } from 'react-redux';
@@ -30,6 +32,14 @@ const router = createBrowserRouter([
                 path: "country/:id",
                 element: <Country />
             },
+            {
+                path: 'visits',
+                element: <VisitsOverview />
+            },
+            {
+                path: 'routes',
+                element: <RoutesOverview />
+            }
         ]
     }
 ]);
