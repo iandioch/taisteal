@@ -23,7 +23,7 @@ export default function Index() {
         <AllMapPOIs />
         <SidebarHighlightTunnel.In>
             <SidebarPanel>
-                <p className="text-center font-bold">Noah's life of travel</p>
+                <p className="text-center font-bold font-cursive text-4xl tracking-wide leading-relaxed">Noah's life of travel</p>
                 <p>Logged <span className="font-bold">{legStats.totalCount}</span> trips across <span className="font-bold">{numLegs}</span> routes, a total of <span className="font-bold">{prettifyDistance(legStats.totalDistance)} km</span> of travelling.</p>
                 <p>In that time, I visited <span className="font-bold">{numVisits}</span> places in <span className="font-bold">{visitStats.numCountries}</span> countries & territories.</p>
             </SidebarPanel>
