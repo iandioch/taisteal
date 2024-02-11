@@ -29,16 +29,18 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     // you live will have an order of magnitude more visit time than
     // other places you've visited, and will be 100s of times larger in
     // a linear scale.
-    let height = MIN_POI_HEIGHT + (Math.log10(visitHours)/highestVisitsLog10)*MAX_LOG_HEIGHT;
+    let height = MIN_POI_HEIGHT/1.5 + (Math.log10(visitHours)/highestVisitsLog10)*MAX_LOG_HEIGHT*0.66;
     // However, also use a linear-scaled height in addition, because
     // we don't want somewhere you stayed for 1000 hours to be the same
     // height at a glance as somewhere you stayed for 120.
-    height += (visitHours / highestVisits) * (MAX_POI_HEIGHT - MAX_LOG_HEIGHT - MIN_POI_HEIGHT);
+    height += (visitHours / highestVisits) * (MAX_POI_HEIGHT/1.5 - MAX_LOG_HEIGHT - MIN_POI_HEIGHT);
+
 
     const pos = latLngToVector(props.visit.location.latitude, props.visit.location.longitude);
 
     const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF, side: THREE.BackSide});
     const bodyMaterial = new THREE.MeshBasicMaterial({color: POI_COLOUR_SCALE(Math.log10(visitHours)/Math.log10(highestVisits)).hex()});
+    //const bodyMaterial = new THREE.MeshBasicMaterial({color: 0xFF0000});
     const margin = radius * 0.25;
 
     return (
@@ -51,7 +53,8 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
             <mesh material={baseMaterial}>
                 <Circle args={[radius + margin, 8]} material={baseMaterial} />
             </mesh>
-            <Cylinder args={[radius, radius*0.8, height, 8, 1, false]} material={bodyMaterial} position={[0, 0, -height/2]} rotation={[-Math.PI/2, 0, 0]}/>
+            {/*<Cylinder args={[radius, radius*0.8, height, 8, 1, false]} material={bodyMaterial} position={[0, 0, -height/2]} rotation={[-Math.PI/2, 0, 0]}/>*/}
+            <Sphere args={[height/4, 8, 8]} material={bodyMaterial} />
             {hovered && 
                 <Html prepend center style={{pointerEvents: 'none'}}> 
                     <p className="poi-label text-center text-lg p-1 bg-slate-100 rounded">{props.visit.location.name}</p>
