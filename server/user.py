@@ -28,21 +28,22 @@ def _log_legs_from_csv(csv_path, config):
             log_leg(departure_query, departure_datetime, arrival_query, arrival_datetime, mode, config)
 
 
-def create_travel_map(config):
-    def _get_location_dict(loc):
-        # Turn a Location object into a json-dumpable form.
-        return {
-            'lat': loc['latitude'],
-            'lng': loc['longitude'],
-            'id': loc['id'],
-            'address': loc['address'],
-            'type': loc['type'], # eg. 'CLUSTER', 'STATION', 'TOWN'
-            'region': loc['region'], # used to cluster close places, and to give names to those clusters.
-            'country': loc['country_name'], # used for stats.
-            'country_code': loc['country_code'],
-            'human_readable_name': loc['name'], # no guarantee of uniqueness
-        }
+def _get_location_dict(loc):
+    # Turn a Location object into a json-dumpable form.
+    return {
+        'lat': loc['latitude'],
+        'lng': loc['longitude'],
+        'id': loc['id'],
+        'address': loc['address'],
+        'type': loc['type'], # eg. 'CLUSTER', 'STATION', 'TOWN'
+        'region': loc['region'], # used to cluster close places, and to give names to those clusters.
+        'country': loc['country_name'], # used for stats.
+        'country_code': loc['country_code'],
+        'human_readable_name': loc['name'], # no guarantee of uniqueness
+    }
 
+
+def create_travel_map(config):
     database.regenerate_tables()
     csv_loc = '../mo_thaistil/full.csv'
     #_log_legs_from_csv(csv_loc, config)
@@ -206,3 +207,31 @@ def get_user_data():
         'locations': locations,
         'collections': get_collections(),
     }
+
+def serve_legs_paginated(offset, limit):
+    legs = []
+    for leg in database.get_legs_paginated(offset=offset, limit=limit):
+        print('serve_legs_paginated: processing leg', leg)
+        dep_id = leg['departure_location_id']
+        arr_id = leg['arrival_location_id']
+        if dep_id == arr_id:
+            continue
+        dep = _get_location_dict(database.get_location(dep_id))
+        arr = _get_location_dict(database.get_location(arr_id))
+        legs.append({
+            'dep': dep,
+            'arr': arr,
+            'mode': leg['mode'],
+            'departure_datetime': leg['departure_datetime'].isoformat(),
+            'arrival_datetime': leg['arrival_datetime'].isoformat(),
+        })
+
+    # TODO: this can be cached, or grabbed out of serve_travel_map's resp?
+    total_legs = database.get_num_legs()
+    print('total legs', total_legs)
+    s = json.dumps({
+            'legs': legs,
+            'total_legs': total_legs,
+        })
+    return s
+

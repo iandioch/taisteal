@@ -257,6 +257,39 @@ def get_legs():
         d['arrival_datetime'] = pendulum.parse(d['arrival_datetime'])
         yield d
 
+def get_legs_paginated(offset, limit):
+    conn, cursor = _connect()
+    cursor.execute(f'''
+    SELECT
+        id,
+        mode,
+        departure_location_id,
+        departure_datetime,
+        arrival_location_id,
+        arrival_datetime
+    FROM
+        legs
+    ORDER BY
+        arrival_datetime ASC
+    LIMIT {limit}
+    OFFSET {offset}
+    ''')
+    for lookup in cursor.fetchall():
+        d = {n: lookup[n] for n in lookup.keys()}
+        d['departure_datetime'] = pendulum.parse(d['departure_datetime'])
+        d['arrival_datetime'] = pendulum.parse(d['arrival_datetime'])
+        yield d
+
+def get_num_legs():
+    conn, cursor = _connect()
+    cursor.execute('''SELECT COUNT(id) FROM legs''')
+    row = cursor.fetchone()
+    if not row:
+        return None
+    # THis includes invalid legs,like when departure location = arrival location.
+    return row['COUNT(id)']
+
+
 def get_leg(id_):
     conn, cursor = _connect()
     args = (id_,)
