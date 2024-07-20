@@ -93,11 +93,13 @@ function Sidebar(props: PropsWithChildren<SidebarProps>) {
     )
 }
 
-type SidebarPanelProps = {};
+type SidebarPanelProps = {
+    style?: React.CSSProperties
+};
 
 function SidebarPanel(props: PropsWithChildren<SidebarPanelProps>) {
     return (
-        <div className="taisteal-sidebar-panel bg-slate-50 text-gray-800 text-sm">{props.children}</div>
+        <div style={props.style} className="taisteal-sidebar-panel bg-slate-50 text-gray-800 text-sm">{props.children}</div>
     )
 }
 
