@@ -36,6 +36,16 @@ function SidebarHomeButton() {
     );
 }
 
+function SidebarHero () {
+    // TODO: this should float at the top left corner of the page, instead of
+    // only above the highlight panel. It should also have a call-to-action.
+    return (
+        <SidebarPanel style={{"top": 0}}>
+        Welcome to {"<TBD>"}, the best place to track your travel!
+        </SidebarPanel>
+    );
+}
+
 type SidebarProps = {
     highlight: ReactElement;
 }
@@ -74,6 +84,7 @@ function Sidebar(props: PropsWithChildren<SidebarProps>) {
     }, [visible, ref]);
     return (
         <div ref={ref} id="taisteal-sidebar">
+            {visible && <SidebarHero />}
             {props.highlight}
             <SidebarHomeButton />
             <SidebarHideToggle sidebarVisible={visible} handleClick={handleHideClick}/>
