@@ -1,18 +1,19 @@
 #taisteal-sidebar {
-    max-width: min(94%, 400px);
+    max-width: min(94%, 500px);
     min-width: 200px;
     max-height: 94%;
     box-sizing: content-box;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 1rem;
     color: #ffffff;
-    padding-right: 3%;
-    padding-bottom: 3%;
-    padding-top: 3%;
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-bottom: 10px;
+    padding-top: 10px;
     overflow-x: hidden;
-    min-height: 20%;
+    min-height: 10%;
     position: fixed;
-    right: 0;
+    left: 0;
     bottom: 0;
     display: flex;
     flex-wrap: wrap;
@@ -23,28 +24,29 @@
 }
 
 .taisteal-sidebar-panel {
-    /*background-color: #FFFFFF;*/
-    border-radius: 8px;
+    border-radius: 5px;
     padding: 10px 15px;
-    /*color: #000000;*/
-    margin: 10px;
+    margin-bottom: 10px;
+    margin-top: 10px;
     width: 100%;
-    box-shadow: 0 0 5px 5px rgb(0 0 0 / 0.08);
+    /*box-shadow: 0 0 5px 5px rgb(255 255 255 / 0.08);*/
+    border-color: #000;
+    border-width: 1px;
     overflow-x: auto;
     overflow-y: hidden;
     /* Prevent user selections, because they happen by accident when you
      * interact with the globe. */
     user-select: none;
+    background-color: #a3a3b5;
+    color: #333;
 }
 
 .taisteal-sidebar-button {
-    /*height: 40px;*/
     width: fit-content;
-    padding: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
     box-sizing: border-box;
     text-align: center;
-    /*font-size: 1em;*/
-    /*color: #000;*/
     text-decoration: none;
     vertical-align: middle;
     margin-top: auto;

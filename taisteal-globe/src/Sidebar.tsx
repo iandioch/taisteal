@@ -53,11 +53,11 @@ const setGlobePosition = (sidebarDiv: HTMLDivElement, visible: boolean) => {
         return;
     }
     // We want to move the globe to be horizontally centered between the edge of
-    // the sidebar and the left border of the window, so d is the distance it
+    // the sidebar and the right border of the window, so d is the distance it
     // must move.
     // TODO: is d just sidebarWidth/2 ?
     const d = (windowWidth/2) - (windowWidth-sidebarWidth)/2;
-    elem.style.transform = `translate(-${d}px, 0)`;
+    elem.style.transform = `translate(${d}px, 0)`;
 }
 
 function Sidebar(props: PropsWithChildren<SidebarProps>) {

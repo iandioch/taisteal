@@ -3,7 +3,7 @@
     height: 100%;
     left: -50%;
     position: relative;
-    background: radial-gradient(circle, #fff 0%, #c2fffa 30%, #77bfb9 70%);
+    background: radial-gradient(circle, #07071d 40%, #111146 60%, #16165b 90%);
 }
 
 #globe-canvas {

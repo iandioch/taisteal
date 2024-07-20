@@ -61,7 +61,7 @@ function Globe(props: PropsWithChildren<GlobeProps>) {
             <group>{/* group containing globe obj itself */}
                 <mesh>
                     <sphereGeometry args={[GLOBE_RADIUS*0.995, 64, 64]} />
-                    <meshBasicMaterial color={0xAAAAAA} />
+                    <meshBasicMaterial color={0xc5c5d6} />
                 </mesh>
                 <GlobeCountries />
                 {props.children}
@@ -71,7 +71,7 @@ function Globe(props: PropsWithChildren<GlobeProps>) {
 }
 
 function GlobeCountries() {
-    const landMaterial = <meshBasicMaterial color={0xDDDDDD} side={THREE.FrontSide}  />
+    const landMaterial = <meshBasicMaterial color={0xa3a3b5} side={THREE.FrontSide}  />
 
     const [countryData, setCountryData] = useState([]);
     const [fineness] = useState(2);
