@@ -4,6 +4,7 @@ import { ReactElement, PropsWithChildren, useState, useEffect, useRef } from 're
 import { GoSidebarCollapse, GoSidebarExpand, GoHome } from 'react-icons/go';
 import { Link, useLocation } from 'react-router-dom';
 import { getRouteForIndex } from 'routes';
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
 type SidebarHideToggleProps = {
     handleClick: () => void;
@@ -42,6 +43,12 @@ function SidebarHero () {
     return (
         <SidebarPanel style={{"top": 0}}>
         Welcome to {"<TBD>"}, the best place to track your travel!
+        <SignedOut>
+        <SignInButton />
+      </SignedOut>
+      <SignedIn>
+        <UserButton />
+      </SignedIn>
         </SidebarPanel>
     );
 }
