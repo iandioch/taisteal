@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "@babel/core": "^7.16.0",
-    "@clerk/clerk-react": "^4.30.5",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
     "@react-three/drei": "^9.80.0",
     "@react-three/fiber": "^8.13.5",
@@ -156,6 +155,7 @@
     ]
   },
   "devDependencies": {
+    "@clerk/clerk-react": "^5.2.8",
     "@types/chroma-js": "^2.4.0",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.27",
