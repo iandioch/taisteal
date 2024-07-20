@@ -37,7 +37,8 @@
     /* Prevent user selections, because they happen by accident when you
      * interact with the globe. */
     user-select: none;
-    background-color: #a3a3b5;
+
+    background-color: #dfdde5;
     color: #333;
 }
 
