@@ -19,6 +19,7 @@ import { ClerkProvider } from '@clerk/clerk-react';
 
 
 
+// TODO: this should read from routes.ts to keep in sync.
 const router = createBrowserRouter([
     {
         path: '/',
@@ -45,7 +46,7 @@ const router = createBrowserRouter([
                 element: <RoutesOverview />
             },
             {
-                path: 'legs',
+                path: 'edit/legs',
                 element: <LegsOverview />
             }
         ]

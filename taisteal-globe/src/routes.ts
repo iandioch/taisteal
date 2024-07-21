@@ -21,7 +21,7 @@ export function getRouteForIndex() {
 }
 
 export function getRouteForLegs() {
-    return '/legs';
+    return '/edit/legs';
 }
 
 // A title of the pagae - this will be always open.
