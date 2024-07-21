@@ -11,6 +11,7 @@ import Country from './routes/country';
 import Index from './routes/index';
 import VisitsOverview from './routes/visits';
 import RoutesOverview from './routes/routes';
+import LegsOverview from './routes/legs';
 import reportWebVitals from './reportWebVitals';
 import store from 'store';
 import { Provider  } from 'react-redux';
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
             {
                 path: 'routes',
                 element: <RoutesOverview />
+            },
+            {
+                path: 'legs',
+                element: <LegsOverview />
             }
         ]
     }

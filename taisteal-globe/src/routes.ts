@@ -20,6 +20,10 @@ export function getRouteForIndex() {
     return '/';
 }
 
+export function getRouteForLegs() {
+    return '/legs';
+}
+
 // A title of the pagae - this will be always open.
 export const SidebarHighlightTunnel = tunnel();
 

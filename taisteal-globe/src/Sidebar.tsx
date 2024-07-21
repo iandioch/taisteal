@@ -1,9 +1,9 @@
 import './Sidebar.css'
 
 import { ReactElement, PropsWithChildren, useState, useEffect, useRef } from 'react'
-import { GoSidebarCollapse, GoSidebarExpand, GoHome } from 'react-icons/go';
+import { GoSidebarCollapse, GoSidebarExpand, GoHome, GoPencil } from 'react-icons/go';
 import { Link, useLocation } from 'react-router-dom';
-import { getRouteForIndex } from 'routes';
+import { getRouteForIndex, getRouteForLegs } from 'routes';
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
 type SidebarHideToggleProps = {
@@ -41,15 +41,24 @@ function SidebarHero () {
     // TODO: this should float at the top left corner of the page, instead of
     // only above the highlight panel. It should also have a call-to-action.
     return (
+        <>
         <SidebarPanel style={{"top": 0}}>
-        Welcome to {"<TBD>"}, the best place to track your travel!
-        <SignedOut>
-        <SignInButton />
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
+            Welcome to {"<TBD>"}, the best place to track your travel!
         </SidebarPanel>
+        <SignedOut>
+            <div className="taisteal-sidebar-panel taisteal-sidebar-button">
+                <SignInButton />
+            </div>
+        </SignedOut>
+        <SignedIn>
+            <Link className="taisteal-sidebar-panel taisteal-sidebar-button bg-slate-50 text-slate-600 text-xs" id="sidebar-edit-page-button" to={getRouteForLegs()}>
+                Edit <GoPencil className="taisteal-sidebar-icon" />
+            </Link>
+            <div className="taisteal-sidebar-panel taisteal-sidebar-button">
+                <UserButton />
+            </div>
+        </SignedIn>
+        </>
     );
 }
 
