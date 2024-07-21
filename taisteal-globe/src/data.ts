@@ -102,4 +102,4 @@ async function loadMapData() {
     });
 }
 
-export { loadJSON, loadMapData };
+export { loadJSON, loadMapData, parseLegs };
