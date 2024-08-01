@@ -15,7 +15,6 @@ import LegsOverview from './routes/legs';
 import reportWebVitals from './reportWebVitals';
 import store from 'store';
 import { Provider  } from 'react-redux';
-import { ClerkProvider } from '@clerk/clerk-react';
 
 
 
@@ -53,21 +52,14 @@ const router = createBrowserRouter([
     }
 ]);
 
-const PUBLISHABLE_KEY = process.env.REACT_APP_PUBLIC_CLERK_PUBLISHABLE_KEY;
-if (!PUBLISHABLE_KEY) {
-    throw new Error("Could not get clerk publishable key from " + JSON.stringify(process.env));
-}
-
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-        <Provider store={store}>
-            <RouterProvider router={router} />
-        </Provider>
-    </ClerkProvider>
+    <Provider store={store}>
+        <RouterProvider router={router} />
+    </Provider>
   </React.StrictMode>
 );
 
