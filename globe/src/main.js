@@ -1,10 +1,15 @@
-import * as THREE from 'three';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
+//import * as THREE from 'three';
+//import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 //'https://unpkg.com/three@0.108.0/examples/jsm/controls/OrbitControls.js';
-import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import TWEEN from '@tweenjs/tween.js'
-import chroma from 'chroma-js';
-import { ConicPolygonGeometry } from 'three-conic-polygon-geometry';
+//import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+//import TWEEN from '@tweenjs/tween.js'
+//import chroma from 'chroma-js';
+//import { ConicPolygonGeometry } from 'three-conic-polygon-geometry';
+
+import {OrbitControls} from 'https://unpkg.com/three@0.108.0/examples/jsm/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'https://unpkg.com/three@0.108.0/examples/jsm/renderers/CSS2DRenderer.js';
+import {TWEEN} from 'https://unpkg.com/three@0.108.0/examples/jsm/libs/tween.module.min';
+import 'https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js'
 
 const urlParams = new URLSearchParams(window.location.search);
 const GLOBE_STYLE_TEXTURE = "texture";
@@ -636,7 +641,7 @@ function loadJSON(url, callback) {
                 data.features.forEach(({properties, geometry}) => {
                     const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
                     polygons.forEach(coords => {
-                        const mesh = new THREE.Mesh(new ConicPolygonGeometry(coords, GLOBE_RADIUS*0.9, GLOBE_RADIUS, false, true, false, fineness), landMaterial);
+                        const mesh = new THREE.Mesh(new THREE.ConicPolygonGeometry(coords, GLOBE_RADIUS*0.9, GLOBE_RADIUS, false, true, false, fineness), landMaterial);
                         countryGroup.add(mesh);
                     });
                 });
@@ -659,7 +664,7 @@ function loadJSON(url, callback) {
                 data.features.forEach(({properties, geometry}) => {
                     const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
                     polygons.forEach(coords => {
-                        const mesh = new THREE.Mesh(new ConicPolygonGeometry(coords, GLOBE_RADIUS*0.9, GLOBE_RADIUS, false, true, false, fineness), landMaterial);
+                        const mesh = new THREE.Mesh(new THREE.ConicPolygonGeometry(coords, GLOBE_RADIUS*0.9, GLOBE_RADIUS, false, true, false, fineness), landMaterial);
                         countryGroup.add(mesh);
                     });
                 });
@@ -915,7 +920,7 @@ function loadJSON(url, callback) {
             }
         });
     }
-    loadTravelMap('http://localhost:1916/api/travel_map');
+    loadTravelMap('/api/travel_map');
 
     // Make semitransparent most places except the one the user just clicked on.
     // If specificLegs is set, only those legs will be rendered.
