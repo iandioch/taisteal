@@ -23,8 +23,9 @@ function loadJSON(url, callback) {
     request.send();
 }
 
+const API_ROOT = '/api/';
 
-loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
+loadJSON(API_ROOT + 'get_user_data?key=' + privateKey, (data) => {
     console.log(data);
     Vue.component('leg', {
         props: {
@@ -100,7 +101,7 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                 }
                 console.log(`No data found for ID ${this.location_id}, loading.`);
                 this.loading = true;
-                loadJSON(`/taisteal/api/get_location?key=${privateKey}&id=${this.location_id}`, (resp) => {
+                loadJSON(`${API_ROOT}get_location?key=${privateKey}&id=${this.location_id}`, (resp) => {
                     console.log(`Received data for ID ${this.location_id}: ${JSON.stringify(resp)}`);
                     data['locations'][this.location_id] = resp['location'];
                     this.loading = false;
@@ -188,7 +189,7 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
         </div>`,
         methods: {
             performQuery: function(queryString) {
-                loadJSON('/taisteal/api/get_location_id?key=' + privateKey + '&query=' + encodeURIComponent(queryString), (resp) => {
+                loadJSON(API_ROOT + 'get_location_id?key=' + privateKey + '&query=' + encodeURIComponent(queryString), (resp) => {
                     console.log(resp);
                     const id_ = resp['id'];
                     this.$emit('load', this.query, id_);
@@ -272,7 +273,7 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
                 };
                 console.log("Saving:\n" + JSON.stringify(leg_data));
                 var request = new XMLHttpRequest;
-                request.open('POST', '/taisteal/api/save_leg?key=' + privateKey);
+                request.open('POST', API_ROOT + 'save_leg?key=' + privateKey);
                 request.setRequestHeader('Content-type', 'application/json');
                 request.send(JSON.stringify(leg_data));
                 request.onload = function() {
@@ -404,7 +405,7 @@ loadJSON('/taisteal/api/get_user_data?key=' + privateKey, (data) => {
             },
             save: function() {
                 var request = new XMLHttpRequest;
-                request.open('POST', '/taisteal/api/save_collection?key=' + privateKey);
+                request.open('POST', API_ROOT + 'save_collection?key=' + privateKey);
                 request.setRequestHeader('Content-type', 'application/json');
                 request.send(JSON.stringify({
                     id: this.id,
