@@ -154,6 +154,8 @@ def serve_travel_map(config):
     return _CACHED_MAP_DATA 
 
 def log_leg(departure_query, departure_datetime, arrival_query, arrival_datetime, mode, config):
+    global _NEED_TO_REFRESH_CACHE
+
     def _create_leg_id():
         return uuid.uuid4().hex
     id_ = _create_leg_id()
@@ -162,6 +164,8 @@ def log_leg(departure_query, departure_datetime, arrival_query, arrival_datetime
         departure_id = location.id_for_query(departure_query, config)
         arrival_id = location.id_for_query(arrival_query, config)
         database.save_leg(id_, departure_id, departure_datetime, arrival_id, arrival_datetime, mode)
+        print('Setting cache to dirty.')
+        _NEED_TO_REFRESH_CACHE = True
     except Exception as e:
         print(e, id_)
 
