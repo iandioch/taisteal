@@ -97,10 +97,23 @@ const visitSlice = createSlice({
     },
 });
 
+const uiSlice = createSlice({
+    name: 'ui',
+    initialState: {
+        cameraDistance: 0,
+    },
+    reducers: {
+        setCameraDistance: (state, action: PayloadAction<number>) => {
+            state.cameraDistance = action.payload;
+        },
+    }
+});
+
 const store = configureStore({
     reducer: {
         legs: legSlice.reducer,
-        visits: visitSlice.reducer
+        visits: visitSlice.reducer,
+        ui: uiSlice.reducer,
     }
 });
 
@@ -109,5 +122,5 @@ export type RootState = ReturnType<typeof store.getState>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch
 
-export { legSlice, visitSlice }
+export { legSlice, visitSlice, uiSlice }
 export default store;

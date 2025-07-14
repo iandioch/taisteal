@@ -2,9 +2,13 @@ import * as THREE from 'three'
 import React, { PropsWithChildren, useEffect, useRef, useState } from 'react'
 import { Canvas, extend, Object3DNode, useFrame, ThreeElements } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { ConicPolygonGeometry } from 'three-conic-polygon-geometry';
-import { loadJSON} from 'data'
+import { loadJSON } from 'data'
 import { GLOBE_RADIUS, PATH_COUNTRIES_JSON, MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE, CONTROLS_DAMPING_FACTOR, CONTROLS_ROTATE_SPEED, CONTROLS_ZOOM_SPEED } from './constants'
+import { uiSlice } from 'store'
+import store from 'store'
+import { useThree } from '@react-three/fiber'
 import './Globe.css'
 class TypedConicPolygonGeometry extends ConicPolygonGeometry {}
 extend({TypedConicPolygonGeometry});
@@ -16,11 +20,34 @@ declare module '@react-three/fiber' {
     }
 }
 
+function Controls() {
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+  const { camera } = useThree();
+  return (
+            <OrbitControls
+                ref={controlsRef}
+                minDistance={MIN_CAMERA_DISTANCE}
+                maxDistance={MAX_CAMERA_DISTANCE}
+                enablePan={false}
+                enableDamping={true}
+                dampingFactor={CONTROLS_DAMPING_FACTOR}
+                rotateSpeed={CONTROLS_ROTATE_SPEED}
+                zoomSpeed={CONTROLS_ZOOM_SPEED}
+                onEnd={() => {
+                    if (!controlsRef.current) return;
+                    
+                    const dist = camera.position.distanceTo(controlsRef.current.target);
+                    console.log("Camera dist: " + dist);
+                    store.dispatch(uiSlice.actions.setCameraDistance(dist));
+                }}
+                    />
+                    );
+}
+
 
 type GlobeCanvasProps = {}
 function GlobeCanvas(props: PropsWithChildren<GlobeCanvasProps>) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const cameraRef = useRef<typeof PerspectiveCamera>(null);
   return (
     <div id="globe-container">
         <div id="globe-canvas">
@@ -28,17 +55,8 @@ function GlobeCanvas(props: PropsWithChildren<GlobeCanvasProps>) {
                 <ambientLight />
                 <pointLight position={[10, 10, 10]} />
                 <Globe>{props.children}</Globe>
-                <OrbitControls
-                    minDistance={MIN_CAMERA_DISTANCE}
-                    maxDistance={MAX_CAMERA_DISTANCE}
-                    enablePan={false}
-                    enableDamping={true}
-                    dampingFactor={CONTROLS_DAMPING_FACTOR}
-                    rotateSpeed={CONTROLS_ROTATE_SPEED}
-                    zoomSpeed={CONTROLS_ZOOM_SPEED}
-                    />
+                <Controls />
                 <PerspectiveCamera
-                    ref={cameraRef}
                     makeDefault
                     fov={30}
                     aspect={2}
