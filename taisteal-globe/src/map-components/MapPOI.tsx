@@ -102,7 +102,14 @@ const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visi
 
     const clusterVisits: Visit[] = [];
     for (const cluster of clusters) {
-        clusterVisits.push(cluster.visits[0]);
+        let topVisit = cluster.visits[0];
+        for (let i = 1; i < cluster.visits.length; i++) {
+            let v = cluster.visits[i];
+            if (topVisit.hours < v.hours) {
+                topVisit = v;
+            }
+        }
+        clusterVisits.push(topVisit);
     }
     return clusterVisits;
 };
