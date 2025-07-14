@@ -64,16 +64,27 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     );
 };
 
-const AllMapPOIs = ():JSX.Element => {
-    const visits = useSelector((state: RootState) => state.visits);
-    console.log("All visits:", visits.visits.length);
+type MapPOIGroupProps = {
+    visits: Visit[],
+};
+
+const MapPOIGroup = (props: MapPOIGroupProps) : JSX.Element => {
+    const visits = props.visits;
     return (
         <>
-            {[...visits.visits].map((visit, i) => {
+            {[...visits].map((visit, i) => {
                 return <MapPOI key={visit.location.id} visit={visit} />
             })}
         </>
     );
-}
+};
 
-export { MapPOI, AllMapPOIs }
+const AllMapPOIs = ():JSX.Element => {
+    const visits = useSelector((state: RootState) => state.visits);
+    console.log("All visits:", visits.visits.length);
+    return (
+        <MapPOIGroup visits={visits.visits} />
+    );
+};
+
+export { MapPOI, MapPOIGroup, AllMapPOIs }
