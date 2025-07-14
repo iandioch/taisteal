@@ -16,6 +16,7 @@ type MapPOIProps = {
 };
 
 const MapPOI = (props: MapPOIProps) : JSX.Element => {
+    const scaling = useSelector((state: RootState) => state.ui.mapPOISize);
     const [hovered, setHover] = useState(false);
     const navigate = useNavigate();
     const longestVisit = useSelector((state: RootState) => state.visits.longestVisit);
@@ -34,6 +35,7 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     // we don't want somewhere you stayed for 1000 hours to be the same
     // height at a glance as somewhere you stayed for 120.
     height += (visitHours / highestVisits) * (MAX_POI_HEIGHT/1.5 - MAX_LOG_HEIGHT - MIN_POI_HEIGHT);
+    height *= scaling;
     const radius = height / 4 ;
 
 
@@ -106,7 +108,7 @@ const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visi
 };
 
 const MapPOIGroup = (props: MapPOIGroupProps) : JSX.Element => {
-    const cameraDistance = useSelector((state: RootState) => state.ui.cameraDistanceFactor);
+    const cameraDistance = useSelector((state: RootState) => state.ui.batchedCameraDistance);
     let renderedVisits = props.visits;
     if (props.cluster) {
         renderedVisits = getClusteredVisits(props.visits, cameraDistance)
