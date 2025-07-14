@@ -1,5 +1,6 @@
 import { configureStore, createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { Leg, Visit } from 'types'
+import { MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE} from './constants'
 
 interface LegState {
     legs: Leg[]
@@ -101,10 +102,12 @@ const uiSlice = createSlice({
     name: 'ui',
     initialState: {
         cameraDistance: 0,
+        cameraDistanceFactor: 0,
     },
     reducers: {
         setCameraDistance: (state, action: PayloadAction<number>) => {
             state.cameraDistance = action.payload;
+            state.cameraDistanceFactor = (action.payload - MIN_CAMERA_DISTANCE) / (MAX_CAMERA_DISTANCE - MIN_CAMERA_DISTANCE);
         },
     }
 });

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Visit } from 'types';
 import { POI_COLOUR_SCALE, POI_RADIUS, MIN_POI_HEIGHT, MAX_POI_HEIGHT } from '../constants';
+import { latLngDistance } from '../maths';
 import { latLngToVector } from 'maths';
 import { useRef, useLayoutEffect, useState } from 'react';
 import { Circle, Cylinder, Hud, Html, Sphere } from '@react-three/drei';
@@ -66,13 +67,54 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
 
 type MapPOIGroupProps = {
     visits: Visit[],
+    cluster: boolean,
+};
+
+type MaybeCluster = {
+    visits: Visit[],
+}
+
+const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visit[] => {
+    const clusters: MaybeCluster[] = [];
+    const reqDistanceKm = 250 * (cameraDistanceFactor);
+    console.log("Req distance for cluster: " + reqDistanceKm);
+    for (const visit of visits) {
+        let added = false;
+        for (const cluster of clusters) {
+            for (const v of cluster.visits) {
+                if (latLngDistance(visit.location.latitude, visit.location.longitude, v.location.latitude, v.location.longitude) < reqDistanceKm) {
+                    cluster.visits.push(visit);
+                    console.log("Adding " + visit + " to cluster " + cluster);
+                    added = true;
+                    break;
+                }
+                // Only check the first one, just because otherwise it's so slow.
+                break;
+            }
+            if (added) break;
+        }
+        if (!added) {
+            clusters.push({visits: [visit]});
+        }
+    }
+
+    const clusterVisits: Visit[] = [];
+    for (const cluster of clusters) {
+        clusterVisits.push(cluster.visits[0]);
+    }
+    return clusterVisits;
 };
 
 const MapPOIGroup = (props: MapPOIGroupProps) : JSX.Element => {
-    const visits = props.visits;
+    const cameraDistance = useSelector((state: RootState) => state.ui.cameraDistanceFactor);
+    let renderedVisits = props.visits;
+    if (props.cluster) {
+        renderedVisits = getClusteredVisits(props.visits, cameraDistance)
+    }
+    console.log("After clustering, rendering " + (renderedVisits.length) + " POIs.");
     return (
         <>
-            {[...visits].map((visit, i) => {
+            {[...renderedVisits].map((visit, i) => {
                 return <MapPOI key={visit.location.id} visit={visit} />
             })}
         </>
@@ -83,7 +125,7 @@ const AllMapPOIs = ():JSX.Element => {
     const visits = useSelector((state: RootState) => state.visits);
     console.log("All visits:", visits.visits.length);
     return (
-        <MapPOIGroup visits={visits.visits} />
+        <MapPOIGroup visits={visits.visits} cluster={true} />
     );
 };
 

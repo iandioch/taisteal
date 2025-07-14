@@ -1,7 +1,7 @@
 import GlobeCanvas from 'Globe';
 import { Sidebar, SidebarPanel } from 'Sidebar';
 import { AirRoute } from 'map-components/RaisedArc';
-import { MapPOIGroup } from 'map-components/MapPOI';
+import { MapPOI, MapPOIGroup } from 'map-components/MapPOI';
 import { POILink } from 'sidebar-components/POILink';
 import { RouteTable } from 'sidebar-components/RouteTable';
 import { VisitTable } from 'sidebar-components/VisitTable';
@@ -56,7 +56,7 @@ export default function Country() {
   return (
     <>
          {/*countryName && <>{renderLegs()}{renderMatchingVisits()}</>*/}
-        {countryName && <MapPOIGroup visits={matchingVisits} />}
+        {countryName && <MapPOIGroup visits={matchingVisits} cluster={true} />}
         <SidebarHighlightTunnel.In>
             {!countryName && (<SidebarPanel>
                 <p>Error: could not find given country code.</p>
