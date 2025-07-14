@@ -37,6 +37,7 @@ def _apply_rewrites(parsed_result):
             'Milano': 'Milan',
             'München': 'Munich',
             'Brussel': 'Brussels',
+            'Londonderry': 'Derry',
         },
         # For England, try to get "ceremonial counties"
         'administrative_area_level_2': {
@@ -46,7 +47,7 @@ def _apply_rewrites(parsed_result):
         },
         'country': {
             'Unknown Country': 'Palestine',
-        }
+        },
     }
     for component in parsed_result['address_components']:
         for type_ in component['types']:
@@ -92,6 +93,21 @@ def _apply_rewrites(parsed_result):
                 return True
         return False
 
+    def rewrite_zugspitze(parsed_result):
+        for component in parsed_result['address_components']:
+            if component['long_name'] == 'Zugspitze':
+                parsed_result['address_components'].append({
+                    'long_name': 'Germany',
+                    'short_name': 'DE',
+                    'types': ['country'],
+                })
+                parsed_result['address_components'].append({
+                    'long_name': 'Bavaria',
+                    'types': ['administrative_area_level_2'],
+                })
+                return True
+        return False
+
     # Non-standard rewrites that don't cleanly fit as a name substitution. Each should return True if they applied to the given structure.
     # TODO(iandioch): it'd be good to get a counter for the number of usages of
     # these, so we know if any aren't used and can be removed.
@@ -100,6 +116,7 @@ def _apply_rewrites(parsed_result):
         'luton': rewrite_luton_airport,
         'kos_airport': rewrite_kos_airport,
         'heraklion': rewrite_heraklion,
+        'zugspitze': rewrite_zugspitze,
     }
     for rewrite_id in ad_hoc_rewrites:
         func = ad_hoc_rewrites[rewrite_id]
