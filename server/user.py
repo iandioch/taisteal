@@ -179,6 +179,9 @@ def get_collections():
             'title': collection['title'],
             'parts': []
         }
+        # TODO: Each collection part unnecessarily also contains the collection
+        # ID, since all columns are returned in the database query. This ID can
+        # be filtered out.
         for part in database.get_collection_parts(id_):
             obj['parts'].append(part)
         collections.append(obj)
@@ -195,16 +198,17 @@ def get_user_data():
 
     legs = []
     for leg in database.get_legs():
-        print(leg)
         legs.append({
             'id': leg['id'],
             'arrival_id': leg['arrival_location_id'],
             'departure_id': leg['departure_location_id'],
             'arrival_datetime_str': leg['arrival_datetime'].isoformat(),
             'departure_datetime_str': leg['departure_datetime'].isoformat(),
+            'mode': leg['mode'],
         })
         _maybe_add_location(leg['arrival_location_id'])
         _maybe_add_location(leg['departure_location_id'])
+    print(f'get_user_data example leg: {legs[0]}')
     legs.sort(key = lambda x:x['arrival_datetime_str'], reverse=True)
     return {
         'legs': legs,
