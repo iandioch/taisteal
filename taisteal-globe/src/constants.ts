@@ -15,7 +15,7 @@ export const CONTROLS_ROTATE_SPEED = 0.85;
 export const CONTROLS_ZOOM_SPEED = 0.7;
 
 export const POI_RADIUS = 0.005;
-export const MIN_POI_HEIGHT = GLOBE_RADIUS / 50;
+export const MIN_POI_HEIGHT = GLOBE_RADIUS / 64;
 export const MAX_POI_HEIGHT = GLOBE_RADIUS / 8;
 
 export const POI_COLOUR_SCALE = chroma.scale(["navy", "purple", "#DC6F3D", "#e9c440"]).mode('lch').gamma(0.5);

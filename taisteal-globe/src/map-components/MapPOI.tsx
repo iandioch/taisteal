@@ -30,7 +30,7 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     // you live will have an order of magnitude more visit time than
     // other places you've visited, and will be 100s of times larger in
     // a linear scale.
-    let height = MIN_POI_HEIGHT/1.5 + (Math.log10(visitHours)/highestVisitsLog10)*MAX_LOG_HEIGHT*0.66;
+    let height = MIN_POI_HEIGHT/1.5 + (Math.log10(visitHours)/highestVisitsLog10)*MAX_LOG_HEIGHT*0.33;
     // However, also use a linear-scaled height in addition, because
     // we don't want somewhere you stayed for 1000 hours to be the same
     // height at a glance as somewhere you stayed for 120.
