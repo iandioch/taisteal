@@ -23,7 +23,6 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     const MAX_LOG_HEIGHT = MAX_POI_HEIGHT/2;
     // TODO: need to handle clusters.
     const visitHours = props.visit.hours;
-    const radius = POI_RADIUS;
 
     // Use a log-based height, because in a normal case, the place where
     // you live will have an order of magnitude more visit time than
@@ -34,6 +33,7 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     // we don't want somewhere you stayed for 1000 hours to be the same
     // height at a glance as somewhere you stayed for 120.
     height += (visitHours / highestVisits) * (MAX_POI_HEIGHT/1.5 - MAX_LOG_HEIGHT - MIN_POI_HEIGHT);
+    const radius = height / 4 ;
 
 
     const pos = latLngToVector(props.visit.location.latitude, props.visit.location.longitude);
@@ -50,9 +50,9 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
             onPointerOver={e => {setHover(true); e.stopPropagation();}}
             onPointerOut={e => setHover(false)}
             onClick={e => {e.stopPropagation(); navigate(getRouteForPOI(props.visit.location.id));}}>
-            <mesh material={baseMaterial}>
+            {<mesh material={baseMaterial}>
                 <Circle args={[radius + margin, 8]} material={baseMaterial} />
-            </mesh>
+            </mesh>}
             {/*<Cylinder args={[radius, radius*0.8, height, 8, 1, false]} material={bodyMaterial} position={[0, 0, -height/2]} rotation={[-Math.PI/2, 0, 0]}/>*/}
             <Sphere args={[height/4, 8, 8]} material={bodyMaterial} />
             {hovered && 
