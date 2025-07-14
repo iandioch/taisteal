@@ -6,7 +6,7 @@ import location_database_utils
 
 import pendulum
 
-DB_PATH = '.taisteal.db'
+DB_PATH = '/taisteal-data/.taisteal.db'
 
 def _connect():
     db_connection = sqlite3.connect(DB_PATH)
