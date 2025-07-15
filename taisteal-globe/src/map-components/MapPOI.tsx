@@ -135,29 +135,15 @@ const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visi
     const reqDistanceKm = 200 * (cameraDistanceFactor);
     console.log("Req distance for cluster: " + reqDistanceKm);
     for (const visit of visits) {
-        let added = false;
         let bestCluster = null;
         let leastDistance = reqDistanceKm*10;
         for (const cluster of clusters) {
-            for (const v of cluster.visits) {
-                const dist = latLngDistance(visit.location.latitude, visit.location.longitude, cluster.centroid.location.latitude, cluster.centroid.location.longitude);
-                if (dist > reqDistanceKm || dist > leastDistance) {
-                    break;
-                }
-                bestCluster = cluster;
-                leastDistance = dist;
-                break;
-                if (latLngDistance(visit.location.latitude, visit.location.longitude, v.location.latitude, v.location.longitude) < reqDistanceKm) {
-                    cluster.visits.push(visit);
-                    cluster.hours += visit.hours;
-                    console.log("Adding " + visit + " to cluster " + cluster);
-                    added = true;
-                    break;
-                }
-                // Only check the first one, just because otherwise it's so slow.
-                break;
+            const dist = latLngDistance(visit.location.latitude, visit.location.longitude, cluster.centroid.location.latitude, cluster.centroid.location.longitude);
+            if (dist > reqDistanceKm || dist > leastDistance) {
+                continue;
             }
-            if (added) break;
+            bestCluster = cluster;
+            leastDistance = dist;
         }
         if (bestCluster) {
             bestCluster.visits.push(visit);
@@ -166,9 +152,7 @@ const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visi
             if (bestCluster.centroid.hours < visit.hours) {
                 bestCluster.centroid = visit;
             }
-            added = true;
-        }
-        if (!added) {
+        } else {
             clusters.push({visits: [visit], hours: visit.hours, centroid: visit});
         }
     }
