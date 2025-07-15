@@ -32,6 +32,7 @@ def _apply_rewrites(parsed_result):
             'Nordrhein-Westfalen': 'North Rhine-Westphalia',
             'Basel-Stadt': 'Basel City',
             'Sankt Gallen': 'St. Gallen',
+            'Yucatan': 'Yucatán',
         },
         'locality': {
             'Kastrup': 'Copenhagen', # technically different
