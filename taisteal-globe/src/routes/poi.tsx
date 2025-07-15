@@ -1,7 +1,7 @@
 import GlobeCanvas from 'Globe';
 import { Sidebar, SidebarPanel } from 'Sidebar';
 import { AirRoute } from 'map-components/RaisedArc';
-import { MapPOI } from 'map-components/MapPOI';
+import { VisitMapPOI, MapPOIGroup } from 'map-components/MapPOI';
 import { CountryLink, POILink } from 'sidebar-components/POILink';
 import { RouteTable } from 'sidebar-components/RouteTable';
 import { VisitTable } from 'sidebar-components/VisitTable';
@@ -42,16 +42,17 @@ export default function POI() {
   }
 
   function renderConnectedPOIs() {
-    return <>
+    return <MapPOIGroup visits={connectedVisits} cluster={true} />
+    /*
         {[...connectedVisits].map((visit, i) => {
-            return <MapPOI key={visit.location.id} visit={visit} />
+            return <VisitMapPOI key={visit.location.id} visit={visit} />
         })}
-    </>
+    </>*/
   }
 
   return (
     <>
-         {visit && <><MapPOI visit={visit} />{renderLegs()}{renderConnectedPOIs()}</>}
+         {visit && <><VisitMapPOI visit={visit} />{renderLegs()}{renderConnectedPOIs()}</>}
         <SidebarHighlightTunnel.In>
             {!visit && (<SidebarPanel>
                 <p>Error: could not find location with given ID.</p>

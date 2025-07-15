@@ -12,7 +12,11 @@ import { useSelector } from 'react-redux';
 import './MapPOI.css'
 
 type MapPOIProps = {
-    visit: Visit,
+    latitude: number,
+    longitude: number,
+    label: string,
+    targetURL: string,
+    visitHours: number,
 };
 
 const MapPOI = (props: MapPOIProps) : JSX.Element => {
@@ -24,7 +28,7 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     const highestVisitsLog10 = Math.log10(highestVisits);
     const MAX_LOG_HEIGHT = MAX_POI_HEIGHT/2;
     // TODO: need to handle clusters.
-    const visitHours = props.visit.hours;
+    const visitHours = props.visitHours;
 
     // Use a log-based height, because in a normal case, the place where
     // you live will have an order of magnitude more visit time than
@@ -39,7 +43,7 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
     const radius = height / 4 ;
 
 
-    const pos = latLngToVector(props.visit.location.latitude, props.visit.location.longitude);
+    const pos = latLngToVector(props.latitude, props.longitude);
 
     const baseMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF, side: THREE.BackSide});
     const bodyMaterial = new THREE.MeshBasicMaterial({color: POI_COLOUR_SCALE(Math.log10(visitHours)/Math.log10(highestVisits)).hex()});
@@ -52,7 +56,7 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
             onUpdate={(self) => self.lookAt(0, 0, 0)}
             onPointerOver={e => {setHover(true); e.stopPropagation();}}
             onPointerOut={e => setHover(false)}
-            onClick={e => {e.stopPropagation(); navigate(getRouteForPOI(props.visit.location.id));}}>
+            onClick={e => {e.stopPropagation(); navigate(props.targetURL);}}>
             {<mesh material={baseMaterial}>
                 <Circle args={[radius + margin, 8]} material={baseMaterial} />
             </mesh>}
@@ -60,12 +64,25 @@ const MapPOI = (props: MapPOIProps) : JSX.Element => {
             <Sphere args={[height/4, 8, 8]} material={bodyMaterial} />
             {hovered && 
                 <Html prepend center style={{pointerEvents: 'none'}}> 
-                    <p className="poi-label text-center text-lg p-1 bg-slate-100 rounded">{props.visit.location.name}</p>
+                    <p className="poi-label text-center text-lg p-1 bg-slate-100 rounded">{props.label}</p>
                 </Html>
             }
         </group>
     );
 };
+
+type VisitMapPOIProps = {
+    visit: Visit,
+}
+
+const VisitMapPOI = (props: VisitMapPOIProps) : JSX.Element => {
+    return <MapPOI key={props.visit.location.id}
+                latitude={props.visit.location.latitude}
+                longitude={props.visit.location.longitude}
+                label={props.visit.location.name}
+                targetURL={getRouteForPOI(props.visit.location.id)}
+                visitHours={props.visit.hours} />
+}
 
 type MapPOIGroupProps = {
     visits: Visit[],
@@ -124,7 +141,7 @@ const MapPOIGroup = (props: MapPOIGroupProps) : JSX.Element => {
     return (
         <>
             {[...renderedVisits].map((visit, i) => {
-                return <MapPOI key={visit.location.id} visit={visit} />
+                return <VisitMapPOI key={visit.location.id} visit={visit} />
             })}
         </>
     );
@@ -138,4 +155,4 @@ const AllMapPOIs = ():JSX.Element => {
     );
 };
 
-export { MapPOI, MapPOIGroup, AllMapPOIs }
+export { MapPOI, MapPOIGroup, AllMapPOIs, VisitMapPOI }

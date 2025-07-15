@@ -1,7 +1,7 @@
 import GlobeCanvas from 'Globe';
 import { Sidebar, SidebarPanel } from 'Sidebar';
 import { AirRoute } from 'map-components/RaisedArc';
-import { MapPOI, MapPOIGroup } from 'map-components/MapPOI';
+import { MapPOIGroup } from 'map-components/MapPOI';
 import { POILink } from 'sidebar-components/POILink';
 import { RouteTable } from 'sidebar-components/RouteTable';
 import { VisitTable } from 'sidebar-components/VisitTable';
@@ -41,14 +41,6 @@ export default function Country() {
     return <>
         {[...matchingLegs].map((leg, i) => {
             return <AirRoute key={leg.id} leg={leg} />
-        })}
-    </>
-  }
-
-  function renderMatchingVisits() {
-    return <>
-        {[...matchingVisits].map((visit, i) => {
-            return <MapPOI key={visit.location.id} visit={visit} />
         })}
     </>
   }
