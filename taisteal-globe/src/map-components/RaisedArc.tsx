@@ -1,9 +1,11 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { extend, ReactThreeFiber, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { Leg } from 'types'
 import { GLOBE_CIRCUMFERENCE, GLOBE_RADIUS } from '../constants'
 import { latLngDistance, latLngMidpoint, latLngToVector, mapToRange } from 'maths'
+import { RootState } from 'store';
+import { useSelector } from 'react-redux';
 
 // Fix conflict between SVG line and Three line
 // https://github.com/pmndrs/react-three-fiber/issues/34
@@ -30,21 +32,20 @@ const RaisedArcTraveller = (props: RaisedArcProps): JSX.Element => {
     // TODO: This should be an InstancedMesh
     const ref = React.useRef<THREE.Mesh>(null);
     const curve = new THREE.QuadraticBezierCurve3(props.start, props.controlPoint, props.end);
-    // TODO: this should be derived from GLOBE_RADIUS or something, so that
-    // if the globe size is changed then this is changed in proportion.
-    const radius = 0.003; 
+    const scaling = useSelector((state: RootState) => state.ui.mapPOISize); 
+    const radius = 0.002*scaling; 
     const detail = 8;
     // TODO: These should be set from the actual speed the leg was travelled at!
     const durationSeconds = 1.5;
     // The interim should be increased if this is not a regular route.
     const interimSeconds = 5.0;
-    let animState = Math.random()*(durationSeconds + interimSeconds);
+    let [origAnimState, setOrigAnimState] = useState(Math.random()*(durationSeconds + interimSeconds));
+    let animState = origAnimState;
 
     useFrame((state, delta) => {
         if (!ref.current) return;
 
-        animState += delta;
-        animState %= (durationSeconds+interimSeconds);
+        animState = ((animState + delta) % (durationSeconds + interimSeconds));
         if (animState > durationSeconds) {
             // TODO: this is a hack
             ref.current!.position.set(-100, -100, -100);
