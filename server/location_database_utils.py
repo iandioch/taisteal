@@ -14,6 +14,7 @@ def _apply_rewrites(parsed_result):
             'Tessin': 'Ticino',
             'Zurich': 'Zürich',
             'Lombardia': 'Lombardy',
+            'Toscana': 'Tuscany',
             'Illes Balears': 'Balearic Islands',
             'Islas Baleares': 'Balearic Islands',
             'Grisons': 'Graubünden',
