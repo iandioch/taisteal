@@ -1,7 +1,6 @@
 import { loadJSON, parseLegs } from 'data'
 import { Leg, } from 'types'
 import { useState, useEffect } from 'react'
-import { useAuth } from '@clerk/clerk-react'
 
 // TODO: this should be co-located with MAP_DATA_URL in data.ts.
 const LEG_DATA_URL = window.location.protocol + '//' + window.location.hostname + '/api/get_legs';
@@ -17,7 +16,6 @@ export const LegTable = (props: LegTableProps) => {
 }
 
 export const AllLegTable = () => {
-    const { getToken } = useAuth();
     const [legs, setLegs] = useState<Leg[]>([]);
     const [currOffset, setOffset] = useState<number>(0);
     const [currLimit] = useState<number>(15);
@@ -29,7 +27,6 @@ export const AllLegTable = () => {
             return;
         }
         setIsLoading(true);
-        const token = await getToken();
 
         loadJSON(LEG_DATA_URL + "?key=whiskey&offset=" + offset + "&limit=" + limit, (data) => {
             setLegs(parseLegs(data));
