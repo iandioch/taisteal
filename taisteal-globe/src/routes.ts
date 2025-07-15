@@ -12,6 +12,10 @@ export function getRouteForPOI(id: string) {
     return `/poi/${id}`;
 }
 
+export function getRouteForCluster(ids: string[]){
+    return `/poi/${ids[0]}`
+}
+
 export function getRouteForCountryCode(countryCode: string) {
     return `/country/${countryCode}`;
 }

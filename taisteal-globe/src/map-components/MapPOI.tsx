@@ -6,7 +6,7 @@ import { latLngToVector } from 'maths';
 import { useRef, useLayoutEffect, useState } from 'react';
 import { Circle, Cylinder, Hud, Html, Sphere } from '@react-three/drei';
 import { useNavigate } from 'react-router-dom';
-import { getRouteForPOI } from 'routes'
+import { getRouteForPOI, getRouteForCluster } from 'routes'
 import { RootState } from 'store';
 import { useSelector } from 'react-redux';
 import './MapPOI.css'
@@ -84,6 +84,40 @@ const VisitMapPOI = (props: VisitMapPOIProps) : JSX.Element => {
                 visitHours={props.visit.hours} />
 }
 
+type ClusterMapPOIProps = {
+    visits: Visit[],
+}
+
+const getLabelForCluster = (visits: Visit[]) : string => {
+    const regions = new Map<string, number>();
+    for (const visit of visits) {
+        regions.set(visit.location.region, visit.hours + (regions.get(visit.location.region) || 0));
+    }
+    const sortedRegions = Array.from(regions.entries()).sort((a, b) => a[1] - b[1]).reverse();
+    if (sortedRegions.length == 1) {
+        return `${sortedRegions[0][0]}`
+    } else if (sortedRegions.length == 2) {
+        return `${sortedRegions[0][0]} & ${sortedRegions[1][0]}`
+    } else {
+        return `${sortedRegions[0][0]}, ${sortedRegions[1][0]} & More`
+    }
+}
+
+const ClusterMapPOI = (props: ClusterMapPOIProps) : JSX.Element => {
+    const label = getLabelForCluster(props.visits);
+    const latitude = props.visits[0].location.latitude;
+    const longitude = props.visits[0].location.longitude;
+    const visitHours = Math.max(...props.visits.map((v) => v.hours));
+    const ids = props.visits.map((v) => v.location.id);
+    const key = ids.join(",");
+    return <MapPOI key={key}
+                latitude={latitude}
+                longitude={longitude}
+                label={label}
+                targetURL={getRouteForCluster(ids) }
+                visitHours={visitHours} />
+}
+
 type MapPOIGroupProps = {
     visits: Visit[],
     cluster: boolean,
@@ -91,9 +125,10 @@ type MapPOIGroupProps = {
 
 type MaybeCluster = {
     visits: Visit[],
+    hours: number,
 }
 
-const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visit[] => {
+const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visit[][] => {
     const clusters: MaybeCluster[] = [];
     const reqDistanceKm = 250 * (cameraDistanceFactor);
     console.log("Req distance for cluster: " + reqDistanceKm);
@@ -103,6 +138,7 @@ const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visi
             for (const v of cluster.visits) {
                 if (latLngDistance(visit.location.latitude, visit.location.longitude, v.location.latitude, v.location.longitude) < reqDistanceKm) {
                     cluster.visits.push(visit);
+                    cluster.hours += visit.hours;
                     console.log("Adding " + visit + " to cluster " + cluster);
                     added = true;
                     break;
@@ -113,35 +149,28 @@ const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visi
             if (added) break;
         }
         if (!added) {
-            clusters.push({visits: [visit]});
+            clusters.push({visits: [visit], hours: visit.hours});
         }
     }
-
-    const clusterVisits: Visit[] = [];
-    for (const cluster of clusters) {
-        let topVisit = cluster.visits[0];
-        for (let i = 1; i < cluster.visits.length; i++) {
-            let v = cluster.visits[i];
-            if (topVisit.hours < v.hours) {
-                topVisit = v;
-            }
-        }
-        clusterVisits.push(topVisit);
-    }
-    return clusterVisits;
+    return clusters.map((c) => c.visits);
 };
 
 const MapPOIGroup = (props: MapPOIGroupProps) : JSX.Element => {
-    const cameraDistance = useSelector((state: RootState) => state.ui.batchedCameraDistance);
-    let renderedVisits = props.visits;
+    const cameraDistance = useSelector((state: RootState) => state.ui.scaleFactor);
+    let renderedVisits = props.visits.map((v) => [v]);
     if (props.cluster) {
         renderedVisits = getClusteredVisits(props.visits, cameraDistance)
     }
     console.log("After clustering, rendering " + (renderedVisits.length) + " POIs.");
     return (
         <>
-            {[...renderedVisits].map((visit, i) => {
-                return <VisitMapPOI key={visit.location.id} visit={visit} />
+            {[...renderedVisits].map((visits, i) => {
+                if (visits.length == 1) {
+                    const visit = visits[0];
+                    return (<VisitMapPOI key={visit.location.id} visit={visit} />);
+                } else {
+                    return (<ClusterMapPOI visits={visits} />);
+                }
             })}
         </>
     );

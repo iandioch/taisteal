@@ -105,6 +105,8 @@ const uiSlice = createSlice({
         cameraDistanceFactor: 0,
         batchedCameraDistance: 0,
         scaleIndex: 0,
+        // Used for cluster sizes.
+        scaleFactor: 0,
         mapPOISize: 4,
     },
     reducers: {
@@ -123,6 +125,7 @@ const uiSlice = createSlice({
                         return;
                     }
                     state.scaleIndex = i;
+                    state.scaleFactor = i / scales.length;
                     state.batchedCameraDistance = scales[i];
                     console.log(`Setting camera distance to # ${i}: ${scales[i]}`)
                     break;
