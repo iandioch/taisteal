@@ -39,12 +39,19 @@ const legSlice = createSlice({
     },
 });
 
+type CountryData = {
+    countryCode: string,
+    countryName: string,
+    hours: number,
+};
+
 interface VisitState {
     visits: Visit[],
     longestVisit: Visit|null,
     stats: {
         numCountries: number,
-    }
+        countries: CountryData[],
+    },
 }
 
 const initialVisitState: VisitState = {
@@ -52,6 +59,7 @@ const initialVisitState: VisitState = {
     longestVisit: null,
     stats: {
         numCountries: 0,
+        countries: [],
     }
 }
 
@@ -68,12 +76,20 @@ function getLongestVisit(visits: Visit[]): Visit|null {
 }
 
 function computeStats(visits: Visit[]): VisitState['stats'] {
-    let countries = new Set<string>();
+    let countries = new Map<string, string>();
+    let countryHours = new Map<string, number>();
     for (const visit of visits) {
-        countries.add(visit.location.countryCode);
+        countries.set(visit.location.countryCode, visit.location.countryName);
+        countryHours.set(visit.location.countryCode, visit.hours + (countryHours.get(visit.location.countryCode) || 0));
     }
+    const countryList: CountryData[] = [];
+    for (const country of Array.from(countries.entries())) {
+        countryList.push({countryCode: country[0], countryName: country[1], hours: (countryHours.get(country[0])||0)});
+    }
+    countryList.sort((a, b) => (a.hours - b.hours)).reverse();
     return {
         numCountries: countries.size,
+        countries: countryList,
     }
 }
 

@@ -37,7 +37,7 @@ type CountryLinkProps = {
 export function CountryLink(props: CountryLinkProps) {
     return (<>
         <Link to={getRouteForCountryCode(props.countryCode)}>
-            <span className="rounded hover:ring hover:ring-slate-200 hover:bg-slate-100" >{props.countryName} {flagEmojiForCountryCode(props.countryCode)}</span>
+            <span className="rounded hover:ring hover:ring-slate-200 hover:bg-slate-100 whitespace-nowrap" >{props.countryName} {flagEmojiForCountryCode(props.countryCode)}</span>
         </Link>
     </>);
 }

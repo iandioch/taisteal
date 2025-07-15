@@ -3,12 +3,12 @@ import { AllAirRoutes } from 'map-components/AllRoutes'
 import { AllMapPOIs } from 'map-components/MapPOI'
 import { AllRouteTable } from 'sidebar-components/RouteTable'
 import { AllVisitTable } from 'sidebar-components/VisitTable'
+import { CountryLink } from 'sidebar-components/POILink'
 import { SidebarTunnel, SidebarHighlightTunnel, getRouteForVisitOverview, getRouteForRouteOverview } from 'routes'
 import { useSelector } from 'react-redux'
 import { RootState } from 'store'
 import { Link } from 'react-router-dom'
-//import { GiShipWheel } from "react-icons/gi";
-/*import GiShipWheel from '@react-icons/all-files/gi/GiShipWheel';*/
+import { stringForHours } from 'time'
 
 export default function Index() {
   const visitStats = useSelector((state: RootState) => state.visits.stats);
@@ -32,6 +32,10 @@ export default function Index() {
             </SidebarPanel>
         </SidebarHighlightTunnel.In>
         <SidebarTunnel.In>
+            <SidebarPanel>
+                <p>Countries & territories visited:</p>
+                {visitStats.countries.map((d, i) => {return <><span className="whitespace-nowrap"><CountryLink countryCode={d.countryCode} countryName={d.countryName} /> ({stringForHours(d.hours)})</span>{i < visitStats.countries.length - 1? ", ": ""}</>})}
+            </SidebarPanel>
             <div className="grid grid-cols-2 gap-2 w-full mx-2.5 mt-2.5 text-gray-800 text-sm text-center">
                 <Link to={getRouteForVisitOverview()} className="">
                     <div className="taisteal-sidebar-panel bg-slate-50" style={{margin: 0, backgroundImage: "url('mother.jpeg')", backgroundPosition: "center", backgroundSize: "cover", aspectRatio: 1, contain: 'layout'}}>
