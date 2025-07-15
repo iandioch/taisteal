@@ -114,10 +114,14 @@ def regenerate_tables():
     conn.commit()
     cursor.execute('SELECT * FROM location_lookups')
     for lookup in cursor.fetchall():
-        parsed_lookup_result = json.loads(lookup['result'])
-        id_ = location_database_utils.get_id_for_location_lookup(lookup['query'], parsed_lookup_result)
-        args = (lookup['query'], id_)
-        cursor.execute('INSERT INTO location_query_to_id(query, id) VALUES(?, ?)', args)
+        try:
+            parsed_lookup_result = json.loads(lookup['result'])
+            id_ = location_database_utils.get_id_for_location_lookup(lookup['query'], parsed_lookup_result)
+            args = (lookup['query'], id_)
+            cursor.execute('INSERT INTO location_query_to_id(query, id) VALUES(?, ?)', args)
+        except Exception as e:
+            print(e, 'when processing', lookup['query'], 'results', lookup['result'])
+            continue
     conn.commit()
 
     # Regenerate "locations" table ID->data from (query->lookup data) and (query->ID)
