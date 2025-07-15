@@ -15,8 +15,9 @@ const stringForHours = (hours:number):string => {
         return `${weeks} weeks`;
     }
     //const years = (hours / (24.0 * 365)).toFixed(1);
-    const years = Math.floor(hours / (24.0 * 365));
+    const years = Math.max(Math.round(hours / (24.0 * 365)), 1);
     const remainingHours = hours - (years * 24 * 365);
+    console.log("removing remainingHours " + remainingHours + " from years " + years);
     if (remainingHours > 100) {
         return `${years} years ${stringForHours(remainingHours)}`;
     }
