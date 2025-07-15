@@ -37,7 +37,6 @@ function Controls() {
                     if (!controlsRef.current) return;
                     
                     const dist = camera.position.distanceTo(controlsRef.current.target);
-                    console.log("Camera dist: " + dist);
                     store.dispatch(uiSlice.actions.setCameraDistance(dist));
                 }}
                     />
