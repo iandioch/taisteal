@@ -38,7 +38,7 @@ const RaisedArcTraveller = (props: RaisedArcProps): JSX.Element => {
     // TODO: These should be set from the actual speed the leg was travelled at!
     const durationSeconds = 1.5;
     // The interim should be increased if this is not a regular route.
-    const interimSeconds = 5.0;
+    const interimSeconds = 10.0;
     let [origAnimState, setOrigAnimState] = useState(Math.random()*(durationSeconds + interimSeconds));
     let animState = origAnimState;
 
@@ -67,6 +67,8 @@ const RaisedArcTraveller = (props: RaisedArcProps): JSX.Element => {
 const RaisedArc = (props: RaisedArcProps): JSX.Element => {
     const ref = useRef<THREE.Line>(null);
     const curve = new THREE.QuadraticBezierCurve3(props.start, props.controlPoint, props.end);
+    // Travellers for short routes just appear as near-static dots.
+    const renderTraveller = (props.leg.distance > 50);
     useEffect(() => {
         if (ref.current) {
             ref.current!.geometry.setFromPoints(curve.getPoints(props.smoothness));
@@ -74,7 +76,7 @@ const RaisedArc = (props: RaisedArcProps): JSX.Element => {
     });
     return (<group><line_ ref={ref} material={props.material}>
         <bufferGeometry /></line_>
-        <RaisedArcTraveller {...props} />
+        {renderTraveller && <RaisedArcTraveller {...props} />}
     </group>);
 };
 
