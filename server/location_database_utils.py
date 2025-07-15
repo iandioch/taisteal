@@ -33,6 +33,7 @@ def _apply_rewrites(parsed_result):
             'Basel-Stadt': 'Basel City',
             'Sankt Gallen': 'St. Gallen',
             'Yucatan': 'Yucatán',
+            'Województwo mazowieckie': 'Masovian Voivodeship',
         },
         'locality': {
             'Kastrup': 'Copenhagen', # technically different
