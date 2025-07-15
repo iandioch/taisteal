@@ -86,25 +86,67 @@ const VisitMapPOI = (props: VisitMapPOIProps) : JSX.Element => {
 
 type ClusterMapPOIProps = {
     visits: Visit[],
+    neighbours: MaybeCluster[],
+    regions: Map<string, number>,
+    countries: Map<string, number>,
 }
 
-const getLabelForCluster = (visits: Visit[]) : string => {
-    const regions = new Map<string, number>();
-    for (const visit of visits) {
-        regions.set(visit.location.region, visit.hours + (regions.get(visit.location.region) || 0));
+const getLabelForCluster = (visits: Visit[], regions: Map<string, number>, countries: Map<string, number>, neighbours: MaybeCluster[]) : string => {
+    let titles = [];
+    // This is so that eg. "Seychelles" is just presented as "Seychelles".
+    // TODO: maybe include <= 2, to facilitate Monaco, San Marino, etc?
+    let useCountryNames = (countries.size == 1);
+    if (useCountryNames) {
+        const sortedCountries = Array.from(countries.entries()).sort((a, b) => a[1] - b[1]).reverse();
+        const primaryCountry = sortedCountries[0][0]; //countries.keys().next().value;
+        for (const neighbour of neighbours) {
+            if (neighbour.countries.has(primaryCountry)) {
+                useCountryNames = false;
+            }
+        }
+        if (useCountryNames) {
+            titles.push(primaryCountry);
+            console.log("Using country name " + primaryCountry + " for ", visits);
+        }
     }
-    const sortedRegions = Array.from(regions.entries()).sort((a, b) => a[1] - b[1]).reverse();
-    if (sortedRegions.length == 1) {
-        return `${sortedRegions[0][0]}`
-    } else if (sortedRegions.length == 2) {
-        return `${sortedRegions[0][0]} & ${sortedRegions[1][0]}`
+
+    if (!useCountryNames) {
+        let useRegionNames = true;
+        // Sorted regions by hours.
+        const sortedRegions = Array.from(regions.entries()).sort((a, b) => a[1] - b[1]).reverse();
+
+        // If this region is shared among neighbours, calling this place by the region
+        // name instead of the actual locality may not be useful.
+        const primaryRegion = sortedRegions[0][0];
+        for (const neighbour of neighbours) {
+            if (neighbour.regions.has(primaryRegion)) {
+                console.log(primaryRegion + " is in ", neighbour);
+                useRegionNames = false;
+            }
+        }
+        if (useRegionNames) {
+            for (let i = 0; i < Math.min(3, sortedRegions.length); i++) {
+                titles.push(sortedRegions[i][0]);
+            }
+        } else {
+            const sortedVisits = visits.sort((a, b) => a.hours - b.hours).reverse();
+            for (let i = 0; i < Math.min(3, sortedVisits.length); i++) {
+                titles.push(sortedVisits[i].location.name);
+            }
+        }
+    }
+
+    if (titles.length == 1) {
+        return `${titles[0]}`
+    } else if (titles.length == 2) {
+        return `${titles[0]} & ${titles[1]}`
     } else {
-        return `${sortedRegions[0][0]}, ${sortedRegions[1][0]} & More`
+        return `${titles[0]}, ${titles[1]} & More`
     }
 }
 
 const ClusterMapPOI = (props: ClusterMapPOIProps) : JSX.Element => {
-    const label = getLabelForCluster(props.visits);
+    const label = getLabelForCluster(props.visits, props.regions, props.countries, props.neighbours);
     // Set position to be average of component positions.
     const latitude = props.visits.map((v) => v.location.latitude).reduce((a, b) => a+b, 0)/props.visits.length; 
     const longitude = props.visits.map((v) => v.location.longitude).reduce((a, b) => a+b, 0)/props.visits.length;
@@ -128,9 +170,11 @@ type MaybeCluster = {
     visits: Visit[],
     hours: number,
     centroid: Visit,
+    regions: Map<string, number>,
+    countries: Map<string, number>,
 }
 
-const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visit[][] => {
+const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): MaybeCluster[] => {
     const clusters: MaybeCluster[] = [];
     const reqDistanceKm = 200 * (cameraDistanceFactor);
     console.log("Req distance for cluster: " + reqDistanceKm);
@@ -153,27 +197,38 @@ const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visi
                 bestCluster.centroid = visit;
             }
         } else {
-            clusters.push({visits: [visit], hours: visit.hours, centroid: visit});
+            clusters.push({visits: [visit], hours: visit.hours, centroid: visit, regions: new Map(), countries: new Map()});
         }
     }
-    return clusters.map((c) => c.visits);
+    for (const cluster of clusters) {
+        const regions = cluster.regions;
+        for (const visit of cluster.visits) {
+            regions.set(visit.location.region, visit.hours + (regions.get(visit.location.region) || 0));
+        }
+        const countries = cluster.countries;
+        for (const visit of cluster.visits) {
+            countries.set(visit.location.countryName, visit.hours + (regions.get(visit.location.countryName) || 0));
+        }
+    }
+    return clusters;
 };
 
 const MapPOIGroup = (props: MapPOIGroupProps) : JSX.Element => {
     const cameraDistance = useSelector((state: RootState) => state.ui.scaleFactor);
-    let renderedVisits = props.visits.map((v) => [v]);
+    let renderedVisits: MaybeCluster[] = props.visits.map((v) => {return {visits: [v], centroid: v, hours: v.hours, regions: new Map(), countries: new Map()}});
     if (props.cluster && cameraDistance > 0) {
         renderedVisits = getClusteredVisits(props.visits, cameraDistance)
     }
     console.log("After clustering, rendering " + (renderedVisits.length) + " POIs.");
     return (
         <>
-            {[...renderedVisits].map((visits, i) => {
+            {[...renderedVisits].map((cluster, i) => {
+                const visits = cluster.visits;
                 if (visits.length == 1) {
                     const visit = visits[0];
                     return (<VisitMapPOI key={visit.location.id} visit={visit} />);
                 } else {
-                    return (<ClusterMapPOI visits={visits} />);
+                    return (<ClusterMapPOI visits={visits} regions={cluster.regions} countries={cluster.countries} neighbours={renderedVisits.filter((el, j) => j != i)}/>);
                 }
             })}
         </>
