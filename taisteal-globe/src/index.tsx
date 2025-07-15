@@ -8,6 +8,7 @@ import './index.css';
 import Root from './routes/root';
 import POI from './routes/poi';
 import Country from './routes/country';
+import POIGroup from './routes/pois';
 import Index from './routes/index';
 import VisitsOverview from './routes/visits';
 import RoutesOverview from './routes/routes';
@@ -47,7 +48,11 @@ const router = createBrowserRouter([
             {
                 path: 'edit/legs',
                 element: <LegsOverview />
-            }
+            },
+            {
+                path: "pois/:data",
+                element: <POIGroup />
+            },
         ]
     }
 ]);

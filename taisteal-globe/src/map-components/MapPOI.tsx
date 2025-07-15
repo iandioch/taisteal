@@ -157,7 +157,7 @@ const ClusterMapPOI = (props: ClusterMapPOIProps) : JSX.Element => {
                 latitude={latitude}
                 longitude={longitude}
                 label={label}
-                targetURL={getRouteForCluster(ids) }
+                targetURL={getRouteForCluster(label, ids) }
                 visitHours={visitHours} />
 }
 
