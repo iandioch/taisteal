@@ -110,8 +110,16 @@ const uiSlice = createSlice({
         setCameraDistance: (state, action: PayloadAction<number>) => {
             state.cameraDistance = action.payload;
             state.cameraDistanceFactor = (action.payload - MIN_CAMERA_DISTANCE) / (MAX_CAMERA_DISTANCE - MIN_CAMERA_DISTANCE);
-            const numSizes = 12;
-            state.batchedCameraDistance = Math.floor(state.cameraDistanceFactor * numSizes) / numSizes;
+            const numSizes = 4;
+            let size = 0;
+            const scales = [0.05, 0.1, 0.4, 1.0];
+            for (let i = 0; i < scales.length; i++) {
+                if(state.cameraDistanceFactor < scales[i]) {
+                    state.batchedCameraDistance = scales[i];
+                    console.log(`Setting camera distance to # ${i}: ${scales[i]}`)
+                    break;
+                }
+            }
             state.mapPOISize = (state.batchedCameraDistance*4 + 0.25);
         },
     }
