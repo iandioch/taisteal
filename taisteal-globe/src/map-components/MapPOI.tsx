@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Visit } from 'types';
+import { Visit, Location } from 'types';
 import { POI_COLOUR_SCALE, POI_RADIUS, MIN_POI_HEIGHT, MAX_POI_HEIGHT } from '../constants';
 import { latLngDistance } from '../maths';
 import { latLngToVector } from 'maths';
@@ -105,8 +105,9 @@ const getLabelForCluster = (visits: Visit[]) : string => {
 
 const ClusterMapPOI = (props: ClusterMapPOIProps) : JSX.Element => {
     const label = getLabelForCluster(props.visits);
-    const latitude = props.visits[0].location.latitude;
-    const longitude = props.visits[0].location.longitude;
+    // Set position to be average of component positions.
+    const latitude = props.visits.map((v) => v.location.latitude).reduce((a, b) => a+b, 0)/props.visits.length; 
+    const longitude = props.visits.map((v) => v.location.longitude).reduce((a, b) => a+b, 0)/props.visits.length;
     const visitHours = Math.max(...props.visits.map((v) => v.hours));
     const ids = props.visits.map((v) => v.location.id);
     const key = ids.join(",");
@@ -126,16 +127,26 @@ type MapPOIGroupProps = {
 type MaybeCluster = {
     visits: Visit[],
     hours: number,
+    centroid: Visit,
 }
 
 const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visit[][] => {
     const clusters: MaybeCluster[] = [];
-    const reqDistanceKm = 250 * (cameraDistanceFactor);
+    const reqDistanceKm = 200 * (cameraDistanceFactor);
     console.log("Req distance for cluster: " + reqDistanceKm);
     for (const visit of visits) {
         let added = false;
+        let bestCluster = null;
+        let leastDistance = reqDistanceKm*10;
         for (const cluster of clusters) {
             for (const v of cluster.visits) {
+                const dist = latLngDistance(visit.location.latitude, visit.location.longitude, cluster.centroid.location.latitude, cluster.centroid.location.longitude);
+                if (dist > reqDistanceKm || dist > leastDistance) {
+                    break;
+                }
+                bestCluster = cluster;
+                leastDistance = dist;
+                break;
                 if (latLngDistance(visit.location.latitude, visit.location.longitude, v.location.latitude, v.location.longitude) < reqDistanceKm) {
                     cluster.visits.push(visit);
                     cluster.hours += visit.hours;
@@ -148,8 +159,17 @@ const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visi
             }
             if (added) break;
         }
+        if (bestCluster) {
+            bestCluster.visits.push(visit);
+            bestCluster.hours += visit.hours;
+            // Not sure if the centroid actually makes much of a difference.
+            if (bestCluster.centroid.hours < visit.hours) {
+                bestCluster.centroid = visit;
+            }
+            added = true;
+        }
         if (!added) {
-            clusters.push({visits: [visit], hours: visit.hours});
+            clusters.push({visits: [visit], hours: visit.hours, centroid: visit});
         }
     }
     return clusters.map((c) => c.visits);
@@ -158,7 +178,7 @@ const getClusteredVisits = (visits: Visit[], cameraDistanceFactor: number): Visi
 const MapPOIGroup = (props: MapPOIGroupProps) : JSX.Element => {
     const cameraDistance = useSelector((state: RootState) => state.ui.scaleFactor);
     let renderedVisits = props.visits.map((v) => [v]);
-    if (props.cluster) {
+    if (props.cluster && cameraDistance > 0) {
         renderedVisits = getClusteredVisits(props.visits, cameraDistance)
     }
     console.log("After clustering, rendering " + (renderedVisits.length) + " POIs.");
