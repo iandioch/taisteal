@@ -13,6 +13,7 @@ import { stringForHours } from 'time'
 import { CameraPointer } from 'Camera'
 import { latLngToVector } from 'maths'
 import { Visit } from 'types'
+import { MAX_CAMERA_DISTANCE } from 'constants'
 
 const getTopVisitedLocation = createSelector(
     (state: RootState) => state.visits.visits,
@@ -36,7 +37,7 @@ export default function Index() {
   const numVisits = useSelector((state: RootState) => state.visits.visits.length);
   const topVisit = useSelector(getTopVisitedLocation);
 
-  const cameraPos = topVisit? latLngToVector(topVisit.location.latitude, topVisit.location.longitude, 2) : latLngToVector(0, 0, 2);
+  const cameraPos = topVisit? latLngToVector(topVisit.location.latitude, topVisit.location.longitude, MAX_CAMERA_DISTANCE) : latLngToVector(0, 0, MAX_CAMERA_DISTANCE);
 
   function prettifyDistance(d: number) {
     const rounded = Math.round(d);
