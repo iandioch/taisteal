@@ -13,7 +13,7 @@ import { stringForHours } from 'time'
 import { CameraPointer } from 'Camera'
 import { latLngToVector } from 'maths'
 import { Visit } from 'types'
-import { MAX_CAMERA_DISTANCE } from 'constants'
+import { MAX_CAMERA_DISTANCE } from '../constants'
 
 const getTopVisitedLocation = createSelector(
     (state: RootState) => state.visits.visits,
@@ -58,7 +58,7 @@ export default function Index() {
         <SidebarTunnel.In>
             <SidebarPanel>
                 <p>Countries & territories visited:</p>
-                {visitStats.countries.map((d, i) => {return <><span className="whitespace-nowrap"><CountryLink countryCode={d.countryCode} countryName={d.countryName} /> ({stringForHours(d.hours)})</span>{i < visitStats.countries.length - 1? ", ": ""}</>})}
+                {visitStats.countries.map((d, i) => {return <><span className="whitespace-nowrap"><CountryLink key={d.countryCode} countryCode={d.countryCode} countryName={d.countryName} /> ({stringForHours(d.hours)})</span>{i < visitStats.countries.length - 1? ", ": ""}</>})}
             </SidebarPanel>
             <div className="grid grid-cols-2 gap-2 w-full mx-2.5 mt-2.5 text-gray-800 text-sm text-center">
                 <Link to={getRouteForVisitOverview()} className="">

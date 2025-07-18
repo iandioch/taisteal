@@ -228,7 +228,8 @@ const MapPOIGroup = (props: MapPOIGroupProps) : JSX.Element => {
                     const visit = visits[0];
                     return (<VisitMapPOI key={visit.location.id} visit={visit} />);
                 } else {
-                    return (<ClusterMapPOI visits={visits} regions={cluster.regions} countries={cluster.countries} neighbours={renderedVisits.filter((el, j) => j != i)}/>);
+                    const key = (visits.map((v) => v.location.id)).join(";");
+                    return (<ClusterMapPOI key={key} visits={visits} regions={cluster.regions} countries={cluster.countries} neighbours={renderedVisits.filter((el, j) => j != i)}/>);
                 }
             })}
         </>
