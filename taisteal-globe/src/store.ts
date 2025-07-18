@@ -1,4 +1,5 @@
 import { configureStore, createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { createSelector } from '@reduxjs/toolkit';
 import { Leg, Visit } from 'types'
 import { MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE} from './constants'
 
@@ -167,5 +168,17 @@ export type RootState = ReturnType<typeof store.getState>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch
 
-export { legSlice, visitSlice, uiSlice }
+const getMatchingVisits = createSelector(
+    [(state: RootState) => state.visits.visits,
+    (state: RootState, id_set: Set<string>) => id_set],
+    (visits: Visit[], id_set) => visits.filter((visit) => id_set.has(visit.location.id)),
+);
+
+const getMatchingLegs = createSelector(
+    [(state: RootState) => state.legs.legs,
+    (state: RootState, id_set: Set<string>) => id_set],
+    (legs: Leg[], id_set) => legs.filter((leg) => id_set.has(leg.departureLocation.id) || id_set.has(leg.arrivalLocation.id)),
+);
+
+export { legSlice, visitSlice, uiSlice, getMatchingVisits, getMatchingLegs }
 export default store;
