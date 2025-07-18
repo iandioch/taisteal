@@ -10,6 +10,8 @@ import { uiSlice } from 'store'
 import store from 'store'
 import { useThree } from '@react-three/fiber'
 import './Globe.css'
+import TWEEN from '@tweenjs/tween.js'
+
 class TypedConicPolygonGeometry extends ConicPolygonGeometry {}
 extend({TypedConicPolygonGeometry});
 
@@ -43,6 +45,14 @@ function Controls() {
                     );
 }
 
+function Tween() {
+    useFrame(() => {
+        TWEEN.update();
+    });
+
+    return (<></>);
+}
+
 
 type GlobeCanvasProps = {}
 function GlobeCanvas(props: PropsWithChildren<GlobeCanvasProps>) {
@@ -55,6 +65,7 @@ function GlobeCanvas(props: PropsWithChildren<GlobeCanvasProps>) {
                 <pointLight position={[10, 10, 10]} />
                 <Globe>{props.children}</Globe>
                 <Controls />
+                <Tween />
                 <PerspectiveCamera
                     makeDefault
                     fov={30}

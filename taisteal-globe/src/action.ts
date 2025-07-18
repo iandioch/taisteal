@@ -1,3 +1,4 @@
+import TWEEN from '@tweenjs/tween.js'
 import { latLngToVector } from './maths'
 
 function lookAt(camera: THREE.Camera, latitude: number, longitude: number, distance: number|null = null) {
@@ -5,9 +6,10 @@ function lookAt(camera: THREE.Camera, latitude: number, longitude: number, dista
         distance = 2;
     }
 
+    TWEEN.removeAll();
+
     const newCameraPos = latLngToVector(latitude, longitude, distance);
-    // TODO: tween
-    camera.position.set(newCameraPos.x, newCameraPos.y, newCameraPos.z);
+    new TWEEN.Tween(camera.position).to(newCameraPos, 500).easing(TWEEN.Easing.Cubic.Out).start();
 }
 
 export { lookAt };
