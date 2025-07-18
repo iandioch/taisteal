@@ -129,13 +129,14 @@ const uiSlice = createSlice({
     reducers: {
         setCameraDistance: (state, action: PayloadAction<number>) => {
             state.cameraDistance = action.payload;
+            console.log("Reducer setCameraDistance, with distance", action.payload);
             // Try to make the "factor" on a scale of [0, 1].
             state.cameraDistanceFactor = (action.payload - MIN_CAMERA_DISTANCE) / (MAX_CAMERA_DISTANCE - MIN_CAMERA_DISTANCE);
 
             // "batches" for "batchedCameraDistance".
             const scales = [0.05, 0.1, 0.4, 1.0];
             for (let i = 0; i < scales.length; i++) {
-                if(state.cameraDistanceFactor < scales[i]) {
+                if(state.cameraDistanceFactor < scales[i]+0.0001) {
                     if (state.scaleIndex == i) {
                         // No change, we can keep the log clean and prevent
                         // further updates by quitting.
