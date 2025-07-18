@@ -11,6 +11,7 @@ import store from 'store'
 import { useThree } from '@react-three/fiber'
 import './Globe.css'
 import TWEEN from '@tweenjs/tween.js'
+import { Camera } from 'Camera'
 
 class TypedConicPolygonGeometry extends ConicPolygonGeometry {}
 extend({TypedConicPolygonGeometry});
@@ -66,14 +67,15 @@ function GlobeCanvas(props: PropsWithChildren<GlobeCanvasProps>) {
                 <Globe>{props.children}</Globe>
                 <Controls />
                 <Tween />
-                <PerspectiveCamera
+                <Camera position={new THREE.Vector3(0, 0, 2)}/>
+                { /*<PerspectiveCamera
                     makeDefault
                     fov={30}
                     aspect={2}
                     near={0.025}
                     far={12}
                     position={[0, 0, 2]}
-                    />
+                    /> */ }
             </Canvas>
         </div>
     </div>
