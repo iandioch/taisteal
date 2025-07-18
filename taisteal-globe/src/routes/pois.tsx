@@ -17,6 +17,7 @@ import { lookAt } from 'action'
 import { CameraPointer } from 'Camera'
 import { latLngToVector } from 'maths'
 import { Visit, Leg } from 'types'
+import { DEFAULT_CAMERA_DISTANCE } from '../constants'
 
 /*
 const getMatchingVisits = createSelector(
@@ -68,7 +69,7 @@ export default function POIGroup() {
 
     //lookAt(camera, latitude, longitude);
   //}, [matchingVisits]);
-  const cameraPos = latLngToVector(latitude, longitude, 2)
+  const cameraPos = latLngToVector(latitude, longitude, DEFAULT_CAMERA_DISTANCE)
   console.log(matchingVisits);
 
   const matchingLegs = useSelector((state: RootState) => getMatchingLegs(state, id_set));; //useSelector((state: RootState) => state.legs.legs.filter((leg) => id_set.has(leg.departureLocation.id) || id_set.has(leg.arrivalLocation.id)));

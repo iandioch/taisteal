@@ -12,7 +12,9 @@ import { useParams } from 'react-router-dom';
 import { RootState} from 'store';
 import { SidebarTunnel, SidebarHighlightTunnel } from 'routes'
 import { useThree } from '@react-three/fiber'
-import { lookAt } from '../action'
+import { CameraPointer } from 'Camera'
+import { DEFAULT_CAMERA_DISTANCE } from '../constants'
+import { latLngToVector } from 'maths'
 
 export default function POI() {
   useEffect(() => { loadMapData(); });
@@ -20,18 +22,11 @@ export default function POI() {
   let {id} = useParams();
   let { camera } = useThree();
 
-
-
   const matchingVisits = useSelector((state: RootState) => state.visits.visits.filter((visit) => visit.location.id == id));
   console.log(matchingVisits);
 
   const visit = matchingVisits.length > 0 ? matchingVisits[0] : null;
-
-  useEffect(() => {
-    if (visit) {
-        lookAt(camera, visit.location.latitude, visit.location.longitude)
-    }
-  }, [visit]);
+  const cameraPos = visit ? latLngToVector(visit.location.latitude, visit.location.longitude, DEFAULT_CAMERA_DISTANCE) : latLngToVector(0, 0, DEFAULT_CAMERA_DISTANCE);
 
   const matchingLegs = useSelector((state: RootState) => state.legs.legs.filter((leg) => leg.departureLocation.id == id || leg.arrivalLocation.id == id));
 
@@ -63,7 +58,8 @@ export default function POI() {
 
   return (
     <>
-         {visit && <><VisitMapPOI visit={visit} />{renderLegs()}{renderConnectedPOIs()}</>}
+        <CameraPointer position={cameraPos} />
+        {visit && <><VisitMapPOI visit={visit} />{renderLegs()}{renderConnectedPOIs()}</>}
         <SidebarHighlightTunnel.In>
             {!visit && (<SidebarPanel>
                 <p>Error: could not find location with given ID.</p>
