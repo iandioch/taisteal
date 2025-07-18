@@ -6,15 +6,37 @@ import { AllVisitTable } from 'sidebar-components/VisitTable'
 import { CountryLink } from 'sidebar-components/POILink'
 import { SidebarTunnel, SidebarHighlightTunnel, getRouteForVisitOverview, getRouteForRouteOverview } from 'routes'
 import { useSelector } from 'react-redux'
+import { createSelector } from '@reduxjs/toolkit'
 import { RootState } from 'store'
 import { Link } from 'react-router-dom'
 import { stringForHours } from 'time'
+import { CameraPointer } from 'Camera'
+import { latLngToVector } from 'maths'
+import { Visit } from 'types'
+
+const getTopVisitedLocation = createSelector(
+    (state: RootState) => state.visits.visits,
+    (visits: Visit[]) => {
+        let topVisit = null;
+        let hours = 0;
+        for (const visit of visits) {
+            if (visit.hours > hours) {
+                hours = visit.hours;
+                topVisit = visit;
+            }
+        }
+        return topVisit;
+    }
+);
 
 export default function Index() {
   const visitStats = useSelector((state: RootState) => state.visits.stats);
   const legStats = useSelector((state: RootState) => state.legs.stats);
   const numLegs = useSelector((state: RootState) => state.legs.legs.length);
   const numVisits = useSelector((state: RootState) => state.visits.visits.length);
+  const topVisit = useSelector(getTopVisitedLocation);
+
+  const cameraPos = topVisit? latLngToVector(topVisit.location.latitude, topVisit.location.longitude, 2) : latLngToVector(0, 0, 2);
 
   function prettifyDistance(d: number) {
     const rounded = Math.round(d);
@@ -22,6 +44,7 @@ export default function Index() {
   }
   return (
     <>
+        <CameraPointer position={cameraPos} />
         <AllAirRoutes />
         <AllMapPOIs />
         <SidebarHighlightTunnel.In>

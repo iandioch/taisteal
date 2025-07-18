@@ -11,6 +11,8 @@ import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { RootState} from 'store';
 import { SidebarTunnel, SidebarHighlightTunnel  } from 'routes'
+import { Camera } from 'Camera';
+import { latLngToVector } from 'maths';
 
 export default function Country() {
   useEffect(() => { loadMapData(); });
@@ -23,6 +25,11 @@ export default function Country() {
   const countryName = (matchingVisits.length > 0 ? matchingVisits[0].location.countryName : null);
 
   const matchingLegs = useSelector((state: RootState) => state.legs.legs.filter((leg) => leg.departureLocation.countryCode == id || leg.arrivalLocation.countryCode == id));
+  const n = matchingVisits.length;
+  const latitude = matchingVisits.map((v) => v.location.latitude).reduce((a, b) => a+b, 0)/n; 
+  const longitude = matchingVisits.map((v) => v.location.longitude).reduce((a, b) => a+b, 0)/n;
+
+  const cameraPos = latLngToVector(latitude, longitude, 2);
 
   // Locations that are not in this country but are connected.
   const connectedLocations = new Set<string>();
@@ -48,6 +55,7 @@ export default function Country() {
   return (
     <>
          {/*countryName && <>{renderLegs()}{renderMatchingVisits()}</>*/}
+        <Camera position={cameraPos} />
         {countryName && <MapPOIGroup visits={matchingVisits} cluster={true} />}
         <SidebarHighlightTunnel.In>
             {!countryName && (<SidebarPanel>

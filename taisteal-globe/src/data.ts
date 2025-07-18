@@ -95,6 +95,7 @@ async function loadMapData() {
     }
     loadingMapData = true;
     loadJSON(MAP_DATA_URL, (data) => {
+        console.log("Loaded data, parsing.", data);
         const legs = parseLegs(data);
         store.dispatch(legSlice.actions.addLegs(legs));
         const visits = parseVisits(data);

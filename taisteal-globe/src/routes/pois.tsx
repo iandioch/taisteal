@@ -11,13 +11,14 @@ import { useSelector } from 'react-redux';
 import { createSelector } from '@reduxjs/toolkit';
 import { useParams } from 'react-router-dom';
 import { useThree } from '@react-three/fiber'
-import { RootState} from 'store';
+import { RootState, getMatchingVisits, getMatchingLegs } from 'store';
 import { SidebarTunnel, SidebarHighlightTunnel  } from 'routes'
 import { lookAt } from 'action'
-import { Camera } from 'Camera'
+import { CameraPointer } from 'Camera'
 import { latLngToVector } from 'maths'
 import { Visit, Leg } from 'types'
 
+/*
 const getMatchingVisits = createSelector(
     [(state: RootState) => state.visits.visits,
     (state: RootState, id_set: Set<string>) => id_set],
@@ -28,7 +29,7 @@ const getMatchingLegs = createSelector(
     [(state: RootState) => state.legs.legs,
     (state: RootState, id_set: Set<string>) => id_set],
     (legs: Leg[], id_set) => legs.filter((leg) => id_set.has(leg.departureLocation.id) || id_set.has(leg.arrivalLocation.id)),
-)
+)*/
 
 export default function POIGroup() {
   useEffect(() => { loadMapData(); });
@@ -95,7 +96,7 @@ export default function POIGroup() {
 
   return (
     <>
-        <Camera position={cameraPos} />
+        <CameraPointer position={cameraPos} />
         {label && <>{renderLegs()}</>}
         {label && <MapPOIGroup visits={matchingVisits} cluster={false} />}
         <SidebarHighlightTunnel.In>
