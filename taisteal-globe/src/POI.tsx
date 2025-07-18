@@ -1,5 +1,4 @@
 import React from 'react'
-import renderInfoForPOI from './action'
 
 type POIProps = {
     text: string,
@@ -9,7 +8,7 @@ type POIProps = {
 const POI = (props: POIProps) => {
     const {text, id} = props;
     function handleClick(event: React.MouseEvent<HTMLAnchorElement>) {
-        renderInfoForPOI(id);
+        console.log("src/POI: handeClick");
     }
     // TODO: do icons
     return (

@@ -11,16 +11,27 @@ import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { RootState} from 'store';
 import { SidebarTunnel, SidebarHighlightTunnel } from 'routes'
+import { useThree } from '@react-three/fiber'
+import { lookAt } from '../action'
 
 export default function POI() {
   useEffect(() => { loadMapData(); });
 
   let {id} = useParams();
+  let { camera } = useThree();
+
+
 
   const matchingVisits = useSelector((state: RootState) => state.visits.visits.filter((visit) => visit.location.id == id));
   console.log(matchingVisits);
 
   const visit = matchingVisits.length > 0 ? matchingVisits[0] : null;
+
+  useEffect(() => {
+    if (visit) {
+        lookAt(camera, visit.location.latitude, visit.location.longitude)
+    }
+  }, [visit]);
 
   const matchingLegs = useSelector((state: RootState) => state.legs.legs.filter((leg) => leg.departureLocation.id == id || leg.arrivalLocation.id == id));
 
