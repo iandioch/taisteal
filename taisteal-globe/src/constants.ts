@@ -11,8 +11,8 @@ export const MIN_CAMERA_DISTANCE = GLOBE_RADIUS * 1.05;
 export const MAX_CAMERA_DISTANCE = GLOBE_RADIUS * 5;
 export const DEFAULT_CAMERA_DISTANCE = GLOBE_RADIUS*3;
 // Increase this number to make the scrolling snappier.
-export const CONTROLS_DAMPING_FACTOR = 0.075;
-export const CONTROLS_ROTATE_SPEED = 0.85;
+export const CONTROLS_DAMPING_FACTOR = 0.2;
+export const CONTROLS_ROTATE_SPEED = 0.5;
 export const CONTROLS_ZOOM_SPEED = 0.7;
 
 export const POI_RADIUS = 0.005;
